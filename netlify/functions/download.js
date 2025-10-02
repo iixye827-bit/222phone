@@ -1,97 +1,81 @@
-const axios = require('axios');
-const jwt = require('jsonwebtoken');
+// 文件路径: netlify/functions/download.js
 
-// 辅助函数：生成 GitHub App 的 JWT
-function generateJwt() {
-  const privateKey = process.env.GITHUB_PRIVATE_KEY;
-  const appId = process.env.GITHUB_APP_ID;
+const { createAppAuth } = require("@octokit/auth-app");
+const { Octokit } = require("@octokit/rest");
 
-  if (!privateKey || !appId) {
-    throw new Error('GitHub App ID or Private Key not configured in environment variables.');
-  }
+// ***************************************************************
+// ** 重要：请在这里修改为你自己的 GitHub 用户名和私有仓库名 **
+// ***************************************************************
+const GITHUB_OWNER = 'iixye827-bit'; // 例如：'john-doe'
+const GITHUB_REPO = '111phone';   // 例如：'jellyfish-data-repo'
+// ***************************************************************
+// ***************************************************************
 
-  const payload = {
-    iat: Math.floor(Date.now() / 1000) - 60,      // Issued at time, 60 seconds in the past
-    exp: Math.floor(Date.now() / 1000) + (10 * 60), // Expiration time (10 minutes max)
-    iss: appId                                      // Issuer: your app ID
-  };
-
-  return jwt.sign(payload, privateKey, { algorithm: 'RS256' });
-}
-
-// Netlify 云函数的主处理程序
-exports.handler = async (event) => {
-  // 从请求的 URL 参数中获取 owner 和 repo
-  const { owner, repo } = event.queryStringParameters;
-
-  if (!owner || !repo) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing owner or repo query parameters.' }),
-    };
-  }
-
+exports.handler = async function(event, context) {
   try {
-    const appToken = generateJwt();
+    // 1. 从环境变量中读取我们的GitHub App凭证
+    const appId = process.env.GITHUB_APP_ID;
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const privateKey = process.env.GITHUB_PRIVATE_KEY.replace(/\\n/g, '\n'); // 修复Netlify对换行符的处理
 
-    // 1. 使用 JWT 获取 App 在特定仓库上的 "installation ID"
-    const installationResponse = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}/installation`,
-      {
-        headers: {
-          Authorization: `Bearer ${appToken}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
-      }
-    );
-    const installationId = installationResponse.data.id;
-
-    // 2. 使用 installation ID 获取一个临时的、真正拥有权限的 access token
-    const accessTokenResponse = await axios.post(
-      `https://api.github.com/app/installations/${installationId}/access_tokens`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${appToken}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
-      }
-    );
-    const accessToken = accessTokenResponse.data.token;
-
-    // 3. 使用这个 access token 去获取文件内容
-    const fileResponse = await axios.get(
-      `https://api.github.com/repos/${owner}/${repo}/contents/jellyfish.json`,
-      {
-        headers: {
-          Authorization: `token ${accessToken}`,
-          Accept: 'application/vnd.github.v3+json',
-        },
-      }
-    );
+    // 2. 使用凭证进行身份验证，获取一个临时的JWT (JSON Web Token)
+    // 这是证明“我是这个GitHub App”的第一步
+    const auth = createAppAuth({
+      appId,
+      privateKey,
+      clientId,
+    });
     
-    // GitHub API返回的内容是 Base64 编码的，需要解码
-    const content = Buffer.from(fileResponse.data.content, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(content);
+    const appAuthentication = await auth({ type: "app" });
+    const appOctokit = new Octokit({ auth: appAuthentication.token });
 
-    // 成功！返回解码后的 JSON 数据
+    // 3. 找到我们的App安装在哪个仓库上，并获取那个仓库的 installationId
+    const { data: installations } = await appOctokit.apps.listInstallations();
+    const installation = installations.find(
+      (inst) => inst.account.login === GITHUB_OWNER
+    );
+
+    if (!installation) {
+      throw new Error(`在 ${GITHUB_OWNER} 上找不到该App的安装。请检查App是否已安装并授权给仓库。`);
+    }
+    const installationId = installation.id;
+
+    // 4. 使用 installationId 获取一个针对该仓库的、有时效性的访问令牌 (token)
+    // 这是第二步认证，有了这个令牌，我们才能真正操作那个私有仓库
+    const installationAuthentication = await auth({
+      type: "installation",
+      installationId,
+    });
+    const installationOctokit = new Octokit({ auth: installationAuthentication.token });
+
+    // 5. 使用这个最终的令牌，从私有仓库中获取 data.json 文件的内容
+    const { data } = await installationOctokit.repos.getContent({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      path: 'data.json',
+    });
+
+    // 6. GitHub API返回的内容是Base64编码的，我们需要把它解码成人类可读的字符串
+    const content = Buffer.from(data.content, 'base64').toString('utf8');
+
+    // 7. 将解码后的内容作为JSON返回给前端
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*', // 允许跨域
+        'Access-Control-Allow-Origin': '*', // 允许跨域访问
       },
-      body: JSON.stringify(jsonData),
+      body: content,
     };
 
   } catch (error) {
-    console.error('Error processing request:', error.message);
-    // 返回一个有用的错误信息给前端
+    // 如果任何一步出错，打印错误日志并返回一个错误信息给前端
+    console.error("云函数执行失败:", error);
     return {
-      statusCode: error.response?.status || 500,
-      body: JSON.stringify({ 
-          error: 'Failed to fetch data from GitHub.',
-          details: error.response?.data?.message || 'Check server logs for more info.'
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "从GitHub获取文件失败。",
+        error: error.message,
       }),
     };
   }
