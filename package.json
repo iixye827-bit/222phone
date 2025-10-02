@@ -1,0 +1,9 @@
+{
+  "name": "jellyfish-project-functions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@octokit/auth-app": "^4.0.7",
+    "@octokit/rest": "^19.0.5"
+  }
+}
