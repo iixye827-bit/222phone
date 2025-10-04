@@ -457,6 +457,34 @@
         }
         /* ===== [END] HELP MODAL UPDATE STYLES ===== */
 
+        /* ... 你现有的其他 CSS ... */
+        .fab-drawer-item.has-update::after {
+            /* ... */
+        }
+        /* ===== [END] HELP MODAL UPDATE STYLES ===== */
+
+
+        /* =============================================================== */
+        /* ============ [新增] iOS 提示模态框的微调样式 ============ */
+        /* =============================================================== */
+        #iosWarningModal .modal-body p {
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        #iosWarningModal .modal-body strong {
+            color: var(--hold-border);
+            font-weight: 600;
+        }
+        /* =============================================================== */
+        /* ========================= [新增结束] ========================== */
+        /* =============================================================== */
+
+
+        /* ===== [START] FROSTED GLASS THEME ===== */
+        body.theme-glass .modal-overlay,
+        /* ... */
+
+
         /* ===== [START] FROSTED GLASS THEME ===== */
         body.theme-glass .modal-overlay,
         body.theme-glass #memoryPhotoViewerOverlay {
@@ -794,7 +822,61 @@
         .css-help-text-block { background-color: rgba(128,128,128,0.1); padding: 12px; border-radius: 8px; margin-top: 5px; font-family: monospace; white-space: pre-wrap; word-break: break-all; font-size: 13px; position:relative;}
         .css-help-text-block .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: inherit; padding: 4px 8px; border-radius: 5px; font-size: 12px; cursor: pointer; transition: background 0.2s; }
         .css-help-text-block .copy-btn:hover { background: rgba(255,255,255,0.4); }
+
+/* 你可以把这段 CSS 放在 <style> 标签的末尾 */
+#iosPwaWarningModal .modal-header {
+    justify-content: center; /* 让标题居中 */
+}
+#iosPwaWarningModal .important-note {
+    border-left-color: #e53e3e; /* 强化警告区域的边框颜色 */
+    background-color: rgba(229, 62, 62, 0.1);
+}
+
         /* ===== [END] CSS HELP MODAL STYLES ===== */
+
+/* =============================================================== */
+/* ============= [新增] 拖拽排序功能专属样式 V1.0 ============= */
+/* =============================================================== */
+
+/* 当拖拽发生时，给 body 添加此类，以防止意外的文本选择 */
+body.dragging-active {
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grabbing !important;
+}
+
+/* 正在被拖拽的原始按钮的样式，让它“占位”但视觉上弱化 */
+.nav-btn.dragging,
+.category-pill.dragging {
+    opacity: 0.4;
+    animation: none !important; /* 拖拽时停止抖动动画 */
+    transform: none !important;
+}
+
+/* 跟随手指移动的半透明虚影的样式 */
+.drag-ghost {
+    position: fixed; /* 使用 fixed 定位，使其可以在全屏自由移动 */
+    pointer-events: none; /* 让鼠标事件可以穿透虚影，检测到下方的元素 */
+    z-index: 9999;
+    opacity: 0.8;
+    transform: scale(1.08); /* 拖拽时微微放大，有被“拿起”的感觉 */
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+/* 当一个按钮成为有效的放置目标时的样式 */
+.nav-btn.drag-over,
+.category-pill.drag-over {
+    transform: scale(1.05) !important; /* 目标位置微微放大 */
+    animation: none !important; /* 悬停时也停止抖动 */
+    box-shadow: 0 0 18px 4px var(--hold-border, #63b3ed) !important; /* 关键的蓝色光晕特效 */
+    transition: all 0.2s ease-in-out;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
 
     </style>
     <style id="custom-jelly-ball-styles"></style>
@@ -1186,6 +1268,41 @@
         </div>
     </div>
     <!-- ===== [END] CSS HELP MODAL ===== -->
+
+    <!-- ... 你现有的其他 modal ... -->
+    <div class="modal-overlay" id="jelly-css-help-modal">
+        <!-- ... CSS 帮助模态框的内容 ... -->
+    </div>
+    <!-- ===== [END] CSS HELP MODAL ===== -->
+
+    <!-- =============================================================== -->
+    <!-- ================ [新增] iOS 用户首次访问提示模态框 ================ -->
+    <!-- =============================================================== -->
+    <div class="modal-overlay" id="iosWarningModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title-group"><span>⚠️ iOS 用户重要提示</span></div>
+            </div>
+            <div class="modal-body">
+                <p>尊敬的 iOS 用户，由于系统对 Web 应用沙箱（Sandbox）环境的严格限制，当您将本应用“添加到主屏幕”后，每次从后台彻底关闭应用（上划清除）都可能导致 <strong>iframe 内的项目数据被清除</strong>。</p>
+                <p>为避免数据丢失，我们建议您：</p>
+                <ol style="margin-left: 20px; line-height: 1.7;">
+                    <li><strong>使用“标签页模式”打开项目</strong>：在“管理项目”页面上传或编辑项目时，开启“在新标签页中打开”开关。这会使用系统浏览器打开，数据更安全，但可能无法实现完全全屏。</li>
+                    <li><strong>直接在浏览器中使用</strong>：通过 Safari 等浏览器直接访问本站，而不是通过桌面图标，这是最稳妥的方式。</li>
+                </ol>
+                <p style="margin-top: 15px;">为保障您的数据安全，强烈建议您<strong>定期备份</strong>重要数据。</p>
+                <button id="iosWarningConfirmBtn" class="modal-button" style="margin-top: 15px;">我已知晓</button>
+            </div>
+        </div>
+    </div>
+    <!-- =============================================================== -->
+    <!-- ========================= [新增结束] ========================== -->
+    <!-- =============================================================== -->
+
+    <!-- ===== [START] MEMORY MODAL ===== -->
+    <div class="modal-overlay" id="memoryModal">
+        <!-- ... 记忆模态框的内容 ... -->
+    </div>
 
     <!-- ===== [START] MEMORY MODAL ===== -->
     <div class="modal-overlay" id="memoryModal">
@@ -3424,8 +3541,15 @@
         const actions = {
             'goto-memo': () => { showPage('memo-section'); state.currentSection = 'memo'; document.getElementById('memory-modal-title').textContent = '备忘录'; renderMemoFolders(); },
             'goto-album': () => { showPage('album-section'); state.currentSection = 'album'; document.getElementById('memory-modal-title').textContent = '相册'; renderAlbumFolders(); },
-            'goto-cloud': () => { showPage('cloud-drive-section'); state.currentSection = 'cloud'; document.getElementById('memory-modal-title').textContent = '文件夹'; populateDriveCategorySelector(); fetchFilesForSelectedProject(); 
-fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
+            'goto-cloud': () => { 
+    showPage('cloud-drive-section'); 
+    state.currentSection = 'cloud'; 
+    document.getElementById('memory-modal-title').textContent = '文件夹'; 
+    populateDriveCategorySelector(); 
+    populateDriveProjectSelector(); // 新增此行
+    fetchFilesForSelectedProject(); 
+},
+
             'back-to-hub': () => { showPage('hub-view'); state.currentSection = null; document.getElementById('memory-modal-title').textContent = '记忆'; },
             'add-memo-folder': () => { state.folderModalContext = { type: 'memo', id: null }; document.getElementById('folder-modal-title').textContent = '新文件夹'; ui.folderModal.querySelector('#folder-name-input').value = ''; ui.folderModal.classList.add('show'); },
             'add-album-folder': () => {
@@ -3716,46 +3840,53 @@ fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
         }
        
               function populateDriveCategorySelector() {
-            ui.categorySelector.innerHTML = '<option value="">-- 请选择分类 --</option>';
-            if (currentConfig.categories && currentConfig.categories.length > 0) {
-                const categoriesWithUploads = new Set();
-                currentConfig.categories.forEach(cat => {
-                    // 修复：将检查条件从旧的 'raw.githack.com' URL 更改为新的 'projects/' 路径
-                    if (cat.buttons.some(b => b.href && b.href.startsWith('projects/'))) {
-                        categoriesWithUploads.add(cat.name);
-                    }
-                });
+    ui.categorySelector.innerHTML = '<option value="">-- 请选择分类 --</option>';
+    if (currentConfig.categories && currentConfig.categories.length > 0) {
+        // 直接遍历所有分类并添加到下拉菜单
+        currentConfig.categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.name;
+            option.textContent = cat.name;
+            ui.categorySelector.appendChild(option);
+        });
+    }
+}
 
-                categoriesWithUploads.forEach(catName => {
-                    const option = document.createElement('option');
-                    option.value = catName;
-                    option.textContent = catName;
-                    ui.categorySelector.appendChild(option);
-                });
-            }
-        }
-
-
-        function populateDriveProjectSelector() {
+         function populateDriveProjectSelector() {
             const selectedCategory = ui.categorySelector.value;
-            ui.projectSelector.innerHTML = '';
-            ui.projectSelector.classList.add('hidden');
-            if (!selectedCategory) return;
-            
+            ui.projectSelector.innerHTML = ''; // 首先清空旧的项目
+
+            if (!selectedCategory || selectedCategory === '') {
+                ui.projectSelector.classList.add('hidden');
+                return;
+            }
+
+            ui.projectSelector.classList.remove('hidden');
+
             const category = currentConfig.categories.find(c => c.name === selectedCategory);
-            if (category && category.buttons) {
-                const uploadButtons = category.buttons.filter(b => b.href && b.href.startsWith('projects/'));
-                if (uploadButtons.length > 0) {
-                   uploadButtons.forEach(btn => {
-                       const option = document.createElement('option');
-                       option.value = btn.href;
-                       option.textContent = btn.text;
-                       ui.projectSelector.appendChild(option);
-                   });
-                   ui.projectSelector.classList.remove('hidden');
-                }
+            // 修改核心：不再过滤，获取该分类下的【所有】按钮/项目
+            const allProjects = (category && category.buttons) ? category.buttons : [];
+
+            if (allProjects.length > 0) {
+                // 遍历所有项目并添加到选择框
+                allProjects.forEach(btn => {
+                    const option = document.createElement('option');
+                    // 使用项目的 href 作为唯一标识
+                    option.value = btn.href; 
+                    option.textContent = btn.text;
+                    ui.projectSelector.appendChild(option);
+                });
+            } else {
+                // 如果分类下确实没有任何项目
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "此分类下无任何项目";
+                option.disabled = true;
+                ui.projectSelector.appendChild(option);
             }
         }
+
+
         function fetchFilesForSelectedProject() {
             const categoryName = ui.categorySelector.value;
             const projectHref = ui.projectSelector.value;
@@ -3769,37 +3900,90 @@ fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
             fetchFilesFromGithubProject(projectHref);
         }
 
-        async function fetchFilesFromGithubProject(projectHref) {
-            const projectPath = projectHref.substring(0, projectHref.lastIndexOf('/'));
-            ui.fileListStatus.textContent = "加载中...";
+                async function fetchFilesFromGithubProject(projectHref) {
+            const projectConfig = findButtonConfigByHref(projectHref);
 
-            const { data: files, error } = await fetchFromGithub(projectPath);
-            if (error) { ui.fileListStatus.textContent = `加载失败: ${error}`; return; }
+            // 如果没有有效的项目被选中（例如，下拉框是提示信息时），则直接显示提示
+            if (!projectConfig) {
+                ui.fileListStatus.textContent = "请选择一个项目以查看文件";
+                return;
+            }
 
-            const filesToShow = files ? files.filter(file => file.name !== 'index.html') : [];
-
-            if (filesToShow.length === 0) { ui.fileListStatus.textContent = "该文件夹下暂无文件"; return; }
+            // 新逻辑：根据项目名称生成对应的安全文件夹路径
+            const projectName = projectConfig.text;
+            const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `project-${Date.now()}`;
             
+            // 新逻辑：只从 'jellyfish_drive' 中读取数据
+            const projectPath = `jellyfish_drive/${folderName}`;
+            ui.fileListStatus.textContent = "加载中...";
+            
+            // fetchFromGithub 能优雅地处理 404 (文件夹不存在) 的情况
+            const { data: files, error } = await fetchFromGithub(projectPath);
+            if (error) { 
+                ui.fileListStatus.textContent = `加载失败: ${error}`; 
+                return; 
+            }
+
+            // 如果 files 为 null (文件夹不存在) 或为空数组，都视为没有文件
+            if (!files || files.length === 0) {
+                ui.fileListStatus.textContent = "该项目下暂无文件";
+                return;
+            }
+
             ui.fileListStatus.style.display = "none";
-            filesToShow.forEach(async (file) => {
+            files.forEach(async (file) => {
                 const li = document.createElement("li");
                 const sizeText = file.size ? `${(file.size / 1024).toFixed(1)} KB` : '...';
-                
-                li.innerHTML = `<div class="file-info"><span class="file-name">${file.name}</span><span class="file-meta" data-path="${file.path}">${sizeText}</span></div><button class="delete-btn">&times;</button>`;
+                li.innerHTML = `<div class="file-info"><span class="file-name">${file.name}</span><span class="file-meta" data-path="${file.path}">${sizeText}</span></div><button class="delete-btn" data-sha="${file.sha}">&times;</button>`;
+
                 ui.fileList.appendChild(li);
                 
-                if (!file.size) {
-                    getLatestCommitDate(file.path).then(date => {
-                        const metaSpan = li.querySelector('.file-meta');
-                        if (metaSpan) metaSpan.textContent = date.split('T')[0];
-                    });
-                }
+                if (!file.size) { getLatestCommitDate(file.path).then(date => { const metaSpan = li.querySelector('.file-meta'); if (metaSpan) metaSpan.textContent = date.split('T')[0]; }); }
                 
                 li.querySelector(".file-info").addEventListener("click", () => forceDownload(file.path, file.name, li));
                 li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file.path, file.sha, li));
             });
         }
-        async function getLatestCommitDate(e){const t=`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${encodeURIComponent(e)}&page=1&per_page=1`;try{const n=await fetch(t,{headers:{"Authorization":`token ${GITHUB_CONFIG.token}`},cache:"no-cache"});if(!n.ok)return(new Date(0)).toISOString().split('T')[0];const o=await n.json();return o[0]?.commit.committer.date.split('T')[0]||(new Date(0)).toISOString().split('T')[0]}catch(n){return console.error(`Error fetching commit date for ${e}:`,n),(new Date(0)).toISOString().split('T')[0]}}async function deleteFile(e,t,n){if(!confirm(`确定要永久删除文件 "${e.split("/").pop()}" 吗？`))return;n.style.opacity="0.5";try{ const success = await deleteFromGithub(e, `Delete file: ${e}`, t); if (success) { n.remove(); if(ui.fileList.children.length === 0) { ui.fileListStatus.textContent = '该文件夹下暂无文件'; ui.fileListStatus.style.display = 'block'; } } else { n.style.opacity = "1"; } } catch(err) { n.style.opacity = "1"; }}
+
+        async function getLatestCommitDate(e){const t=`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${encodeURIComponent(e)}&page=1&per_page=1`;try{const n=await fetch(t,{headers:{"Authorization":`token ${GITHUB_CONFIG.token}`},cache:"no-cache"});if(!n.ok)return(new Date(0)).toISOString().split('T')[0];const o=await n.json();return o[0]?.commit.committer.date.split('T')[0]||(new Date(0)).toISOString().split('T')[0]}catch(n){return console.error(`Error fetching commit date for ${e}:`,n),(new Date(0)).toISOString().split('T')[0]}}async function deleteFile(e,t,n){
+    const originalFileName = n.querySelector(".file-name").textContent;
+    if(!confirm(`确定要永久删除文件 "${originalFileName}" 吗？`))return;
+    
+    // --- [新增功能] ---
+    const fileNameSpan = n.querySelector(".file-name");
+    const deleteButton = n.querySelector(".delete-btn");
+    fileNameSpan.textContent = "正在删除...";
+    deleteButton.style.display = "none"; // 隐藏删除按钮
+    n.style.pointerEvents = "none"; // 禁止重复点击
+    n.style.opacity="0.7";
+    // --- [新增结束] ---
+    
+    try{ 
+        const success = await deleteFromGithub(e, `Delete file: ${e}`, t); 
+        if (success) { 
+            n.remove(); 
+            if(ui.fileList.children.length === 0) { 
+                ui.fileListStatus.textContent = '该文件夹下暂无文件'; 
+                ui.fileListStatus.style.display = 'block'; 
+            } 
+        } else { 
+            // --- [优化] 恢复状态 ---
+            fileNameSpan.textContent = originalFileName;
+            deleteButton.style.display = "flex";
+            n.style.pointerEvents = "auto";
+            n.style.opacity = "1";
+            // --- [优化结束] ---
+        } 
+    } catch(err) { 
+         // --- [优化] 恢复状态 ---
+         fileNameSpan.textContent = originalFileName;
+         deleteButton.style.display = "flex";
+         n.style.pointerEvents = "auto";
+         n.style.opacity = "1";
+         // --- [优化结束] ---
+    }
+}
+
         async function forceDownload(path, filename, el) {
             const fileNameSpan = el.querySelector(".file-name");
             const originalText = fileNameSpan.textContent;
@@ -3867,42 +4051,84 @@ fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
                 el.style.pointerEvents = "auto";
             }
         }
-        async function uploadFile() { 
-            if (activeUploadXHR) { activeUploadXHR.abort(); return; } 
-            if (!checkConfig()) return; 
-            const selectedProjectHref = ui.projectSelector.value;
-            const file = ui.fileUploader.files[0]; 
-            let fileName = ui.fileNameInput.value.trim() || (file && file.name); 
-            if (!selectedProjectHref || !file || !fileName) { return alert("请选择要上传到的项目、文件，并确保文件名不为空。"); } 
-            
-            const projectConfig = findButtonConfigByHref(selectedProjectHref);
-            if (!projectConfig) {
-                return alert("此项目配置无效。");
-            }
-            
-            const projectFolder = projectConfig.href.substring(0, projectConfig.href.lastIndexOf('/'));
+                async function uploadFile() {
+    if (activeUploadXHR) { activeUploadXHR.abort(); return; }
+    if (!checkConfig()) return;
 
-            ui.uploadBtn.disabled = true; 
-            ui.uploadBtn.textContent = "上传中 (0%)..."; 
-            ui.progressContainer.style.display = 'block'; 
-            ui.progressBar.style.width = '0%'; 
-            
-            try { 
-                const path = `${projectFolder}/${fileName}`;
-                await uploadFileViaGitData({ file, path, commitMessage: `Upload ${fileName} to ${projectConfig.text}`, onProgress: (percent) => { ui.progressBar.style.width = `${percent}%`; if (percent < 100) { ui.uploadBtn.textContent = `上传中 (${Math.round(percent)}%)...`; } else { ui.uploadBtn.textContent = '正在处理...'; } } }); 
-                alert("上传成功！"); 
-                ui.fileUploader.value = ""; 
-                ui.fileNameInput.value = ""; 
-                ui.selectedFileName.textContent = '未选择任何文件'; 
-                fetchFilesForSelectedProject(); 
-            } catch (error) { 
-                if (error.message !== "上传已取消。") alert(await handleApiError(`上传文件 ${fileName}`, error)); 
-            } finally { 
-                ui.uploadBtn.disabled = false; 
-                ui.uploadBtn.textContent = "上传文件"; 
-                ui.progressContainer.style.display = 'none'; 
+    const selectedProjectHref = ui.projectSelector.value;
+    const file = ui.fileUploader.files[0];
+    let fileName = ui.fileNameInput.value.trim() || (file && file.name);
+
+    if (!selectedProjectHref || !file || !fileName) {
+        return alert("请选择要上传到的项目、文件，并确保文件名不为空。");
+    }
+
+    const projectConfig = findButtonConfigByHref(selectedProjectHref);
+    if (!projectConfig) {
+        return alert("此项目配置无效。");
+    }
+    
+    const projectName = projectConfig.text;
+    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `project-${Date.now()}`;
+    const basePath = `jellyfish_drive/${folderName}`;
+    const path = `${basePath}/${fileName}`;
+
+    ui.uploadBtn.disabled = true;
+    ui.uploadBtn.textContent = "上传中 (0%)...";
+    ui.progressContainer.style.display = 'block';
+    ui.progressBar.style.width = '0%';
+
+    try {
+        const result = await uploadFileViaGitData({ 
+            file, 
+            path, 
+            commitMessage: `Upload ${fileName} to Drive/${projectName}`, 
+            onProgress: (percent) => { 
+                ui.progressBar.style.width = `${percent}%`; 
+                if (percent < 100) { 
+                    ui.uploadBtn.textContent = `上传中 (${Math.round(percent)}%)...`; 
+                } else { 
+                    ui.uploadBtn.textContent = '正在处理...'; 
+                } 
             } 
+        });
+
+        // --- [核心修复] ---
+        // 直接在本地构建新文件对象，并添加到UI，而不是重新从服务器获取整个列表
+        ui.fileListStatus.style.display = "none";
+        const newFile = {
+            name: fileName,
+            path: path,
+            sha: result.sha, // 使用上传后返回的精确sha
+            size: file.size
+        };
+
+        const li = document.createElement("li");
+        const sizeText = `${(newFile.size / 1024).toFixed(1)} KB`;
+        li.innerHTML = `<div class="file-info"><span class="file-name">${newFile.name}</span><span class="file-meta" data-path="${newFile.path}">${sizeText}</span></div><button class="delete-btn">&times;</button>`;
+        ui.fileList.appendChild(li);
+
+        li.querySelector(".file-info").addEventListener("click", () => forceDownload(newFile.path, newFile.name, li));
+        li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(newFile.path, newFile.sha, li));
+        // --- [修复结束] ---
+
+        alert("上传成功！");
+        ui.fileUploader.value = "";
+        ui.fileNameInput.value = "";
+        ui.selectedFileName.textContent = '未选择任何文件';
+
+    } catch (error) {
+        if (error.message !== "上传已取消。") {
+            alert(await handleApiError(`上传文件 ${fileName}`, error));
         }
+    } finally {
+        ui.uploadBtn.disabled = false;
+        ui.uploadBtn.textContent = "上传文件";
+        ui.progressContainer.style.display = 'none';
+    }
+}
+
+
 
         return {
             open: () => {
@@ -3952,9 +4178,10 @@ fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
                 document.querySelector('[data-action="close-wander-view"]').addEventListener('click', actions['close-wander-view']);
                 document.querySelector('[data-action="toggle-player-collapse"]').addEventListener('click', actions['toggle-player-collapse']);
                 ui.categorySelector.addEventListener("change", () => {
-                   populateDriveProjectSelector();
-                   fetchFilesForSelectedProject();
-                });
+   populateDriveProjectSelector();
+   fetchFilesForSelectedProject();
+});
+
                 ui.projectSelector.addEventListener("change", fetchFilesForSelectedProject);
                 ui.selectFileBtn.addEventListener('click', () => ui.fileUploader.click());
                 ui.fileUploader.addEventListener("change",()=>{ if(ui.fileUploader.files.length>0){ const file = ui.fileUploader.files[0]; ui.fileNameInput.value=file.name; ui.selectedFileName.textContent = file.name; } else { ui.selectedFileName.textContent = "未选择任何文件"; }});
@@ -4524,7 +4751,9 @@ fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
                     throw new Error(`Could not get blob content for ${path}. ${blobError || 'No content returned.'}`);
                 }
                 
-                const blob = b64toBlob(blobData.content, metaData.type);
+                const contentType = path.toLowerCase().endsWith('.html') || path.toLowerCase().endsWith('.htm') ? 'text/html' : metaData.type;
+const blob = b64toBlob(blobData.content, contentType);
+
                 const blobUrl = URL.createObjectURL(blob);
                 
                 secureFileCache.set(path, blobUrl);
@@ -4563,6 +4792,234 @@ fetchFilesForSelectedProject(); fetchFilesForSelectedProject(); },
         setupColorSync(colorModal.pickerD2, colorModal.hexD2, 'dayColor2');
         setupColorSync(colorModal.pickerN1, colorModal.hexN1, 'nightColor1'); 
         setupColorSync(colorModal.pickerN2, colorModal.hexN2, 'nightColor2');
+ function showIosWarning() {
+            // 检查是否为 iOS 设备 (iPhone, iPad, iPod)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            // 检查 localStorage 中是否已有标记
+            const hasBeenShown = localStorage.getItem('iosWarningShown') === 'true';
+            if (isIOS && !hasBeenShown) {
+                const modal = document.getElementById('iosWarningModal');
+                const confirmBtn = document.getElementById('iosWarningConfirmBtn');
+                // 显示模态框
+                modal.classList.add('show');
+                // 为确认按钮绑定点击事件
+                confirmBtn.addEventListener('click', () => {
+                    // 隐藏模态框
+                    modal.classList.remove('show');
+                    // 在 localStorage 中设置标记，确保不再显示
+                    localStorage.setItem('iosWarningShown', 'true');
+                }, { once: true }); // 使用 once: true 确保事件只触发一次
+            }
+        }
+        showIosWarning();
+        /* =============================================================== */
+        /* ============== [新增] 拖拽排序功能核心逻辑 V1.0 ============= */
+        /* =============================================================== */
+        const DragAndSort = (() => {
+            let draggedEl = null;      // 正在拖拽的原始元素
+            let ghostEl = null;        // 跟随鼠标的虚影元素
+            let dropTarget = null;     // 当前的放置目标元素
+            let longPressTimer = null; // 长按计时器
+            let isDragging = false;    // 是否正在拖拽的标志
+            let startPos = { x: 0, y: 0 };
+            let offset = { x: 0, y: 0 };
+
+            const LONG_PRESS_DELAY = 300; // 长按 300 毫秒触发
+            const DRAG_THRESHOLD = 5;     // 移动超过 5px 则取消长按
+
+            // 当长按计时器触发，开始拖拽
+            function startDrag(event) {
+                if (!draggedEl) return;
+                isDragging = true;
+                
+                const rect = draggedEl.getBoundingClientRect();
+
+                // 1. 创建虚影
+                ghostEl = draggedEl.cloneNode(true);
+                ghostEl.classList.add('drag-ghost');
+                document.body.appendChild(ghostEl);
+                
+                // 设置虚影的初始尺寸和位置
+                ghostEl.style.width = `${rect.width}px`;
+                ghostEl.style.height = `${rect.height}px`;
+                ghostEl.style.left = `${rect.left}px`;
+                ghostEl.style.top = `${rect.top}px`;
+
+                // 计算鼠标/手指在元素上的偏移
+                offset.x = startPos.x - rect.left;
+                offset.y = startPos.y - rect.top;
+
+                // 2. 更新原始元素和body的样式
+                draggedEl.classList.add('dragging');
+                document.body.classList.add('dragging-active');
+
+                // 3. 初始移动一次虚影，确保位置正确
+                moveGhost(startPos.x, startPos.y);
+            }
+
+            // 移动虚影
+            function moveGhost(clientX, clientY) {
+                if (!ghostEl) return;
+                ghostEl.style.left = `${clientX - offset.x}px`;
+                ghostEl.style.top = `${clientY - offset.y}px`;
+            }
+
+            // 拖拽过程中的处理
+            function onDragMove(event) {
+                const a = event.touches ? event.touches[0] : event;
+                const { clientX, clientY } = a;
+
+                // 如果还没开始拖拽（长按计时器未触发），检查移动距离
+                if (!isDragging) {
+                    if (Math.abs(clientX - startPos.x) > DRAG_THRESHOLD || Math.abs(clientY - startPos.y) > DRAG_THRESHOLD) {
+                        clearTimeout(longPressTimer); // 移动过大，取消长按
+                    }
+                    return;
+                }
+
+                event.preventDefault(); // 开始拖拽后，阻止默认行为（如滚动）
+                moveGhost(clientX, clientY);
+
+                // 隐藏虚影，以便检测其下方的元素
+                ghostEl.style.display = 'none';
+                const elementBelow = document.elementFromPoint(clientX, clientY);
+                ghostEl.style.display = '';
+
+                // 移除上一个目标的高亮
+                if (dropTarget) {
+                    dropTarget.classList.remove('drag-over');
+                    dropTarget = null;
+                }
+                
+                // 检查下方元素是否是有效的放置目标
+                const potentialTarget = elementBelow ? elementBelow.closest('.nav-btn, .category-pill') : null;
+                if (potentialTarget && potentialTarget !== draggedEl && draggedEl.classList.contains(potentialTarget.classList[0])) {
+                    dropTarget = potentialTarget;
+                    dropTarget.classList.add('drag-over');
+                }
+            }
+
+            // 拖拽结束
+            function onDragEnd(event) {
+                clearTimeout(longPressTimer);
+                if (!isDragging) return;
+
+                // 如果存在有效的放置目标
+                if (dropTarget) {
+                    dropTarget.classList.remove('drag-over');
+                    
+                    const parent = draggedEl.parentNode;
+                    const nextSiblingOfTarget = dropTarget.nextSibling;
+                    
+                    // DOM节点交换
+                    parent.insertBefore(draggedEl, nextSiblingOfTarget);
+                    parent.insertBefore(dropTarget, draggedEl);
+
+                    // 更新数据模型
+                    updateDataModel(draggedEl, dropTarget, parent);
+                }
+
+                // 清理工作
+                draggedEl.classList.remove('dragging');
+                document.body.classList.remove('dragging-active');
+                if (ghostEl) {
+                    ghostEl.remove();
+                }
+                
+                draggedEl = null;
+                ghostEl = null;
+                dropTarget = null;
+                isDragging = false;
+                
+                document.removeEventListener('mousemove', onDragMove);
+                document.removeEventListener('touchmove', onDragMove);
+                document.removeEventListener('mouseup', onDragEnd);
+                document.removeEventListener('touchend', onDragEnd);
+            }
+
+            // 按下事件（长按的起点）
+            function onDragStart(event) {
+                // 只在管理模式下生效
+                if (!document.body.classList.contains('management-active')) return;
+                
+                const target = event.target.closest('.nav-btn, .category-pill');
+                if (!target || isDragging) return;
+
+                // 排除删除按钮
+                if (event.target.classList.contains('delete-icon')) return;
+
+                draggedEl = target;
+                const a = event.touches ? event.touches[0] : event;
+                startPos.x = a.clientX;
+                startPos.y = a.clientY;
+
+                // 设置长按计时器
+                longPressTimer = setTimeout(() => startDrag(event), LONG_PRESS_DELAY);
+
+                // 绑定移动和结束事件
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('touchmove', onDragMove, { passive: false });
+                document.addEventListener('mouseup', onDragEnd, { once: true });
+                document.addEventListener('touchend', onDragEnd, { once: true });
+            }
+
+            // 更新底层数据结构
+            function updateDataModel(el1, el2, parent) {
+                // 情况一：对项目按钮排序
+                if (parent.id === 'navContainer') {
+                    const category = currentConfig.categories.find(c => c.name === currentCategory);
+                    if (!category) return;
+
+                    const allButtons = Array.from(parent.querySelectorAll('.nav-btn'));
+                    const newButtonOrder = allButtons.map(btn => {
+                        return category.buttons.find(b => b.href === btn.dataset.href);
+                    }).filter(Boolean); // 过滤掉可能找不到的按钮
+
+                    category.buttons = newButtonOrder;
+                }
+                // 情况二：对分类标签排序
+                else if (parent.id === 'categoryNav') {
+                    const allPills = Array.from(parent.querySelectorAll('.category-pill'));
+                    const newCategoryOrder = allPills.map(pill => {
+                        return currentConfig.categories.find(c => c.name === pill.dataset.category);
+                    }).filter(Boolean);
+
+                    // 确保“全部”分类始终在第一位
+                    const allCategory = newCategoryOrder.find(c => c.name === '全部');
+                    const otherCategories = newCategoryOrder.filter(c => c.name !== '全部');
+                    if (allCategory) {
+                        currentConfig.categories = [allCategory, ...otherCategories];
+                    } else {
+                        currentConfig.categories = newCategoryOrder;
+                    }
+                }
+                
+                saveGlobalConfig('Reorder items via drag and drop');
+            }
+
+            // 公开的初始化方法
+            return {
+                init() {
+                    console.log("Drag and Sort functionality initialized.");
+                    const mainContainer = document.getElementById('navContainer');
+                    const categoryContainer = document.getElementById('categoryNav');
+
+                    // 使用事件委托来处理动态添加的按钮
+                    mainContainer.addEventListener('mousedown', onDragStart);
+                    mainContainer.addEventListener('touchstart', onDragStart, { passive: true });
+                    
+                    categoryContainer.addEventListener('mousedown', onDragStart);
+                    categoryContainer.addEventListener('touchstart', onDragStart, { passive: true });
+                }
+            };
+        })();
+
+        // 初始化拖拽排序功能
+        DragAndSort.init();
+        /* =============================================================== */
+        /* ========================= [新增结束] ========================== */
+        /* =============================================================== */
+
     });
     </script>
 </body>
