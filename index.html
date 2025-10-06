@@ -6002,14 +6002,14 @@ const blob = b64toBlob(blobData.content, contentType);
                 Object.entries(sizes).forEach(([sizeKey, spaceNeeded]) => {
                     if (availableSpace >= spaceNeeded) {
                         // 超大组件需要两个连续的空格子，并且只能在偶数位开始
-                        if (sizeKey === 'xl' && (cellIndex % 2 !== 0 || currentConfig.lockscreenWidgets[cellIndex + 1])) {
+                        if (sizeKey === 'xl' && (cellIndex % 2 !== 0 || (currentConfig.lockscreenWidgets && currentConfig.lockscreenWidgets[cellIndex + 1]))) {
                            return;
                         }
                         const button = document.createElement('button');
                         button.className = 'component-popup-button';
                         button.textContent = sizeLabels[sizeKey];
                         button.onclick = (e) => {
-                            e.stopPropagation();
+                            e.stopPropagation(); // 阻止事件冒泡，防止触发下面的全局关闭监听器
                             showComponentContentMenu(cellIndex, sizeKey, e);
                         };
                         selectionPopup.appendChild(button);
@@ -6022,9 +6022,11 @@ const blob = b64toBlob(blobData.content, contentType);
                 
                 setTimeout(() => {
                     selectionPopup.classList.add('show');
-                    setTimeout(() => document.addEventListener('click', closeSelectionPopup, { once: true, capture: true }), 0);
+                    // [修正] 移除 capture: true，让事件先在按钮上触发，再冒泡到 document
+                    setTimeout(() => document.addEventListener('click', closeSelectionPopup, { once: true }), 0);
                 }, 10);
             }
+
             
             function renderSettingsCell(cell, cellIndex) {
                  cell.innerHTML = ''; // 清空格子
