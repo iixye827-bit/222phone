@@ -968,6 +968,21 @@ body.mobile-mode .page-slider.show-home-screen {
     transform: translateX(-50%); /* 滑动到主屏幕 */
 }
 
+/* [新增] 默认隐藏右下角按钮，并添加过渡动画 */
+body.mobile-mode .fab-container {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* [新增] 当滑动到主屏幕时，显示右下角按钮 */
+body.mobile-mode .page-slider.show-home-screen ~ .fab-container {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
 body.mobile-mode .lock-screen-page,
 body.mobile-mode .home-screen-page {
     width: 50%;
@@ -980,18 +995,20 @@ body.mobile-mode .home-screen-page {
     align-items: center;
 }
 
+
 .lock-screen-page {
     padding-top: 5vh;
 }
 .lockscreen-grid {
     width: 100%;
     max-width: 500px;
-    height: 80vh;
+    flex-grow: 1; /* [修改] 将固定高度改为弹性增长，使其填满剩余空间 */
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(4, 1fr);
     gap: 15px;
 }
+
 .grid-cell {
     background: rgba(128, 128, 128, 0.1);
     border: 2px dashed rgba(128, 128, 128, 0.2);
@@ -5384,29 +5401,48 @@ const blob = b64toBlob(blobData.content, contentType);
             function openLockscreenSettingsWindow() { /* ... 此函数内容不变，为简洁省略 ... */ }
 
             function applyMode(enable) {
+                // 获取需要移动的核心内容元素及其容器
+                const homeScreenPage = document.getElementById('homeScreenPage');
+                const mainWrapper = document.getElementById('mainWrapper');
+                const elementsToMove = [
+                    document.getElementById('pageOverlay'),
+                    document.getElementById('titleCard'),
+                    document.getElementById('categoryNavContainer'),
+                    document.getElementById('navContainer')
+                ].filter(el => el); // 过滤掉可能不存在的元素，增强代码健壮性
+
                 isEnabled = enable;
                 document.body.classList.toggle('mobile-mode', enable);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
 
                 if (enable) {
+                    // [新增逻辑] 启用手机模式时：将核心内容移动到滑动容器的 homeScreenPage 内部
+                    elementsToMove.forEach(el => homeScreenPage.appendChild(el));
+
+                    // 重置滑块状态以确保干净的激活
                     currentPage = 0;
                     currentTranslate = 0;
-                    ui.slider.style.transition = 'none'; // 初始加载无动画
+                    ui.slider.style.transition = 'none';
                     ui.slider.style.transform = `translateX(0px)`;
                     ui.slider.classList.remove('show-home-screen');
                     attachSwipeListeners();
                 } else {
+                    // [新增逻辑] 关闭手机模式时：将核心内容移出滑动容器，放回 body 中 mainWrapper 元素的前面
+                    elementsToMove.forEach(el => document.body.insertBefore(el, mainWrapper));
+
+                    // 分离滑动监听器并重置滑块状态
                     detachSwipeListeners();
-                    // 关闭时，确保无动画地恢复到初始状态
                     ui.slider.style.transition = 'none';
                     ui.slider.style.transform = `translateX(0px)`;
                     ui.slider.classList.remove('show-home-screen');
                 }
 
+                // 保存手机模式的设置状态
                 if (!currentConfig.settings.mobileMode) currentConfig.settings.mobileMode = {};
                 currentConfig.settings.mobileMode.enabled = enable;
                 saveGlobalConfig('Toggle mobile mode');
             }
+
 
             function handleTouchStart(e) {
                 if (!isEnabled) return;
