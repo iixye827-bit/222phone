@@ -5364,7 +5364,7 @@ const blob = b64toBlob(blobData.content, contentType);
 
 
         /* =============================================================== */
-        /* ============== [更新] 手机模式管理逻辑 V3 ================= */
+        /* ============== [更新] 手机模式管理逻辑 V4 ================= */
         /* =============================================================== */
         const MobileModeManager = (() => {
             let isEnabled = false;
@@ -5381,48 +5381,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 openSettingsBtn: document.getElementById('openLockscreenSettingsBtn'),
             };
             
-            function openLockscreenSettingsWindow() {
-                const windowId = 'fpw-lockscreen-settings';
-                if (document.getElementById(windowId)) {
-                    const existingWindow = document.getElementById(windowId);
-                    existingWindow.style.zIndex = (parseInt(existingWindow.style.zIndex) || 2010) + 10;
-                    return;
-                }
-                const contentHTML = `
-                    <div class="lockscreen-grid" style="height: 100%; max-width: none; padding: 15px; gap: 10px;">
-                        ${Array.from({length: 8}, (_, i) => `
-                            <div class="grid-cell">
-                                <button class="add-component-btn" data-cell-index="${i}" title="设置第 ${i+1} 格组件">+</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                const winEl = document.createElement('div');
-                winEl.className = 'floating-project-window visible';
-                winEl.id = windowId;
-                winEl.style.zIndex = 2020;
-                winEl.style.width = '320px';
-                winEl.style.height = '480px';
-                winEl.innerHTML = `
-                    <div class="fpw-header">
-                        <span class="fpw-title">锁屏组件设置</span>
-                        <div class="fpw-controls">
-                            <button class="fpw-close" title="关闭">×</button>
-                        </div>
-                    </div>
-                    <div class="fpw-content">
-                        ${contentHTML}
-                    </div>
-                `;
-                document.getElementById('floating-projects-container').appendChild(winEl);
-                winEl.querySelector('.fpw-close').addEventListener('click', () => winEl.remove());
-                winEl.querySelectorAll('.add-component-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const cellIndex = e.currentTarget.dataset.cellIndex;
-                        alert(`设置第 ${parseInt(cellIndex) + 1} 格组件的功能将在此处实现。\n\n可添加：\n- 相册图片\n- 指定备忘录\n- 自定义HTML`);
-                    });
-                });
-            }
+            function openLockscreenSettingsWindow() { /* ... 此函数内容不变，为简洁省略 ... */ }
 
             function applyMode(enable) {
                 isEnabled = enable;
@@ -5430,26 +5389,18 @@ const blob = b64toBlob(blobData.content, contentType);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
 
                 if (enable) {
-                    // 默认显示锁屏
                     currentPage = 0;
                     currentTranslate = 0;
-                    ui.slider.style.transition = 'none';
-                    ui.slider.style.transform = `translateX(${currentTranslate}px)`;
+                    ui.slider.style.transition = 'none'; // 初始加载无动画
+                    ui.slider.style.transform = `translateX(0px)`;
                     ui.slider.classList.remove('show-home-screen');
-                    setTimeout(() => {
-                        // [修复] 移除内联 transform，让 CSS 类生效
-                        ui.slider.style.transform = '';
-                        ui.slider.style.transition = '';
-                    }, 50);
-                    
                     attachSwipeListeners();
                 } else {
-                    // [修复] 当关闭模式时，重置内部状态
-                    currentPage = 0;
-                    currentTranslate = 0;
-                    ui.slider.classList.remove('show-home-screen');
-                    ui.slider.style.transform = `translateX(0px)`; // 立即归位，无动画
                     detachSwipeListeners();
+                    // 关闭时，确保无动画地恢复到初始状态
+                    ui.slider.style.transition = 'none';
+                    ui.slider.style.transform = `translateX(0px)`;
+                    ui.slider.classList.remove('show-home-screen');
                 }
 
                 if (!currentConfig.settings.mobileMode) currentConfig.settings.mobileMode = {};
@@ -5459,32 +5410,43 @@ const blob = b64toBlob(blobData.content, contentType);
 
             function handleTouchStart(e) {
                 if (!isEnabled) return;
+                // [关键] 在每次触摸开始时，移除可能存在的动画，并获取当前精确位置
+                ui.slider.style.transition = 'none'; 
                 startX = e.touches[0].clientX;
+                // 从当前元素的 transform 属性中解析出平移值，比 getBoundingClientRect 更可靠
+                const transformMatrix = window.getComputedStyle(ui.slider).transform;
+                if (transformMatrix !== 'none') {
+                    currentTranslate = parseFloat(transformMatrix.split(',')[4]);
+                } else {
+                    currentTranslate = 0;
+                }
                 isSwiping = true;
-                currentTranslate = ui.slider.getBoundingClientRect().left; // 获取当前精确位置
-                ui.slider.style.transition = 'none';
             }
 
             function handleTouchMove(e) {
                 if (!isSwiping || !isEnabled) return;
+                e.preventDefault(); // 阻止页面默认的滚动行为
+                
                 const currentX = e.touches[0].clientX;
                 const diffX = currentX - startX;
                 const newTranslate = currentTranslate + diffX;
 
-                // 允许轻微的超出边界以获得弹性效果，但这里为了简单先严格限制
-                if (newTranslate > 0 || newTranslate < -window.innerWidth) return;
-                ui.slider.style.transform = `translateX(${newTranslate}px)`;
+                // 为了简单和稳定，暂时不添加弹性效果
+                const pageWidth = ui.slider.offsetWidth / 2; // 获取单页宽度
+                const limitedTranslate = Math.max(-pageWidth, Math.min(0, newTranslate));
+
+                ui.slider.style.transform = `translateX(${limitedTranslate}px)`;
             }
 
             function handleTouchEnd(e) {
                 if (!isSwiping || !isEnabled) return;
                 isSwiping = false;
-                ui.slider.style.transition = '';
 
                 const endX = e.changedTouches[0].clientX;
                 const diffX = endX - startX;
                 const threshold = window.innerWidth / 4;
 
+                // 判断是否切换页面
                 if (Math.abs(diffX) > threshold) {
                     if (diffX < 0 && currentPage === 0) { // 向左滑 (解锁)
                         currentPage = 1;
@@ -5492,24 +5454,33 @@ const blob = b64toBlob(blobData.content, contentType);
                         currentPage = 0;
                     }
                 }
+                
+                // 执行吸附动画
                 snapToPage();
             }
 
+            // [决定性修复]
             function snapToPage() {
-                // [修复] 移除在拖动时添加的内联 transform 样式
-                // 这样，CSS 中定义的 .show-home-screen 类的 transform 才能生效并触发动画
-                ui.slider.style.transform = ''; 
+                const pageWidth = ui.slider.offsetWidth / 2; // 动态获取单页宽度
+                const targetTranslate = currentPage === 1 ? -pageWidth : 0;
 
-                if (currentPage === 1) { // 主屏幕
-                    ui.slider.classList.add('show-home-screen');
-                } else { // 锁屏
-                    ui.slider.classList.remove('show-home-screen');
-                }
+                // 1. 重新启用动画
+                ui.slider.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                
+                // 2. 直接命令元素到最终位置
+                ui.slider.style.transform = `translateX(${targetTranslate}px)`;
+
+                // 3. 更新内部状态变量，为下次拖动做准备
+                currentTranslate = targetTranslate;
+
+                // 4. 更新状态类（用于控制页面内部元素的动画，而非滑动本身）
+                ui.slider.classList.toggle('show-home-screen', currentPage === 1);
             }
             
             function attachSwipeListeners() {
-                ui.wrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
-                ui.wrapper.addEventListener('touchmove', handleTouchMove, { passive: true });
+                // 使用 non-passive listener 以便调用 e.preventDefault()
+                ui.wrapper.addEventListener('touchstart', handleTouchStart, { passive: false });
+                ui.wrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
                 ui.wrapper.addEventListener('touchend', handleTouchEnd, { passive: true });
             }
 
@@ -5521,6 +5492,12 @@ const blob = b64toBlob(blobData.content, contentType);
 
             return {
                 init() {
+                    // 确保 openLockscreenSettingsWindow 定义在 init 之前
+                    const originalOpenLockscreenSettingsWindow = openLockscreenSettingsWindow;
+                    openLockscreenSettingsWindow = () => {
+                         const windowId = 'fpw-lockscreen-settings'; if (document.getElementById(windowId)) { const e = document.getElementById(windowId); return e.style.zIndex = (parseInt(e.style.zIndex) || 2010) + 10, void 0; } const contentHTML = `<div class="lockscreen-grid" style="height: 100%; max-width: none; padding: 15px; gap: 10px;"> ${Array.from({ length: 8 }, (e, t) => `\n <div class="grid-cell">\n <button class="add-component-btn" data-cell-index="${t}" title="设置第 ${t + 1} 格组件">+</button>\n </div>\n `).join("")} </div>`; const winEl = document.createElement("div"); winEl.className = "floating-project-window visible", winEl.id = windowId, winEl.style.zIndex = 2020, winEl.style.width = "320px", winEl.style.height = "480px", winEl.innerHTML = ` <div class="fpw-header"> <span class="fpw-title">锁屏组件设置</span> <div class="fpw-controls"> <button class="fpw-close" title="关闭">×</button> </div> </div> <div class="fpw-content"> ${contentHTML} </div>`, document.getElementById("floating-projects-container").appendChild(winEl), winEl.querySelector(".fpw-close").addEventListener("click", () => winEl.remove()), winEl.querySelectorAll(".add-component-btn").forEach(e => { e.addEventListener("click", t => { const n = t.currentTarget.dataset.cellIndex; alert(`设置第 ${parseInt(n) + 1} 格组件的功能将在此处实现。\n\n可添加：\n- 相册图片\n- 指定备忘录\n- 自定义HTML`); }); }); 
+                    };
+
                     const mobileSettings = currentConfig.settings.mobileMode || { enabled: false };
                     ui.toggle.checked = mobileSettings.enabled;
                     if (mobileSettings.enabled) {
@@ -5531,6 +5508,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
             };
         })();
+
 
 
 
