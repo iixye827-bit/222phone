@@ -5733,12 +5733,18 @@ const blob = b64toBlob(blobData.content, contentType);
                             case 'memo':
                                 const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
                                 widgetEl.classList.add('widget-memo');
+                                widgetEl.style.cursor = 'pointer'; // 添加手型光标提示可点击
                                 if (memo) {
                                     widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div><div class="widget-memo-content">${memo.content || '没有内容'}</div>`;
+                                    // [新增] 添加点击事件监听器
+                                    widgetEl.addEventListener('click', () => {
+                                        showMemoDetailPopup(memo);
+                                    });
                                 } else {
                                     widgetEl.textContent = '备忘录未找到';
                                 }
                                 break;
+
                             case 'html':
                                 // 使用 sandboxed iframe 来安全渲染 HTML
                                 const iframe = document.createElement('iframe');
@@ -5804,6 +5810,21 @@ const blob = b64toBlob(blobData.content, contentType);
                     currentPickerWindow = null;
                 }
             }
+
+            // [新增] 显示备忘录详情的浮动窗口
+            function showMemoDetailPopup(memo) {
+                closeAnyOpenWindow(); // 关闭其他可能打开的窗口
+                
+                const content = document.createElement('div');
+                content.style.lineHeight = '1.6';
+                content.innerHTML = `
+                    <h3 style="margin-top: 0;">${memo.title || '无标题'}</h3>
+                    <p style="white-space: pre-wrap;">${memo.content || '没有内容'}</p>
+                `;
+
+                createPickerWindow('备忘录详情', content);
+            }
+
             
             function createPickerWindow(title, content) {
                 closeAnyOpenWindow(); // 关闭任何已打开的窗口
@@ -5943,7 +5964,8 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.removeEventListener('click', closeSelectionPopup, true);
             }
             
-            function showComponentContentMenu(cellIndex, size, event) {
+             function showComponentContentMenu(cellIndex, size, event) {
+                // [修正] 为 'image' 和 'memo' 添加 'l' 尺寸
                 const contentTypes = {
                     'image': ['xl', 'l'], 'memo': ['l'], 'html': ['xl', 'l', 'm'], 'shortcut': ['s']
                 };
@@ -6001,15 +6023,19 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 Object.entries(sizes).forEach(([sizeKey, spaceNeeded]) => {
                     if (availableSpace >= spaceNeeded) {
-                        // 超大组件需要两个连续的空格子，并且只能在偶数位开始
-                        if (sizeKey === 'xl' && (cellIndex % 2 !== 0 || (currentConfig.lockscreenWidgets && currentConfig.lockscreenWidgets[cellIndex + 1]))) {
-                           return;
+                        // [修正] 修复超大尺寸的判断逻辑
+                        if (sizeKey === 'xl') {
+                            const widgets = currentConfig.lockscreenWidgets || {};
+                            // 必须是偶数位 (0, 2, 4, 6) 且右边相邻的格子必须为空
+                            if (cellIndex % 2 !== 0 || (widgets[cellIndex + 1] && widgets[cellIndex + 1].length > 0)) {
+                                return; // 不满足条件，直接跳过此选项
+                            }
                         }
                         const button = document.createElement('button');
                         button.className = 'component-popup-button';
                         button.textContent = sizeLabels[sizeKey];
                         button.onclick = (e) => {
-                            e.stopPropagation(); // 阻止事件冒泡，防止触发下面的全局关闭监听器
+                            e.stopPropagation();
                             showComponentContentMenu(cellIndex, sizeKey, e);
                         };
                         selectionPopup.appendChild(button);
@@ -6022,51 +6048,67 @@ const blob = b64toBlob(blobData.content, contentType);
                 
                 setTimeout(() => {
                     selectionPopup.classList.add('show');
-                    // [修正] 移除 capture: true，让事件先在按钮上触发，再冒泡到 document
                     setTimeout(() => document.addEventListener('click', closeSelectionPopup, { once: true }), 0);
                 }, 10);
             }
 
-            
-            function renderSettingsCell(cell, cellIndex) {
-                 cell.innerHTML = ''; // 清空格子
-                 cell.style.position = 'relative'; // 为了定位内部元素
 
-                 const widgetsInCell = currentConfig.lockscreenWidgets[cellIndex] || [];
+            
+            function renderSettingsCell(cell, cellIndex, isOccupied = false) {
+                 cell.innerHTML = ''; 
+                 cell.style.position = 'relative'; 
+                 cell.style.gridColumn = 'auto'; // 重置跨列
+
+                 // [新增] 如果格子被超大组件占用，则显示禁用状态
+                 if (isOccupied) {
+                     cell.style.opacity = '0.4';
+                     cell.style.pointerEvents = 'none';
+                     cell.innerHTML = '<span style="font-size: 12px; color: #889;">被占用</span>';
+                     return;
+                 }
+                 cell.style.opacity = '1';
+                 cell.style.pointerEvents = 'auto';
+
+                 const widgetsInCell = (currentConfig.lockscreenWidgets && currentConfig.lockscreenWidgets[cellIndex]) || [];
                  const sizeMap = {s: 1, m: 2, l: 4, xl: 8};
                  const usedSpace = widgetsInCell.reduce((sum, w) => sum + sizeMap[w.size], 0);
 
-                 // 渲染已有的组件
                  if (widgetsInCell.length > 0) {
-                     // 使用 flexbox 布局来放置已有的组件
-                     const container = document.createElement('div');
-                     container.style.cssText = "display: flex; width: 100%; height: 100%; gap: 5px; flex-wrap: wrap;";
-                     
-                     widgetsInCell.forEach(widget => {
+                     // [修正] 超大组件特殊处理
+                     if(widgetsInCell[0] && widgetsInCell[0].size === 'xl') {
+                         cell.style.gridColumn = 'span 2'; // 占据两列
                          const widgetItem = document.createElement('div');
                          widgetItem.className = 'settings-widget-item';
-                         widgetItem.innerHTML = `${{image: '🖼️', memo: '📝', html: ' </>', shortcut: '🔗'}[widget.type]} ${sizeMap[widget.size]} <button class="settings-widget-delete-btn">&times;</button>`;
-                         widgetItem.querySelector('.settings-widget-delete-btn').onclick = () => deleteWidgetConfig(cellIndex, widget.id);
+                         widgetItem.style.cssText = 'width: 100%; height: 100%; position: relative;';
+                         widgetItem.innerHTML = `${{image: '🖼️', memo: '📝', html: ' </>', shortcut: '🔗'}[widgetsInCell[0].type]} 超大 <button class="settings-widget-delete-btn">&times;</button>`;
+                         widgetItem.querySelector('.settings-widget-delete-btn').onclick = () => deleteWidgetConfig(cellIndex, widgetsInCell[0].id);
+                         cell.appendChild(widgetItem);
+                     } else {
+                        const container = document.createElement('div');
+                        container.style.cssText = "display: flex; width: 100%; height: 100%; gap: 5px; flex-wrap: wrap; align-content: flex-start;";
+                        widgetsInCell.forEach(widget => {
+                            const widgetItem = document.createElement('div');
+                            widgetItem.className = 'settings-widget-item';
+                            widgetItem.style.position = 'relative';
+                            widgetItem.innerHTML = `${{image: '🖼️', memo: '📝', html: ' </>', shortcut: '🔗'}[widget.type]} ${sizeLabels[widget.size]} <button class="settings-widget-delete-btn">&times;</button>`;
+                            widgetItem.querySelector('.settings-widget-delete-btn').onclick = () => deleteWidgetConfig(cellIndex, widget.id);
 
-                         // 根据大小设置 flex-basis
-                         if(widget.size === 'l' || widget.size === 'xl') widgetItem.style.flexBasis = '100%';
-                         if(widget.size === 'm') widgetItem.style.flexBasis = 'calc(50% - 2.5px)';
-                         if(widget.size === 's') widgetItem.style.flexBasis = 'calc(25% - 3.75px)';
-                         widgetItem.style.height = '100%';
-
-                         container.appendChild(widgetItem);
-                     });
-                     cell.appendChild(container);
+                            if(widget.size === 'l') { widgetItem.style.flexBasis = '100%'; widgetItem.style.height = '100%'; }
+                            if(widget.size === 'm') { widgetItem.style.flexBasis = 'calc(50% - 2.5px)'; widgetItem.style.height = '100%'; }
+                            if(widget.size === 's') { widgetItem.style.flexBasis = 'calc(50% - 2.5px)'; widgetItem.style.height = 'calc(50% - 2.5px)'; }
+                            container.appendChild(widgetItem);
+                        });
+                        cell.appendChild(container);
+                     }
                  }
 
-                 // 如果还有空间，则显示添加按钮
                  if (usedSpace < 4) {
                      const addBtn = document.createElement('button');
                      addBtn.className = 'add-component-btn';
                      addBtn.textContent = '+';
                      addBtn.style.position = 'absolute';
-                     addBtn.style.bottom = '10px';
-                     addBtn.style.right = '10px';
+                     addBtn.style.bottom = '5px';
+                     addBtn.style.right = '5px';
                      addBtn.style.width = '30px';
                      addBtn.style.height = '30px';
                      addBtn.style.fontSize = '20px';
@@ -6077,7 +6119,7 @@ const blob = b64toBlob(blobData.content, contentType);
                      cell.appendChild(addBtn);
                  }
             }
-
+            
             function openLockscreenSettingsWindow() {
                 const windowId = 'fpw-lockscreen-settings';
                 const existingWindow = document.getElementById(windowId);
@@ -6089,11 +6131,21 @@ const blob = b64toBlob(blobData.content, contentType);
                 gridContainer.className = 'lockscreen-grid';
                 gridContainer.style.cssText = "height: 100%; max-width: none; padding: 15px; gap: 10px;";
                 
+                // [新增] 预处理，标记被占用的格子
+                const occupiedCells = new Set();
+                const widgets = currentConfig.lockscreenWidgets || {};
+                Object.keys(widgets).forEach(cellIndex => {
+                   if (widgets[cellIndex] && widgets[cellIndex].some(w => w.size === 'xl')) {
+                       occupiedCells.add(String(parseInt(cellIndex) + 1));
+                   }
+                });
+
                 for (let i = 0; i < 8; i++) {
                     const cell = document.createElement('div');
                     cell.className = 'grid-cell';
                     cell.dataset.cellIndex = i;
-                    renderSettingsCell(cell, i);
+                    // [修改] 传入是否被占用的状态
+                    renderSettingsCell(cell, i, occupiedCells.has(String(i)));
                     gridContainer.appendChild(cell);
                 }
                 
@@ -6112,6 +6164,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 
                 winEl.querySelector('.fpw-close').addEventListener('click', () => { closeAnyOpenWindow(); winEl.remove(); });
             }
+
 
             function applyMode(enable) {
                 const homeScreenPage = document.getElementById('homeScreenPage');
