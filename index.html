@@ -923,18 +923,18 @@ body.dragging-active {
 /* =============================================================== */
 
 /* =============================================================== */
-/* ================== [修改] 手机模式专属样式 V2 ================== */
+/* ================== [修改] 手机模式专属样式 V3 ================== */
 /* =============================================================== */
 .main-wrapper {
-    display: none; /* 非手机模式下，整个滑动容器不显示 */
+    display: none;
 }
 
 body:not(.mobile-mode) .home-screen-page {
-     display: flex !important; /* 非手机模式下，确保主页内容正常显示 */
+     display: flex !important;
 }
 
 body.mobile-mode {
-    overflow: hidden; /* 手机模式下，body不滚动 */
+    overflow: hidden;
 }
 
 body.mobile-mode .main-wrapper {
@@ -951,11 +951,10 @@ body.mobile-mode .page-slider {
     display: flex;
     width: 200%;
     height: 100%;
-    transform: translateX(0); /* [V2 修改] 默认显示锁屏 */
+    transform: translateX(0);
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* [V2 修改] 当滑动到主屏幕时，向左移动50% */
 body.mobile-mode .page-slider.show-homescreen {
     transform: translateX(-50%);
 }
@@ -966,67 +965,77 @@ body.mobile-mode .home-screen-page {
     height: 100%;
     flex-shrink: 0;
     overflow-y: auto;
-    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-/* [V2 新增] 锁屏网格样式 */
+/* [V3 修改] 主屏幕页面样式，核心修复模糊问题 */
+body.mobile-mode .home-screen-page {
+    padding: 20px; /* 保持原有的内边距 */
+    /* 关键修复：为页面本身设置背景，这样内部的磨砂玻璃元素就不会“透视”到body的背景图，从而避免模糊异常 */
+    background-image: linear-gradient(135deg, var(--day-color1) 0%, var(--day-color2) 100%);
+}
+body.dark-mode.mobile-mode .home-screen-page {
+    background-image: linear-gradient(135deg, var(--night-color1) 0%, var(--night-color2) 100%);
+}
+
+/* [V3 修改] 锁屏网格布局，实现自适应正方形 */
 .lock-screen-page {
-    justify-content: space-between; /* 让网格和提示语上下分布 */
-    padding: 40px 20px;
+    justify-content: center; /* 垂直居中整个内容 */
+    gap: 20px; /* 在网格和提示语之间增加间距 */
+    padding: 20px; /* 统一内边距 */
 }
 .lockscreen-grid {
     width: 100%;
-    max-width: 400px; /* 限制最大宽度，在平板上更好看 */
-    height: 80%;
+    max-width: 420px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 15px;
+    gap: 20px; /* 增大间距 */
 }
 .grid-cell {
-    background: rgba(128,128,128,0.1);
-    border-radius: 16px;
+    aspect-ratio: 1 / 1; /* 核心：强制格子为正方形 */
+    background: transparent; /* [V3 修改] 默认完全透明 */
+    border: none; /* [V3 修改] 移除默认边框 */
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(128,128,128,0.15);
+    border-radius: 24px; /* 增加圆角 */
 }
 .add-component-btn {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    border: 2px dashed rgba(128,128,128,0.4);
+    border: 2px dashed rgba(128,128,128,0.3); /* 调淡边框 */
     background: transparent;
-    color: rgba(128,128,128,0.6);
+    color: rgba(128,128,128,0.4); /* 调淡颜色 */
     font-size: 28px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .add-component-btn:hover {
     background: rgba(128,128,128,0.1);
+    border-color: rgba(128,128,128,0.6);
+    color: rgba(128,128,128,0.8);
     border-style: solid;
     transform: scale(1.1);
 }
 .lockscreen-swipe-hint {
     font-size: 14px;
     color: #889;
-    padding-bottom: 20px;
 }
 
-/* [V2 修改] 主屏幕页面内元素的隐藏/显示动画 */
+/* [V3 维持不变] 主屏幕页面内元素的隐藏/显示动画 */
 .home-screen-page > * {
     transition: transform 0.4s ease-out, opacity 0.3s ease-out;
-    transform: translateX(100px); /* 默认隐藏在右侧 */
+    transform: translateX(100px);
     opacity: 0;
 }
-/* 当显示主屏幕时，元素滑入并显示 */
 .page-slider.show-homescreen .home-screen-page > * {
     transform: translateX(0);
     opacity: 1;
 }
+
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
@@ -1293,8 +1302,8 @@ body.mobile-mode .home-screen-page {
                         <label class="toggle-switch"><input type="checkbox" id="mobileModeToggle"><span class="slider"></span></label>
                     </div>
                     <!-- [新增] 自定义锁屏按钮 -->
-                    <div id="mobileModeSettings" style="width: 100%; display: none;">
-                        <button id="customizeLockscreenBtn" class="modal-button" style="width: 100%; margin-top: 8px;">自定义锁屏样式</button>
+                                        <div id="mobileModeSettings" style="width: 100%; display: none;">
+                        <button id="customizeLockscreenBtn" class="modal-button" style="width: 100%; margin-top: 8px;">自定义锁屏设置</button>
                     </div>
                 </div>
                 <!-- [新增结束] -->
@@ -5392,6 +5401,11 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 ui.customizeBtn.addEventListener('click', () => ui.cssModal.classList.add('show'));
                 
+                // [新增] 为管理组件按钮添加临时提示
+                document.getElementById('manageLockscreenComponentsBtn').addEventListener('click', () => {
+                    alert('组件管理功能将在未来版本中实现！');
+                });
+                
                 ui.applyCssBtn.addEventListener('click', () => {
                     const newCss = ui.cssTextarea.value;
                     ui.customStyleTag.innerHTML = newCss;
@@ -5410,6 +5424,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     }
                 });
             }
+
 
             function initComponentPlaceholders() {
                  document.querySelectorAll('.add-component-btn').forEach(btn => {
@@ -5449,12 +5464,22 @@ const blob = b64toBlob(blobData.content, contentType);
                 <div class="modal-title-group"><span>自定义锁屏样式</span></div>
                 <button class="close-btn" data-modal-id="lockscreenCssModal">&times;</button>
             </div>
-            <div class="modal-body">
-                <p style="font-size: 14px; color: #889; margin-bottom: 10px;">在这里添加的 CSS 将直接应用于锁屏界面。你可以控制网格、单元格和按钮的样式。</p>
-                <textarea id="lockscreenCssTextarea" class="modal-textarea" rows="10" placeholder="例如：&#10;.lockscreen-grid {&#10;  background: rgba(0,0,0,0.1);&#10;}&#10;.grid-cell {&#10;  border-radius: 20px;&#10;}" style="font-family: monospace;"></textarea>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="applyLockscreenCssBtn" class="modal-button" style="flex-grow: 1;">应用并保存</button>
-                    <button id="resetLockscreenCssBtn" class="modal-button delete" style="color: #dc3545;">重置</button>
+                        <div class="modal-body">
+                <!-- 组件设置区域 -->
+                <div class="form-section" style="border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 15px; margin-bottom: 15px;">
+                    <label style="font-size: 16px; font-weight: 600; color: inherit; margin-bottom: 8px;">组件设置</label>
+                    <button id="manageLockscreenComponentsBtn" class="modal-button">管理组件布局</button>
+                </div>
+
+                <!-- 自定义CSS区域 -->
+                 <div class="form-section">
+                    <label style="font-size: 16px; font-weight: 600; color: inherit; margin-bottom: 8px;">自定义样式 (CSS)</label>
+                    <p style="font-size: 13px; color: #889; margin-bottom: 10px;">你可以控制网格、单元格 (.grid-cell) 和添加按钮 (.add-component-btn) 的样式。</p>
+                    <textarea id="lockscreenCssTextarea" class="modal-textarea" rows="8" placeholder="例如：&#10;.grid-cell {&#10;  background: rgba(255,255,255,0.1);&#10;  backdrop-filter: blur(5px);&#10;}" style="font-family: monospace;"></textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="applyLockscreenCssBtn" class="modal-button" style="flex-grow: 1;">应用并保存</button>
+                        <button id="resetLockscreenCssBtn" class="modal-button delete" style="color: #dc3545;">重置</button>
+                    </div>
                 </div>
             </div>
         </div>
