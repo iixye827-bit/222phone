@@ -1617,8 +1617,8 @@ body.dark-mode .widget-preview-item {
 /* 模拟手机屏幕容器 */
 .simulated-phone-screen {
     flex-shrink: 0; /* 防止被压缩 */
-    height: 45vh; /* [需求1 修改] 增加模拟器高度 */
-    max-height: 350px; /* [需求1 修改] 增加最大高度 */
+    height: 38vh; /* 给一个相对视窗的高度 */
+    max-height: 280px; /* 最大高度限制 */
     width: auto; /* 宽度自适应 */
     margin: 0 auto 15px auto;
     aspect-ratio: 9 / 19; /* 模拟手机长宽比 */
@@ -1641,16 +1641,6 @@ body.dark-mode .simulated-phone-screen {
     width: 100%;
     height: 100%;
 }
-
-/* [需求2 新增] 为模拟器内的格子添加虚线边框 */
-#lockscreen-settings-modal .settings-grid-cell {
-     border: 1px dashed rgba(128,128,128,0.3);
-}
-/* 当格子内有组件时，隐藏自身的虚线边框 */
-#lockscreen-settings-modal .settings-grid-cell:has(.widget-placeholder) {
-    border: none;
-}
-
 
 /* 重新定义 widget-placeholder 为真实的迷你组件预览 */
 #lockscreen-settings-modal .widget-placeholder {
@@ -1688,7 +1678,7 @@ body.dark-mode .simulated-phone-screen {
 
 /* 调整弹窗高度以适应模拟器 */
 #lockscreen-settings-modal .modal-content {
-    height: 90vh !important; /* [需求1 修改] 增加浮窗整体高度 */
+    height: 85vh !important;
 }
 
 /* ========================================================================= */
@@ -1747,6 +1737,35 @@ body.dark-mode .simulated-phone-screen {
 /* ============================== [新增结束] =============================== */
 /* ========================================================================= */
 
+/* =============================================================== */
+/* ============= [V6 新增] 模拟器网格与拖拽交互样式 ============ */
+/* =============================================================== */
+/* 调整设置网格容器，增加格子间距 */
+#lockscreen-settings-modal .settings-grid {
+    gap: 5px;
+}
+
+/* [核心新增] 可视化的虚线网格单元 */
+.settings-grid-cell {
+    border: 1px dashed rgba(128,128,128,0.3);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    display: flex; /* 用于定位内部元素 */
+    position: relative;
+    background-size: cover;
+    background-position: center;
+}
+
+/* [核心新增] 当拖拽物悬停在有效格子上时的样式 */
+.settings-grid-cell.drag-over {
+    border-style: solid;
+    border-color: var(--hold-border);
+    background-color: rgba(91, 153, 226, 0.1);
+    transform: scale(1.05);
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
@@ -6312,61 +6331,24 @@ const blob = b64toBlob(blobData.content, contentType);
                     });
                 });
 
-                 adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
-                    const width = parseInt(widthDisplay.textContent, 10);
-                    const height = parseInt(heightDisplay.textContent, 10);
+                adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
+                    const width = widthDisplay.textContent;
+                    const height = heightDisplay.textContent;
                     const type = adderContainer.querySelector('#widget-type-selector').value;
-                    const sizeString = `${width}x${height}`;
-
-                    // [需求3 核心逻辑] 查找第一个可用的格子
-                    const cells = Array.from(gridContainer.children);
-                    let foundIndex = -1;
-                    for (let i = 0; i < cells.length; i++) {
-                        if (isPlacementValid(cells[i], sizeString)) {
-                            foundIndex = i;
-                            break;
-                        }
-                    }
-
-                    if (foundIndex === -1) {
-                        alert("模拟器内空间不足，无法放置该尺寸的组件。");
-                        return;
-                    }
-
-                    // 准备新的组件数据
-                    const newWidget = { id: Date.now(), size: sizeString, type: type };
-
-                    // 定义选择内容后的回调函数
-                    const onSelectContent = (data) => {
-                        if (newWidget.type === 'html' || newWidget.type === 'image') { // 图片和HTML需要路径
-                           newWidget.content = data;
-                        } else if (typeof data === 'object' && data !== null) { // 快捷方式
-                            newWidget.content = data.content;
-                            newWidget.text = data.text;
-                        } else { // 备忘录
-                            newWidget.content = data;
-                        }
-                        // 保存配置并重新渲染两个网格
-                        saveWidgetConfig(foundIndex, newWidget);
-                    };
-
-                    // 根据类型弹出不同的内容选择器
-                    switch (newWidget.type) {
-                        case 'image':
-                            showImagePicker(onSelectContent);
-                            break;
-                        case 'memo':
-                            showMemoPicker(onSelectContent);
-                            break;
-                        case 'shortcut':
-                            showShortcutPicker(onSelectContent);
-                            break;
-                        case 'html': // HTML组件不需要额外选择内容，直接保存
-                            onSelectContent(null);
-                            break;
-                    }
+                    const typeTextMap = { 'shortcut': '快捷方式', 'image': '图片', 'memo': '备忘录', 'html': 'HTML' };
+                    const previewArea = adderContainer.querySelector('#new-widget-preview-area');
+                    previewArea.innerHTML = '';
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'widget-preview-item';
+                    previewItem.dataset.widgetSize = `${width}x${height}`;
+                    previewItem.dataset.widgetType = type;
+                    previewItem.draggable = true;
+                    previewItem.textContent = `${width}x${height} ${typeTextMap[type]}`;
+                    previewItem.addEventListener('mousedown', handleDragStart);
+                    previewItem.addEventListener('touchstart', handleDragStart, { passive: false });
+                    previewArea.appendChild(previewItem);
+                    previewArea.classList.add('has-widget');
                 });
-
             }
 
             // [重构] 渲染带真实预览的网格
@@ -6375,15 +6357,15 @@ const blob = b64toBlob(blobData.content, contentType);
                 const widgets = currentConfig.lockscreenWidgets || {};
                 const occupied = new Set();
 
+                // 步骤 1: 始终创建全部 32 个基础网格单元
                 for (let i = 0; i < 32; i++) {
                     const cell = document.createElement('div');
-                    cell.className = 'settings-grid-cell';
+                    cell.className = 'settings-grid-cell'; // 应用新的虚线格子样式
                     cell.dataset.cellIndex = i;
                     gridContainer.appendChild(cell);
                 }
                 
-                const cells = Array.from(gridContainer.children);
-
+                // 步骤 2: 遍历已有组件，将它们作为 'placeholder' 覆盖在格子上
                 for (const iStr in widgets) {
                     const i = parseInt(iStr);
                     if (occupied.has(i)) continue;
@@ -6391,45 +6373,59 @@ const blob = b64toBlob(blobData.content, contentType);
                     const w = widgets[i][0];
                     const [cols, rows] = w.size.split('x').map(Number);
                     
-                    const cell = cells[i];
-                    cell.style.gridColumn = `span ${cols}`;
-                    cell.style.gridRow = `span ${rows}`;
-                    cell.classList.add(`widget-size-${w.size}`);
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'widget-placeholder';
+                    placeholder.style.position = 'absolute';
 
+                    // 计算 placeholder 在 Grid 布局中的位置和大小
+                    const startCell = gridContainer.children[i];
+                    if (!startCell) continue;
+                    startCell.appendChild(placeholder);
+
+                    placeholder.style.gridColumn = `1 / span ${cols}`;
+                    placeholder.style.gridRow = `1 / span ${rows}`;
+
+                    // 使 placeholder 占据其父单元格（startCell）
+                    placeholder.style.width = '100%';
+                    placeholder.style.height = '100%';
+                    
+                    // 标记被占用的格子，以便后续隐藏它们
                     for (let r = 0; r < rows; r++) {
                         for (let c = 0; c < cols; c++) {
                             const index = i + r * 4 + c;
-                            if (index !== i) occupied.add(index);
+                             if(index !== i) occupied.add(index);
                         }
                     }
+                    // 让起始单元格本身跨越所需的行列
+                    startCell.style.gridColumn = `span ${cols}`;
+                    startCell.style.gridRow = `span ${rows}`;
+                    startCell.style.border = 'none'; // 隐藏起始单元格的边框
 
-                    const previewEl = document.createElement('div');
-                    previewEl.className = 'widget-placeholder';
-
+                    // 填充预览内容
                     switch (w.type) {
                         case 'image':
-                            previewEl.textContent = '🖼️';
+                            placeholder.textContent = '🖼️';
                             getSecureFileUrl(w.content).then(url => {
                                 if (url) {
-                                    previewEl.style.backgroundImage = `url(${url})`;
-                                    previewEl.textContent = '';
+                                    placeholder.style.backgroundImage = `url(${url})`;
+                                    placeholder.textContent = '';
                                 }
                             });
                             break;
                         case 'memo':
                             const memo = memoryCache.memo.notes.find(n => n.id === w.content);
                             if (memo) {
-                                previewEl.innerHTML = `<div class="settings-widget-preview-memo-title">${memo.title || '无标题'}</div><div class="settings-widget-preview-memo-content">${memo.content || ''}</div>`;
+                                placeholder.innerHTML = `<div class="settings-widget-preview-memo-title">${memo.title || '无标题'}</div><div class="settings-widget-preview-memo-content">${memo.content || ''}</div>`;
                             } else {
-                                previewEl.textContent = '备忘录丢失';
+                                placeholder.textContent = '备忘录丢失';
                             }
                             break;
                         case 'shortcut':
                             const btnCfg = findButtonConfigByHref(w.content);
-                            previewEl.textContent = btnCfg ? btnCfg.text : '快捷方式丢失';
+                            placeholder.textContent = btnCfg ? btnCfg.text : '快捷方式丢失';
                             break;
-                        case 'html': // 新增
-                            previewEl.textContent = 'HTML 组件';
+                        case 'html':
+                            placeholder.textContent = 'HTML 组件';
                             break;
                     }
                     
@@ -6437,12 +6433,11 @@ const blob = b64toBlob(blobData.content, contentType);
                     del.className = 'widget-placeholder-delete';
                     del.innerHTML = '&times;';
                     del.onclick = (e) => { e.stopPropagation(); deleteWidgetFromCell(i); };
-
-                    cell.appendChild(previewEl);
-                    cell.appendChild(del);
+                    startCell.appendChild(del); // 将删除按钮也添加到起始单元格
                 }
                  
-                cells.forEach((cell, i) => {
+                // 步骤 3: 隐藏被大组件覆盖的网格单元
+                Array.from(gridContainer.children).forEach((cell, i) => {
                     if (occupied.has(i)) cell.style.display = 'none';
                 });
             }
@@ -6455,9 +6450,23 @@ const blob = b64toBlob(blobData.content, contentType);
                 ghostEl.className = 'widget-ghost';
                 ghostEl.textContent = item.textContent;
                 document.body.appendChild(ghostEl);
+                
+                // [核心修改] 
+                // 动态计算 ghost 尺寸，使其与模拟器中的格子比例完全一致
+                const gridEl = document.querySelector('#lockscreen-settings-modal .settings-grid');
+                if (!gridEl) return;
+                
+                const gridRect = gridEl.getBoundingClientRect();
+                const singleCellWidth = (gridRect.width - (3 * 5)) / 4; // (总宽 - 3个间距) / 4列
+                const singleCellHeight = (gridRect.height - (7 * 5)) / 8; // (总高 - 7个间距) / 8行
+                const gap = 5; // grid-gap
+
                 const [cols, rows] = draggedWidgetInfo.size.split('x').map(Number);
-                ghostEl.style.width = `${cols * (item.parentElement.offsetWidth / 4)}px`;
-                ghostEl.style.height = `${rows * (item.parentElement.offsetWidth / 4)}px`; // Keep aspect ratio
+
+                ghostEl.style.width = `${cols * singleCellWidth + (cols - 1) * gap}px`;
+                ghostEl.style.height = `${rows * singleCellHeight + (rows - 1) * gap}px`;
+                // [修改结束]
+
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
@@ -6468,6 +6477,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.addEventListener('touchmove', handleDragMove, { passive: false });
                 document.addEventListener('touchend', handleDragEnd, { once: true });
             }
+
 
             function isPlacementValid(startCell, size) {
                 const occupied = new Set();
