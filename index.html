@@ -1678,11 +1678,68 @@ body.dark-mode .simulated-phone-screen {
 
 /* 调整弹窗高度以适应模拟器 */
 #lockscreen-settings-modal .modal-content {
-    height: 85vh !important;
+    height: 90vh !important; /* [V5 修改] 增加浮窗整体高度 */
+    max-height: 800px; /* [V5 新增] 增加一个最大高度限制，防止在超高屏幕上过度拉伸 */
 }
 
+/* ========================================================================= */
+/* ============== [V5 新增] 锁屏组件添加器紧凑布局样式 =============== */
+/* ========================================================================= */
+.adder-controls-row {
+    display: flex;
+    flex-wrap: nowrap; /* 强制不换行 */
+    gap: 12px;
+    align-items: flex-end; /* 底部对齐，使整体更整洁 */
+}
+
+.adder-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* 减小标签和控件之间的间距 */
+}
+
+.adder-control-group label {
+    font-size: 13px; /* 缩小标签字体 */
+    font-weight: 500;
+    color: #889;
+    padding-left: 2px;
+}
+
+/* 精确调整尺寸选择器内部 */
+.adder-controls-row .size-selector {
+    padding: 6px 8px; /* 减小内边距 */
+    gap: 8px;
+}
+.adder-controls-row .roller-container {
+    gap: 6px;
+}
+.adder-controls-row .roller-btn {
+    width: 26px; /* 缩小按钮 */
+    height: 26px;
+    font-size: 18px; /* 减小按钮内字体 */
+}
+.adder-controls-row .roller-display {
+    font-size: 20px; /* 减小数字字体 */
+    min-width: 20px;
+}
+.adder-controls-row .size-selector > span {
+    font-size: 16px;
+}
+
+/* 精确调整类型选择器（下拉框） */
+.adder-controls-row .modal-select {
+    padding: 6px 10px; /* 减小内边距以匹配高度 */
+    font-size: 14px;
+    height: 40px; /* 固定高度以对齐 */
+    flex-grow: 1; /* 让其填充剩余空间 */
+    min-width: 110px; /* 设置最小宽度防止被过度压缩 */
+}
+/* ========================================================================= */
+/* ============================== [新增结束] =============================== */
+/* ========================================================================= */
 
     </style>
+
     <style id="custom-jelly-ball-styles"></style>
 </head>
 <body>
@@ -6121,32 +6178,43 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
                 createPickerWindow('选择一个快捷方式', list);
             }
+            
+            // [V5 核心修改] 创建一个统一的更新函数，确保数据、模拟器、真实锁屏三者同步
+            async function updateAndRenderAll(commitMessage) {
+                // 1. 保存配置到云端
+                if (commitMessage) {
+                    await saveGlobalConfig(commitMessage);
+                }
+                
+                // 2. 渲染真实锁屏
+                renderLockscreenWidgets();
+                
+                // 3. 渲染设置界面的模拟器
+                const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                if (settingsWindow) {
+                    const grid = settingsWindow.querySelector('.settings-grid');
+                    renderSettingsGrid(grid);
+                }
+                
+                // 4. 关闭可能打开的选择窗口
+                closeAnyOpenWindow();
+            }
 
             async function saveWidgetConfig(cellIndex, widgetData) {
                 if (!currentConfig.lockscreenWidgets[cellIndex]) {
                     currentConfig.lockscreenWidgets[cellIndex] = [];
                 }
                 currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); // Add to the beginning
-                await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
-                renderLockscreenWidgets();
-                closeAnyOpenWindow();
-                const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if (settingsWindow) {
-                    const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid);
-                }
+                // [V5 修改] 调用统一更新函数
+                await updateAndRenderAll(`Add widget to cell ${cellIndex}`);
             }
 
             async function deleteWidgetFromCell(cellIndex) {
                 delete currentConfig.lockscreenWidgets[cellIndex];
-                await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
-                renderLockscreenWidgets();
-                const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if (settingsWindow) {
-                    const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid);
-                }
+                // [V5 修改] 调用统一更新函数
+                await updateAndRenderAll(`Delete widget from cell ${cellIndex}`);
             }
+            
             
             // [重构] 创建设置窗口, 包含模拟器
             function openLockscreenSettingsWindow() {
@@ -6184,28 +6252,32 @@ const blob = b64toBlob(blobData.content, contentType);
                 const adderContainer = document.createElement('div');
                 adderContainer.className = 'component-adder';
                 adderContainer.innerHTML = `
-                    <label>1. 选择尺寸 (宽 x 高)</label>
-                    <div class="size-selector">
-                        <div class="roller-container">
-                            <button class="roller-btn" data-roller="width" data-dir="-1">-</button>
-                            <span class="roller-display" id="width-display">1</span>
-                            <button class="roller-btn" data-roller="width" data-dir="1">+</button>
+                    <div class="adder-controls-row">
+                        <div class="adder-control-group">
+                            <label>尺寸 (宽x高)</label>
+                            <div class="size-selector">
+                                <div class="roller-container">
+                                    <button class="roller-btn" data-roller="width" data-dir="-1">-</button>
+                                    <span class="roller-display" id="width-display">1</span>
+                                    <button class="roller-btn" data-roller="width" data-dir="1">+</button>
+                                </div>
+                                <span>&times;</span>
+                                <div class="roller-container">
+                                    <button class="roller-btn" data-roller="height" data-dir="-1">-</button>
+                                    <span class="roller-display" id="height-display">1</span>
+                                    <button class="roller-btn" data-roller="height" data-dir="1">+</button>
+                                </div>
+                            </div>
                         </div>
-                        <span>&times;</span>
-                        <div class="roller-container">
-                            <button class="roller-btn" data-roller="height" data-dir="-1">-</button>
-                            <span class="roller-display" id="height-display">1</span>
-                            <button class="roller-btn" data-roller="height" data-dir="1">+</button>
+                        <div class="adder-control-group">
+                            <label>类型</label>
+                            <select id="widget-type-selector" class="modal-select">
+                                <option value="shortcut">快捷按钮</option>
+                                <option value="image">图片</option>
+                                <option value="memo">备忘录</option>
+                                <option value="html">HTML</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="type-selector">
-                       <label>2. 选择类型</label>
-                       <select id="widget-type-selector" class="modal-select">
-                           <option value="shortcut">快捷按钮</option>
-                           <option value="image">图片</option>
-                           <option value="memo">备忘录</option>
-                           <option value="html">HTML</option>
-                       </select>
                     </div>
                     <button id="confirm-widget-btn" class="modal-button">确认并生成</button>
                     <div id="new-widget-preview-area">将生成的组件拖入上方屏幕</div>
@@ -6263,6 +6335,7 @@ const blob = b64toBlob(blobData.content, contentType);
 
             // [重构] 渲染带真实预览的网格
             async function renderSettingsGrid(gridContainer) {
+                if (!gridContainer) return; // [V5 新增] 安全检查
                 gridContainer.innerHTML = '';
                 const widgets = currentConfig.lockscreenWidgets || {};
                 const occupied = new Set();
@@ -6347,14 +6420,22 @@ const blob = b64toBlob(blobData.content, contentType);
                 ghostEl.className = 'widget-ghost';
                 ghostEl.textContent = item.textContent;
                 document.body.appendChild(ghostEl);
+                
+                // [V5 修复] 根据模拟器内的格子大小来计算虚影尺寸，而不是根据父元素
+                const gridCell = document.querySelector('#lockscreen-settings-modal .settings-grid-cell');
+                if (!gridCell) return; // 如果找不到格子，则不继续
+                const cellWidth = gridCell.offsetWidth;
+                const cellHeight = gridCell.offsetHeight;
+
                 const [cols, rows] = draggedWidgetInfo.size.split('x').map(Number);
-                ghostEl.style.width = `${cols * (item.parentElement.offsetWidth / 4)}px`;
-                ghostEl.style.height = `${rows * (item.parentElement.offsetWidth / 4)}px`; // Keep aspect ratio
+                ghostEl.style.width = `${cols * cellWidth + (cols-1) * 8}px`; // 8是gap
+                ghostEl.style.height = `${rows * cellHeight + (rows-1) * 8}px`;
+                
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
                 ghostEl.style.top = `${clientY - ghostEl.offsetHeight / 2}px`;
-                ghostEl.style.zIndex = '9999';
+
                 document.addEventListener('mousemove', handleDragMove);
                 document.addEventListener('mouseup', handleDragEnd, { once: true });
                 document.addEventListener('touchmove', handleDragMove, { passive: false });
@@ -6411,21 +6492,22 @@ const blob = b64toBlob(blobData.content, contentType);
                     const newWidget = { id: Date.now(), ...draggedWidgetInfo };
 
                     const onSelectContent = (data) => {
-                        if(newWidget.type === 'html') { // HTML不需要内容选择
-                            saveWidgetConfig(cellIndex, newWidget);
-                            return;
+                        let finalWidgetData = { ...newWidget };
+                        if(finalWidgetData.type === 'html') {
+                           // HTML组件不需要额外内容
                         }
-                        if (typeof data === 'object' && data !== null) {
-                            newWidget.content = data.content; newWidget.text = data.text;
-                        } else { newWidget.content = data; }
-                        saveWidgetConfig(cellIndex, newWidget);
+                        else if (typeof data === 'object' && data !== null) {
+                            finalWidgetData.content = data.content; finalWidgetData.text = data.text;
+                        } else { finalWidgetData.content = data; }
+                        
+                        saveWidgetConfig(cellIndex, finalWidgetData);
                     };
 
                     switch (newWidget.type) {
                         case 'image': showImagePicker(onSelectContent); break;
                         case 'memo': showMemoPicker(onSelectContent); break;
                         case 'shortcut': showShortcutPicker(onSelectContent); break;
-                        case 'html': onSelectContent(null); break; // 直接调用
+                        case 'html': onSelectContent(null); break;
                     }
                 }
                 if (ghostEl) ghostEl.remove();
@@ -6463,7 +6545,7 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             function handleTouchStart(e) {
-                if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder')) return;
+                if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder, .modal-button, .roller-btn, .modal-select')) return;
                 ui.slider.style.transition = 'none';
                 startX = e.touches[0].clientX;
                 const transformMatrix = window.getComputedStyle(ui.slider).transform;
