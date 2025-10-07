@@ -1617,8 +1617,8 @@ body.dark-mode .widget-preview-item {
 /* 模拟手机屏幕容器 */
 .simulated-phone-screen {
     flex-shrink: 0; /* 防止被压缩 */
-    height: 38vh; /* 给一个相对视窗的高度 */
-    max-height: 280px; /* 最大高度限制 */
+    height: 45vh; /* [需求1 修改] 增加模拟器高度 */
+    max-height: 350px; /* [需求1 修改] 增加最大高度 */
     width: auto; /* 宽度自适应 */
     margin: 0 auto 15px auto;
     aspect-ratio: 9 / 19; /* 模拟手机长宽比 */
@@ -1641,6 +1641,16 @@ body.dark-mode .simulated-phone-screen {
     width: 100%;
     height: 100%;
 }
+
+/* [需求2 新增] 为模拟器内的格子添加虚线边框 */
+#lockscreen-settings-modal .settings-grid-cell {
+     border: 1px dashed rgba(128,128,128,0.3);
+}
+/* 当格子内有组件时，隐藏自身的虚线边框 */
+#lockscreen-settings-modal .settings-grid-cell:has(.widget-placeholder) {
+    border: none;
+}
+
 
 /* 重新定义 widget-placeholder 为真实的迷你组件预览 */
 #lockscreen-settings-modal .widget-placeholder {
@@ -1678,8 +1688,7 @@ body.dark-mode .simulated-phone-screen {
 
 /* 调整弹窗高度以适应模拟器 */
 #lockscreen-settings-modal .modal-content {
-    height: 90vh !important; /* [V5 修改] 增加浮窗整体高度 */
-    max-height: 800px; /* [V5 新增] 增加一个最大高度限制，防止在超高屏幕上过度拉伸 */
+    height: 90vh !important; /* [需求1 修改] 增加浮窗整体高度 */
 }
 
 /* ========================================================================= */
@@ -1737,6 +1746,7 @@ body.dark-mode .simulated-phone-screen {
 /* ========================================================================= */
 /* ============================== [新增结束] =============================== */
 /* ========================================================================= */
+
 
     </style>
 
@@ -6178,43 +6188,32 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
                 createPickerWindow('选择一个快捷方式', list);
             }
-            
-            // [V5 核心修改] 创建一个统一的更新函数，确保数据、模拟器、真实锁屏三者同步
-            async function updateAndRenderAll(commitMessage) {
-                // 1. 保存配置到云端
-                if (commitMessage) {
-                    await saveGlobalConfig(commitMessage);
-                }
-                
-                // 2. 渲染真实锁屏
-                renderLockscreenWidgets();
-                
-                // 3. 渲染设置界面的模拟器
-                const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if (settingsWindow) {
-                    const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid);
-                }
-                
-                // 4. 关闭可能打开的选择窗口
-                closeAnyOpenWindow();
-            }
 
             async function saveWidgetConfig(cellIndex, widgetData) {
                 if (!currentConfig.lockscreenWidgets[cellIndex]) {
                     currentConfig.lockscreenWidgets[cellIndex] = [];
                 }
                 currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); // Add to the beginning
-                // [V5 修改] 调用统一更新函数
-                await updateAndRenderAll(`Add widget to cell ${cellIndex}`);
+                await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
+                renderLockscreenWidgets();
+                closeAnyOpenWindow();
+                const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                if (settingsWindow) {
+                    const grid = settingsWindow.querySelector('.settings-grid');
+                    renderSettingsGrid(grid);
+                }
             }
 
             async function deleteWidgetFromCell(cellIndex) {
                 delete currentConfig.lockscreenWidgets[cellIndex];
-                // [V5 修改] 调用统一更新函数
-                await updateAndRenderAll(`Delete widget from cell ${cellIndex}`);
+                await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
+                renderLockscreenWidgets();
+                const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                if (settingsWindow) {
+                    const grid = settingsWindow.querySelector('.settings-grid');
+                    renderSettingsGrid(grid);
+                }
             }
-            
             
             // [重构] 创建设置窗口, 包含模拟器
             function openLockscreenSettingsWindow() {
@@ -6313,29 +6312,65 @@ const blob = b64toBlob(blobData.content, contentType);
                     });
                 });
 
-                adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
-                    const width = widthDisplay.textContent;
-                    const height = heightDisplay.textContent;
+                 adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
+                    const width = parseInt(widthDisplay.textContent, 10);
+                    const height = parseInt(heightDisplay.textContent, 10);
                     const type = adderContainer.querySelector('#widget-type-selector').value;
-                    const typeTextMap = { 'shortcut': '快捷方式', 'image': '图片', 'memo': '备忘录', 'html': 'HTML' };
-                    const previewArea = adderContainer.querySelector('#new-widget-preview-area');
-                    previewArea.innerHTML = '';
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'widget-preview-item';
-                    previewItem.dataset.widgetSize = `${width}x${height}`;
-                    previewItem.dataset.widgetType = type;
-                    previewItem.draggable = true;
-                    previewItem.textContent = `${width}x${height} ${typeTextMap[type]}`;
-                    previewItem.addEventListener('mousedown', handleDragStart);
-                    previewItem.addEventListener('touchstart', handleDragStart, { passive: false });
-                    previewArea.appendChild(previewItem);
-                    previewArea.classList.add('has-widget');
+                    const sizeString = `${width}x${height}`;
+
+                    // [需求3 核心逻辑] 查找第一个可用的格子
+                    const cells = Array.from(gridContainer.children);
+                    let foundIndex = -1;
+                    for (let i = 0; i < cells.length; i++) {
+                        if (isPlacementValid(cells[i], sizeString)) {
+                            foundIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (foundIndex === -1) {
+                        alert("模拟器内空间不足，无法放置该尺寸的组件。");
+                        return;
+                    }
+
+                    // 准备新的组件数据
+                    const newWidget = { id: Date.now(), size: sizeString, type: type };
+
+                    // 定义选择内容后的回调函数
+                    const onSelectContent = (data) => {
+                        if (newWidget.type === 'html' || newWidget.type === 'image') { // 图片和HTML需要路径
+                           newWidget.content = data;
+                        } else if (typeof data === 'object' && data !== null) { // 快捷方式
+                            newWidget.content = data.content;
+                            newWidget.text = data.text;
+                        } else { // 备忘录
+                            newWidget.content = data;
+                        }
+                        // 保存配置并重新渲染两个网格
+                        saveWidgetConfig(foundIndex, newWidget);
+                    };
+
+                    // 根据类型弹出不同的内容选择器
+                    switch (newWidget.type) {
+                        case 'image':
+                            showImagePicker(onSelectContent);
+                            break;
+                        case 'memo':
+                            showMemoPicker(onSelectContent);
+                            break;
+                        case 'shortcut':
+                            showShortcutPicker(onSelectContent);
+                            break;
+                        case 'html': // HTML组件不需要额外选择内容，直接保存
+                            onSelectContent(null);
+                            break;
+                    }
                 });
+
             }
 
             // [重构] 渲染带真实预览的网格
             async function renderSettingsGrid(gridContainer) {
-                if (!gridContainer) return; // [V5 新增] 安全检查
                 gridContainer.innerHTML = '';
                 const widgets = currentConfig.lockscreenWidgets || {};
                 const occupied = new Set();
@@ -6420,22 +6455,14 @@ const blob = b64toBlob(blobData.content, contentType);
                 ghostEl.className = 'widget-ghost';
                 ghostEl.textContent = item.textContent;
                 document.body.appendChild(ghostEl);
-                
-                // [V5 修复] 根据模拟器内的格子大小来计算虚影尺寸，而不是根据父元素
-                const gridCell = document.querySelector('#lockscreen-settings-modal .settings-grid-cell');
-                if (!gridCell) return; // 如果找不到格子，则不继续
-                const cellWidth = gridCell.offsetWidth;
-                const cellHeight = gridCell.offsetHeight;
-
                 const [cols, rows] = draggedWidgetInfo.size.split('x').map(Number);
-                ghostEl.style.width = `${cols * cellWidth + (cols-1) * 8}px`; // 8是gap
-                ghostEl.style.height = `${rows * cellHeight + (rows-1) * 8}px`;
-                
+                ghostEl.style.width = `${cols * (item.parentElement.offsetWidth / 4)}px`;
+                ghostEl.style.height = `${rows * (item.parentElement.offsetWidth / 4)}px`; // Keep aspect ratio
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
                 ghostEl.style.top = `${clientY - ghostEl.offsetHeight / 2}px`;
-
+                ghostEl.style.zIndex = '9999';
                 document.addEventListener('mousemove', handleDragMove);
                 document.addEventListener('mouseup', handleDragEnd, { once: true });
                 document.addEventListener('touchmove', handleDragMove, { passive: false });
@@ -6492,22 +6519,21 @@ const blob = b64toBlob(blobData.content, contentType);
                     const newWidget = { id: Date.now(), ...draggedWidgetInfo };
 
                     const onSelectContent = (data) => {
-                        let finalWidgetData = { ...newWidget };
-                        if(finalWidgetData.type === 'html') {
-                           // HTML组件不需要额外内容
+                        if(newWidget.type === 'html') { // HTML不需要内容选择
+                            saveWidgetConfig(cellIndex, newWidget);
+                            return;
                         }
-                        else if (typeof data === 'object' && data !== null) {
-                            finalWidgetData.content = data.content; finalWidgetData.text = data.text;
-                        } else { finalWidgetData.content = data; }
-                        
-                        saveWidgetConfig(cellIndex, finalWidgetData);
+                        if (typeof data === 'object' && data !== null) {
+                            newWidget.content = data.content; newWidget.text = data.text;
+                        } else { newWidget.content = data; }
+                        saveWidgetConfig(cellIndex, newWidget);
                     };
 
                     switch (newWidget.type) {
                         case 'image': showImagePicker(onSelectContent); break;
                         case 'memo': showMemoPicker(onSelectContent); break;
                         case 'shortcut': showShortcutPicker(onSelectContent); break;
-                        case 'html': onSelectContent(null); break;
+                        case 'html': onSelectContent(null); break; // 直接调用
                     }
                 }
                 if (ghostEl) ghostEl.remove();
@@ -6545,7 +6571,7 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             function handleTouchStart(e) {
-                if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder, .modal-button, .roller-btn, .modal-select')) return;
+                if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder')) return;
                 ui.slider.style.transition = 'none';
                 startX = e.touches[0].clientX;
                 const transformMatrix = window.getComputedStyle(ui.slider).transform;
