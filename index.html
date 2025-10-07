@@ -1611,6 +1611,75 @@ body.dark-mode .widget-preview-item {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] 锁屏设置 V4 模拟器样式 ================ */
+/* =============================================================== */
+/* 模拟手机屏幕容器 */
+.simulated-phone-screen {
+    flex-shrink: 0; /* 防止被压缩 */
+    height: 38vh; /* 给一个相对视窗的高度 */
+    max-height: 280px; /* 最大高度限制 */
+    width: auto; /* 宽度自适应 */
+    margin: 0 auto 15px auto;
+    aspect-ratio: 9 / 19; /* 模拟手机长宽比 */
+    background: rgba(0,0,0,0.1);
+    border-radius: 20px;
+    border: 5px solid #333;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+    padding: 10px;
+    display: flex;
+}
+body.dark-mode .simulated-phone-screen {
+    border-color: #555;
+    background: rgba(255,255,255,0.05);
+}
+/* 调整设置网格以适应新容器 */
+#lockscreen-settings-modal .modal-body .settings-grid {
+    padding: 0;
+    box-shadow: none;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+}
+
+/* 重新定义 widget-placeholder 为真实的迷你组件预览 */
+#lockscreen-settings-modal .widget-placeholder {
+    padding: 4px;
+    font-size: 8px; /* 缩小字体 */
+    overflow: hidden;
+    text-align: center;
+    word-break: break-all;
+    background-size: cover;
+    background-position: center;
+    flex-direction: column; /* 适配备忘录 */
+    line-height: 1.3;
+}
+/* 迷你备忘录预览样式 */
+.settings-widget-preview-memo-title {
+    font-weight: bold;
+    font-size: 9px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.settings-widget-preview-memo-content {
+    font-size: 7px;
+    opacity: 0.8;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* 限制显示行数 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+#lockscreen-settings-modal .widget-size-4x2 .settings-widget-preview-memo-content {
+    -webkit-line-clamp: 5; /* 大尺寸显示更多行 */
+}
+
+/* 调整弹窗高度以适应模拟器 */
+#lockscreen-settings-modal .modal-content {
+    height: 85vh !important;
+}
 
 
     </style>
@@ -5956,18 +6025,14 @@ const blob = b64toBlob(blobData.content, contentType);
         const MobileModeManager = (() => {
             let isEnabled = false;
             let currentPickerWindow = null;
-            
-            // 拖拽状态
             let ghostEl = null;
             let draggedWidgetInfo = null;
             let dragTargetCell = null;
-
-            // 滑动状态
             let isSwiping = false;
             let startX = 0;
             let currentTranslate = 0;
-            let currentPage = 0; 
-            
+            let currentPage = 0;
+
             const ui = {
                 toggle: document.getElementById('mobileModeToggle'),
                 wrapper: document.getElementById('mainWrapper'),
@@ -5982,7 +6047,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     currentPickerWindow = null;
                 }
             }
-            
+
             function createPickerWindow(title, content) {
                 closeAnyOpenWindow();
                 const container = document.createElement('div');
@@ -6002,7 +6067,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 currentPickerWindow = container;
                 return container;
             }
-            
+
             function showImagePicker(onSelect) {
                 const grid = document.createElement('div');
                 grid.className = 'picker-grid';
@@ -6010,14 +6075,14 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (allPhotos.length === 0) grid.textContent = '相册中没有图片。';
                 else {
                     allPhotos.forEach(item => {
-                       const photoToShow = item.type === 'photo' ? item : item.photos[0];
-                       const gridItem = document.createElement('div');
-                       gridItem.className = 'picker-grid-item';
-                       const img = document.createElement('img');
-                       getSecureFileUrl(photoToShow.path).then(url => { if(url) img.src = url; });
-                       gridItem.appendChild(img);
-                       gridItem.onclick = () => onSelect(photoToShow.path);
-                       grid.appendChild(gridItem);
+                        const photoToShow = item.type === 'photo' ? item : item.photos[0];
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'picker-grid-item';
+                        const img = document.createElement('img');
+                        getSecureFileUrl(photoToShow.path).then(url => { if (url) img.src = url; });
+                        gridItem.appendChild(img);
+                        gridItem.onclick = () => onSelect(photoToShow.path);
+                        grid.appendChild(gridItem);
                     });
                 }
                 createPickerWindow('选择一张图片', grid);
@@ -6058,33 +6123,36 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             async function saveWidgetConfig(cellIndex, widgetData) {
-                currentConfig.lockscreenWidgets[cellIndex] = [widgetData];
+                if (!currentConfig.lockscreenWidgets[cellIndex]) {
+                    currentConfig.lockscreenWidgets[cellIndex] = [];
+                }
+                currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); // Add to the beginning
                 await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
                 renderLockscreenWidgets();
                 closeAnyOpenWindow();
                 const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if(settingsWindow) {
+                if (settingsWindow) {
+                    const grid = settingsWindow.querySelector('.settings-grid');
+                    renderSettingsGrid(grid);
+                }
+            }
+
+            async function deleteWidgetFromCell(cellIndex) {
+                delete currentConfig.lockscreenWidgets[cellIndex];
+                await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
+                renderLockscreenWidgets();
+                const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                if (settingsWindow) {
                     const grid = settingsWindow.querySelector('.settings-grid');
                     renderSettingsGrid(grid);
                 }
             }
             
-            async function deleteWidgetFromCell(cellIndex) {
-                 delete currentConfig.lockscreenWidgets[cellIndex];
-                 await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
-                 renderLockscreenWidgets();
-                 const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                 if(settingsWindow) {
-                    const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid);
-                 }
-            }
-
+            // [重构] 创建设置窗口, 包含模拟器
             function openLockscreenSettingsWindow() {
                 const modalId = 'lockscreen-settings-modal';
                 if (document.getElementById(modalId)) return;
 
-                // --- 弹窗基础结构 (未改变) ---
                 const modalOverlay = document.createElement('div');
                 modalOverlay.id = modalId;
                 modalOverlay.className = 'modal-overlay show';
@@ -6092,12 +6160,10 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 const modalContent = document.createElement('div');
                 modalContent.className = 'modal-content';
-                modalContent.style.maxWidth = '420px';
-                modalContent.style.height = '80vh'; // 稍微增加高度以容纳新UI
                 
                 const settingsContainer = document.createElement('div');
                 settingsContainer.style.cssText = 'display: flex; flex-direction: column; height: 100%;';
-                
+
                 const header = document.createElement('div');
                 header.className = 'modal-header';
                 header.innerHTML = `<div class="modal-title-group"><span>锁屏组件设置</span></div><button class="close-btn">&times;</button>`;
@@ -6106,12 +6172,15 @@ const blob = b64toBlob(blobData.content, contentType);
                 body.className = 'modal-body';
                 body.style.paddingTop = '10px';
 
-                // --- 顶部 4x8 模拟网格 (未改变) ---
+                // [新增] 模拟手机屏幕
+                const phoneScreen = document.createElement('div');
+                phoneScreen.className = 'simulated-phone-screen';
+                
                 const gridContainer = document.createElement('div');
                 gridContainer.className = 'settings-grid';
-                gridContainer.style.flexGrow = '1';
-
-                // --- [核心修改] 创建新的组件添加器 ---
+                phoneScreen.appendChild(gridContainer);
+                
+                // [重构] 新的添加器
                 const adderContainer = document.createElement('div');
                 adderContainer.className = 'component-adder';
                 adderContainer.innerHTML = `
@@ -6129,7 +6198,6 @@ const blob = b64toBlob(blobData.content, contentType);
                             <button class="roller-btn" data-roller="height" data-dir="1">+</button>
                         </div>
                     </div>
-
                     <div class="type-selector">
                        <label>2. 选择类型</label>
                        <select id="widget-type-selector" class="modal-select">
@@ -6139,162 +6207,194 @@ const blob = b64toBlob(blobData.content, contentType);
                            <option value="html">HTML</option>
                        </select>
                     </div>
-
                     <button id="confirm-widget-btn" class="modal-button">确认并生成</button>
-
-                    <div id="new-widget-preview-area">
-                        <!-- 拖拽预览组件将在此处生成 -->
-                    </div>
+                    <div id="new-widget-preview-area">将生成的组件拖入上方屏幕</div>
                 `;
 
-                // --- 组装弹窗内容 ---
-                body.append(gridContainer, adderContainer);
+                body.append(phoneScreen, adderContainer);
                 settingsContainer.append(header, body);
                 modalContent.appendChild(settingsContainer);
                 modalOverlay.appendChild(modalContent);
                 document.body.appendChild(modalOverlay);
-
-                // --- 事件绑定和初始化 (部分重构) ---
+                
                 const closeModal = () => {
                     closeAnyOpenWindow();
                     modalOverlay.classList.remove('show');
                     modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true });
                 };
-
                 header.querySelector('.close-btn').onclick = closeModal;
-                modalOverlay.onclick = (e) => { if(e.target === modalOverlay) closeModal(); };
+                modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeModal(); };
                 
                 renderSettingsGrid(gridContainer);
-
-                // --- [核心修改] 新的交互逻辑 ---
+                
                 const widthDisplay = adderContainer.querySelector('#width-display');
                 const heightDisplay = adderContainer.querySelector('#height-display');
-                
-                // 尺寸滚轮逻辑
                 adderContainer.querySelectorAll('.roller-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const targetRoller = btn.dataset.roller;
                         const direction = parseInt(btn.dataset.dir, 10);
                         const display = targetRoller === 'width' ? widthDisplay : heightDisplay;
-                        const min = 1;
                         const max = targetRoller === 'width' ? 4 : 8;
-                        
-                        let currentValue = parseInt(display.textContent, 10);
-                        let newValue = currentValue + direction;
-                        if (newValue < min) newValue = min;
-                        if (newValue > max) newValue = max;
+                        let newValue = parseInt(display.textContent, 10) + direction;
+                        if (newValue < 1) newValue = 1; if (newValue > max) newValue = max;
                         display.textContent = newValue;
                     });
                 });
 
-                // 确认并生成预览组件的逻辑
                 adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
                     const width = widthDisplay.textContent;
                     const height = heightDisplay.textContent;
                     const type = adderContainer.querySelector('#widget-type-selector').value;
-                    const typeTextMap = {
-                        'shortcut': '快捷按钮', 'image': '图片', 'memo': '备忘录', 'html': 'HTML'
-                    };
-                    
+                    const typeTextMap = { 'shortcut': '快捷方式', 'image': '图片', 'memo': '备忘录', 'html': 'HTML' };
                     const previewArea = adderContainer.querySelector('#new-widget-preview-area');
-                    previewArea.innerHTML = ''; // 清空旧的预览
-                    
+                    previewArea.innerHTML = '';
                     const previewItem = document.createElement('div');
                     previewItem.className = 'widget-preview-item';
                     previewItem.dataset.widgetSize = `${width}x${height}`;
                     previewItem.dataset.widgetType = type;
                     previewItem.draggable = true;
                     previewItem.textContent = `${width}x${height} ${typeTextMap[type]}`;
-                    
-                    // [关键] 为新生成的预览组件绑定已存在的拖拽事件处理器
                     previewItem.addEventListener('mousedown', handleDragStart);
                     previewItem.addEventListener('touchstart', handleDragStart, { passive: false });
-
                     previewArea.appendChild(previewItem);
                     previewArea.classList.add('has-widget');
                 });
             }
 
-            function renderSettingsGrid(gridContainer) {
-                 gridContainer.innerHTML = '';
-                 const widgets = currentConfig.lockscreenWidgets || {};
-                 const occupied = new Set();
+            // [重构] 渲染带真实预览的网格
+            async function renderSettingsGrid(gridContainer) {
+                gridContainer.innerHTML = '';
+                const widgets = currentConfig.lockscreenWidgets || {};
+                const occupied = new Set();
+
+                for (let i = 0; i < 32; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'settings-grid-cell';
+                    cell.dataset.cellIndex = i;
+                    gridContainer.appendChild(cell);
+                }
+                
+                const cells = Array.from(gridContainer.children);
+
+                for (const iStr in widgets) {
+                    const i = parseInt(iStr);
+                    if (occupied.has(i)) continue;
+
+                    const w = widgets[i][0];
+                    const [cols, rows] = w.size.split('x').map(Number);
+                    
+                    const cell = cells[i];
+                    cell.style.gridColumn = `span ${cols}`;
+                    cell.style.gridRow = `span ${rows}`;
+                    cell.classList.add(`widget-size-${w.size}`);
+
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            const index = i + r * 4 + c;
+                            if (index !== i) occupied.add(index);
+                        }
+                    }
+
+                    const previewEl = document.createElement('div');
+                    previewEl.className = 'widget-placeholder';
+
+                    switch (w.type) {
+                        case 'image':
+                            previewEl.textContent = '🖼️';
+                            getSecureFileUrl(w.content).then(url => {
+                                if (url) {
+                                    previewEl.style.backgroundImage = `url(${url})`;
+                                    previewEl.textContent = '';
+                                }
+                            });
+                            break;
+                        case 'memo':
+                            const memo = memoryCache.memo.notes.find(n => n.id === w.content);
+                            if (memo) {
+                                previewEl.innerHTML = `<div class="settings-widget-preview-memo-title">${memo.title || '无标题'}</div><div class="settings-widget-preview-memo-content">${memo.content || ''}</div>`;
+                            } else {
+                                previewEl.textContent = '备忘录丢失';
+                            }
+                            break;
+                        case 'shortcut':
+                            const btnCfg = findButtonConfigByHref(w.content);
+                            previewEl.textContent = btnCfg ? btnCfg.text : '快捷方式丢失';
+                            break;
+                        case 'html': // 新增
+                            previewEl.textContent = 'HTML 组件';
+                            break;
+                    }
+                    
+                    const del = document.createElement('button');
+                    del.className = 'widget-placeholder-delete';
+                    del.innerHTML = '&times;';
+                    del.onclick = (e) => { e.stopPropagation(); deleteWidgetFromCell(i); };
+
+                    cell.appendChild(previewEl);
+                    cell.appendChild(del);
+                }
                  
-                 Object.keys(widgets).forEach(iStr => {
-                     const i = parseInt(iStr);
-                     const w = widgets[i][0];
-                     occupied.add(i);
-                     if(w.size === '2x2') { for (let x of [i+1, i+4, i+5]) occupied.add(x); }
-                     if(w.size === '4x2') { for (let x of [i+1, i+2, i+3, i+4, i+5, i+6, i+7]) occupied.add(x) }
-                 });
-
-                 for (let i = 0; i < 32; i++) {
-                     const cell = document.createElement('div');
-                     cell.className = 'settings-grid-cell';
-                     cell.dataset.cellIndex = i;
-
-                     if(widgets[i]){
-                         const w = widgets[i][0];
-                         const ph = document.createElement('div');
-                         ph.className = 'widget-placeholder';
-                         ph.textContent = {image: '🖼️', memo: '📝', shortcut: '🔗'}[w.type];
-                         
-                         const del = document.createElement('button');
-                         del.className = 'widget-placeholder-delete';
-                         del.innerHTML = '&times;';
-                         del.onclick = (e) => { e.stopPropagation(); deleteWidgetFromCell(i); };
-                         
-                         cell.appendChild(ph);
-                         cell.appendChild(del);
-                     }
-                     
-                     if(occupied.has(i)) cell.style.background = 'rgba(128,128,128,0.1)';
-                     gridContainer.appendChild(cell);
-                 }
+                cells.forEach((cell, i) => {
+                    if (occupied.has(i)) cell.style.display = 'none';
+                });
             }
-            
+
             function handleDragStart(e) {
                 e.preventDefault();
                 const item = e.currentTarget;
                 draggedWidgetInfo = { size: item.dataset.widgetSize, type: item.dataset.widgetType };
-                
                 ghostEl = document.createElement('div');
                 ghostEl.className = 'widget-ghost';
                 ghostEl.textContent = item.textContent;
                 document.body.appendChild(ghostEl);
-                
                 const [cols, rows] = draggedWidgetInfo.size.split('x').map(Number);
-                const rect = item.getBoundingClientRect();
-                ghostEl.style.width = `${cols * 40}px`; 
-                ghostEl.style.height = `${rows * 40}px`;
-
+                ghostEl.style.width = `${cols * (item.parentElement.offsetWidth / 4)}px`;
+                ghostEl.style.height = `${rows * (item.parentElement.offsetWidth / 4)}px`; // Keep aspect ratio
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                ghostEl.style.left = `${clientX - ghostEl.offsetWidth/2}px`;
-                ghostEl.style.top = `${clientY - ghostEl.offsetHeight/2}px`;
-                ghostEl.style.zIndex = '9999'; //确保虚影在最上层
-                
+                ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
+                ghostEl.style.top = `${clientY - ghostEl.offsetHeight / 2}px`;
+                ghostEl.style.zIndex = '9999';
                 document.addEventListener('mousemove', handleDragMove);
                 document.addEventListener('mouseup', handleDragEnd, { once: true });
                 document.addEventListener('touchmove', handleDragMove, { passive: false });
                 document.addEventListener('touchend', handleDragEnd, { once: true });
             }
 
-             function handleDragMove(e) {
+            function isPlacementValid(startCell, size) {
+                const occupied = new Set();
+                Object.keys(currentConfig.lockscreenWidgets || {}).forEach(iStr => {
+                     const i = parseInt(iStr);
+                     const w = currentConfig.lockscreenWidgets[i][0];
+                     const [c, r] = w.size.split('x').map(Number);
+                     for(let y=0; y<r; y++) for(let x=0; x<c; x++) occupied.add(i + y*4 + x);
+                });
+
+                const startIndex = parseInt(startCell.dataset.cellIndex, 10);
+                const [cols, rows] = size.split('x').map(Number);
+
+                if ((startIndex % 4) + cols > 4) return false;
+                if (Math.floor(startIndex/4) + rows > 8) return false;
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (occupied.has(startIndex + r * 4 + c)) return false;
+                    }
+                }
+                return true;
+            }
+
+            function handleDragMove(e) {
                 if (!ghostEl) return;
                 e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                ghostEl.style.left = `${clientX - ghostEl.offsetWidth/2}px`;
-                ghostEl.style.top = `${clientY - ghostEl.offsetHeight/2}px`;
-                
+                ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
+                ghostEl.style.top = `${clientY - ghostEl.offsetHeight / 2}px`;
                 if (dragTargetCell) dragTargetCell.classList.remove('drag-over');
-                
                 ghostEl.style.display = 'none';
                 const elBelow = document.elementFromPoint(clientX, clientY);
                 ghostEl.style.display = 'flex';
-                
                 const cell = elBelow ? elBelow.closest('.settings-grid-cell') : null;
                 if (cell && isPlacementValid(cell, draggedWidgetInfo.size)) {
                     dragTargetCell = cell;
@@ -6303,7 +6403,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     dragTargetCell = null;
                 }
             }
-
+            
             function handleDragEnd() {
                 if (dragTargetCell) {
                     dragTargetCell.classList.remove('drag-over');
@@ -6311,42 +6411,27 @@ const blob = b64toBlob(blobData.content, contentType);
                     const newWidget = { id: Date.now(), ...draggedWidgetInfo };
 
                     const onSelectContent = (data) => {
-                        if (typeof data === 'object' && data !== null) {
-                            newWidget.content = data.content;
-                            newWidget.text = data.text;
-                        } else {
-                            newWidget.content = data;
+                        if(newWidget.type === 'html') { // HTML不需要内容选择
+                            saveWidgetConfig(cellIndex, newWidget);
+                            return;
                         }
+                        if (typeof data === 'object' && data !== null) {
+                            newWidget.content = data.content; newWidget.text = data.text;
+                        } else { newWidget.content = data; }
                         saveWidgetConfig(cellIndex, newWidget);
                     };
 
-                    switch(newWidget.type) {
+                    switch (newWidget.type) {
                         case 'image': showImagePicker(onSelectContent); break;
                         case 'memo': showMemoPicker(onSelectContent); break;
                         case 'shortcut': showShortcutPicker(onSelectContent); break;
+                        case 'html': onSelectContent(null); break; // 直接调用
                     }
                 }
-                
                 if (ghostEl) ghostEl.remove();
-                ghostEl = null;
-                draggedWidgetInfo = null;
-                dragTargetCell = null;
+                ghostEl = null; draggedWidgetInfo = null; dragTargetCell = null;
                 document.removeEventListener('mousemove', handleDragMove);
                 document.removeEventListener('touchmove', handleDragMove);
-            }
-            
-            function isPlacementValid(startCell, size) {
-                const widgets = currentConfig.lockscreenWidgets || {};
-                const startIndex = parseInt(startCell.dataset.cellIndex, 10);
-                const [cols, rows] = size.split('x').map(Number);
-                if ((startIndex % 4) + cols > 4) return false;
-
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        if (widgets[startIndex + r * 4 + c]) return false;
-                    }
-                }
-                return true;
             }
 
             function applyMode(enable) {
@@ -6358,8 +6443,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
                 if (enable) {
                     elementsToMove.forEach(el => homeScreenPage.appendChild(el));
-                    currentPage = 0;
-                    currentTranslate = 0;
+                    currentPage = 0; currentTranslate = 0;
                     ui.slider.style.transition = 'none';
                     ui.slider.style.transform = `translateX(0px)`;
                     ui.slider.classList.remove('show-home-screen');
@@ -6371,6 +6455,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     ui.slider.style.transition = 'none';
                     ui.slider.style.transform = `translateX(0px)`;
                     ui.slider.classList.remove('show-home-screen');
+                    document.body.classList.remove('mobile-home-screen-active');
                 }
                 if (!currentConfig.settings.mobileMode) currentConfig.settings.mobileMode = {};
                 currentConfig.settings.mobileMode.enabled = enable;
@@ -6378,8 +6463,8 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             function handleTouchStart(e) {
-                if (!isEnabled || e.target.closest('.widget-placeholder, .palette-item')) return;
-                ui.slider.style.transition = 'none'; 
+                if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder')) return;
+                ui.slider.style.transition = 'none';
                 startX = e.touches[0].clientX;
                 const transformMatrix = window.getComputedStyle(ui.slider).transform;
                 currentTranslate = (transformMatrix !== 'none') ? parseFloat(transformMatrix.split(',')[4]) : 0;
@@ -6401,8 +6486,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 const diffX = e.changedTouches[0].clientX - startX;
                 const threshold = window.innerWidth / 4;
                 if (Math.abs(diffX) > threshold) {
-                    if (diffX < 0 && currentPage === 0) currentPage = 1;
-                    else if (diffX > 0 && currentPage === 1) currentPage = 0;
+                    if (diffX < 0 && currentPage === 0) currentPage = 1; else if (diffX > 0 && currentPage === 1) currentPage = 0;
                 }
                 snapToPage();
             }
@@ -6425,7 +6509,7 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             function detachSwipeListeners() {
-                 const options = { passive: false };
+                const options = { passive: false };
                 ui.wrapper.removeEventListener('touchstart', handleTouchStart, options);
                 ui.wrapper.removeEventListener('touchmove', handleTouchMove, options);
                 ui.wrapper.removeEventListener('touchend', handleTouchEnd, { passive: true });
@@ -6437,9 +6521,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     const mobileSettings = currentConfig.settings.mobileMode || { enabled: false };
                     ui.toggle.checked = mobileSettings.enabled;
                     if (!currentConfig.lockscreenWidgets) currentConfig.lockscreenWidgets = {};
-                    if (mobileSettings.enabled) {
-                        applyMode(true);
-                    }
+                    if (mobileSettings.enabled) applyMode(true);
                     ui.toggle.addEventListener('change', (e) => applyMode(e.target.checked));
                     ui.openSettingsBtn.addEventListener('click', openLockscreenSettingsWindow);
                 }
