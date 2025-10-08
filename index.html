@@ -6199,99 +6199,75 @@ const blob = b64toBlob(blobData.content, contentType);
         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
-            grid.innerHTML = '';
+            grid.innerHTML = ''; // 清空网格，准备重新渲染
 
             const widgetsData = currentConfig.lockscreenWidgets || {};
-            const occupiedCells = new Set();
 
-            // [V-修复] 首先计算所有被占用的单元格
-            Object.keys(widgetsData).forEach(startIndexStr => {
+            // [V2-修复] 直接遍历已配置的组件，不再循环所有格子
+            for (const startIndexStr in widgetsData) {
                 const startIndex = parseInt(startIndexStr, 10);
                 const widgetConfig = widgetsData[startIndex]?.[0];
-                if (!widgetConfig) return;
+                if (!widgetConfig) continue; // 跳过无效的配置
 
                 const [cols, rows] = widgetConfig.size.split('x').map(Number);
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        // 将起始单元格自身也标记，简化后续逻辑
-                        occupiedCells.add(startIndex + (r * 4) + c);
-                    }
-                }
-            });
 
-            // [V-修复] 再次遍历以创建和填充组件
-            for (let i = 0; i < 32; i++) {
-                // 如果当前单元格是一个组件的起始点
-                if (widgetsData[i] && widgetsData[i].length > 0) {
-                    const widgetConfig = widgetsData[i][0];
-                    const [cols, rows] = widgetConfig.size.split('x').map(Number);
+                // 计算组件在网格中的起始行列 (CSS Grid行列号从1开始)
+                const startRow = Math.floor(startIndex / 4) + 1;
+                const startCol = (startIndex % 4) + 1;
 
-                    // 创建一个代表整个组件区域的容器，而不是单个cell
-                    const componentContainer = document.createElement('div');
-                    componentContainer.className = 'grid-cell'; // 基础样式
-                    componentContainer.style.gridColumn = `span ${cols}`;
-                    componentContainer.style.gridRow = `span ${rows}`;
-                    
-                    const widgetEl = document.createElement('div');
-                    widgetEl.className = 'widget';
+                // 创建组件的容器
+                const componentContainer = document.createElement('div');
+                
+                // [V2-修复 核心] 使用 grid-area 明确指定位置和大小
+                componentContainer.style.gridArea = `${startRow} / ${startCol} / span ${rows} / span ${cols}`;
+                
+                // 根据类型填充内容
+                const widgetEl = document.createElement('div');
+                widgetEl.className = 'widget'; // 基础样式
 
-                    switch (widgetConfig.type) {
-                        case 'image':
-                            // [V-修复] 创建img标签以应用object-fit:cover
-                            widgetEl.classList.add('widget-image');
-                            const img = document.createElement('img');
-                            img.alt = 'Image Widget';
-                            getSecureFileUrl(widgetConfig.content).then(url => {
-                                if (url) img.src = url;
-                            });
-                            widgetEl.appendChild(img);
-                            componentContainer.appendChild(widgetEl);
-                            break;
-                        case 'memo':
-                            const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
-                            widgetEl.classList.add('widget-memo');
-                            if (memo) {
-                                widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div><div class="widget-memo-content">${memo.content || '没有内容'}</div>`;
-                                widgetEl.style.cursor = 'pointer';
-                                widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
+                switch (widgetConfig.type) {
+                    case 'image':
+                        widgetEl.classList.add('widget-image');
+                        const img = document.createElement('img');
+                        img.alt = 'Image Widget';
+                        getSecureFileUrl(widgetConfig.content).then(url => {
+                            if (url) img.src = url;
+                        });
+                        widgetEl.appendChild(img);
+                        break;
+                    case 'memo':
+                        const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
+                        widgetEl.classList.add('widget-memo');
+                        if (memo) {
+                            widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div><div class="widget-memo-content">${memo.content || '没有内容'}</div>`;
+                            widgetEl.style.cursor = 'pointer';
+                            widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
+                        } else {
+                            widgetEl.textContent = '备忘录未找到';
+                        }
+                        break;
+                    case 'shortcut':
+                        const buttonConfig = findButtonConfigByHref(widgetConfig.content);
+                        widgetEl.classList.add('widget-shortcut');
+                        widgetEl.textContent = buttonConfig ? buttonConfig.text : '快捷方式';
+                        widgetEl.dataset.href = widgetConfig.content;
+                        widgetEl.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            if (buttonConfig && buttonConfig.openExternally) {
+                                window.open(this.dataset.href, '_blank', 'noopener,noreferrer');
                             } else {
-                                widgetEl.textContent = '备忘录未找到';
+                                openIframeModal(this.dataset.href);
                             }
-                            componentContainer.appendChild(widgetEl);
-                            break;
-                        case 'shortcut':
-                            const buttonConfig = findButtonConfigByHref(widgetConfig.content);
-                            widgetEl.classList.add('widget-shortcut');
-                            widgetEl.textContent = buttonConfig ? buttonConfig.text : '快捷方式';
-                            widgetEl.dataset.href = widgetConfig.content;
-                            widgetEl.addEventListener('click', function (e) {
-                                e.stopPropagation();
-                                if (buttonConfig && buttonConfig.openExternally) {
-                                    window.open(this.dataset.href, '_blank', 'noopener,noreferrer');
-                                } else {
-                                    openIframeModal(this.dataset.href);
-                                }
-                            });
-                            componentContainer.appendChild(widgetEl);
-                            break;
-                        // 可以添加对其他类型的处理
-                    }
-                    grid.appendChild(componentContainer);
+                        });
+                        break;
                 }
-                // [V-修复] 如果当前单元格被占用，但不是起始点，则什么都不做
-                else if (occupiedCells.has(i)) {
-                    // This cell is part of a larger widget, so we do nothing.
-                    // The grid layout will automatically handle the empty space.
-                }
-                // 如果当前单元格是空的，创建一个透明的占位符
-                else {
-                    const emptyCell = document.createElement('div');
-                    emptyCell.className = 'grid-cell';
-                    grid.appendChild(emptyCell);
-                }
+                
+                // 将填充好内容的widget元素放入容器
+                componentContainer.appendChild(widgetEl);
+                // 将定位好的容器添加到网格中
+                grid.appendChild(componentContainer);
             }
         }
-
 
 
         const MobileModeManager = (() => {
