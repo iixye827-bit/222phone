@@ -988,7 +988,7 @@ body.mobile-mode .home-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    overflow-y: auto;
+    overflow: hidden; /* [修复] 禁止页面滚动 */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -1009,7 +1009,9 @@ body.mobile-mode .home-screen-page {
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(8, 1fr);
     gap: 12px;
+    min-height: 0; /* [核心修复] 允许网格容器在flex布局中被压缩 */
 }
+
 
 .grid-cell {
     /* 默认情况下，格子是完全透明的 */
