@@ -1061,7 +1061,10 @@ body.mobile-mode .page-slider:not(.show-home-screen) .home-screen-page > * {
     box-sizing: border-box;
     text-align: center;
     overflow: hidden;
+    /* [核心修复] 允许flex容器收缩至小于其内容尺寸，防止iframe撑开布局 */
+    min-height: 0; 
 }
+
 body.dark-mode .widget {
     background: rgba(20, 20, 20, 0.25);
     border-color: rgba(255, 255, 255, 0.1);
@@ -1898,6 +1901,18 @@ body.dark-mode .simulated-phone-screen {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+/* [新增] 锁屏HTML组件容器精准约束样式 */
+.html-widget-container {
+    position: relative; /* 为绝对定位的子元素创建定位上下文 */
+}
+
+.html-widget-container > .widget {
+    position: absolute; /* 将widget脱离文档流，使其不再影响父容器的高度计算 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
 
     </style>
 
@@ -6202,31 +6217,29 @@ const blob = b64toBlob(blobData.content, contentType);
             grid.innerHTML = ''; // 清空，准备重新渲染
 
             const widgetsData = currentConfig.lockscreenWidgets || {};
-
-            // [V-最终修复] 直接遍历存在的组件，并为它们设置精确的网格位置
+            
             Object.keys(widgetsData).forEach(startIndexStr => {
                 const startIndex = parseInt(startIndexStr, 10);
                 const widgetConfig = widgetsData[startIndex]?.[0];
 
-                if (!widgetConfig) return; // 安全检查
+                if (!widgetConfig) return;
 
-                // 1. 根据索引计算出起始行列
                 const startRow = Math.floor(startIndex / 4) + 1;
                 const startCol = (startIndex % 4) + 1;
                 const [cols, rows] = widgetConfig.size.split('x').map(Number);
 
-                // 2. 创建组件的容器
                 const componentContainer = document.createElement('div');
                 
-                // [BUG修复] 添加 min-height: 0 来防止 iframe 等内容撑开网格布局
-                componentContainer.style.minHeight = '0';
-
-                // 3. [核心] 使用 style 属性直接定义其在网格中的位置和跨度
+                // [最终修复] 如果是HTML组件，则添加特殊类以应用绝对定位策略
+                if (widgetConfig.type === 'html') {
+                    componentContainer.classList.add('html-widget-container');
+                }
+                
                 componentContainer.style.gridRowStart = startRow;
                 componentContainer.style.gridColumnStart = startCol;
-
+                componentContainer.style.gridRowEnd = `span ${rows}`;
+                componentContainer.style.gridColumnEnd = `span ${cols}`;
                 
-                // 4. 创建内部的 widget 元素并填充内容 (这部分逻辑不变)
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
@@ -6244,17 +6257,14 @@ const blob = b64toBlob(blobData.content, contentType);
                         const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
                         widgetEl.classList.add('widget-memo');
                         if (memo) {
-                            // 检查尺寸是否为 1x1
                             if (widgetConfig.size === '1x1') {
-                                widgetEl.innerHTML = '&#9993;'; // 使用字符“✉”
-                                widgetEl.style.fontSize = '24px'; // 调整图标大小
+                                widgetEl.innerHTML = '&#9993;';
+                                widgetEl.style.fontSize = '24px';
                                 widgetEl.style.lineHeight = '1';
                                 widgetEl.style.display = 'flex';
                                 widgetEl.style.alignItems = 'center';
                                 widgetEl.style.justifyContent = 'center';
-
                             } else {
-                                // 默认只显示标题
                                 widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div>`;
                             }
                             widgetEl.style.cursor = 'pointer';
@@ -6278,27 +6288,20 @@ const blob = b64toBlob(blobData.content, contentType);
                         });
                         break;
                     case 'html':
-                        // [新增] HTML 组件渲染逻辑
-                        // 为了安全和隔离，我们使用 iframe 来渲染用户提供的HTML
-                        widgetEl.style.padding = '0'; // HTML组件通常不需要内边距
-                        widgetEl.style.overflow = 'hidden'; // 确保内容不溢出
+                        widgetEl.style.padding = '0';
+                        widgetEl.style.overflow = 'hidden';
                         const iframe = document.createElement('iframe');
                         iframe.className = 'widget-html-iframe';
-                        // 使用 srcdoc 属性来安全地设置内容，这可以防止跨站脚本（XSS）攻击
-                        // 并且可以很好地继承父级的CSS变量（如果需要）
                         iframe.srcdoc = widgetConfig.content || '<p style="color: inherit; opacity: 0.6;">未提供HTML内容</p>';
-                        // 阻止 iframe 捕获滚动事件，让页面可以正常滚动
                         iframe.scrolling = 'no';
                         widgetEl.appendChild(iframe);
                         break;
                 }
-
                 
                 componentContainer.appendChild(widgetEl);
                 grid.appendChild(componentContainer);
             });
         }
-
 
 
         const MobileModeManager = (() => {
