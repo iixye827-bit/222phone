@@ -2172,37 +2172,16 @@ body.dark-mode .simulated-phone-screen {
                 </div>
                 <!-- [新增结束] -->
                 
-                <div class="toggle-section" style="flex-wrap: wrap; gap: 10px;">
-                    <span style="flex-basis: 100%; font-weight: 600;">网页内悬浮球</span>
+                <div class="toggle-section" id="jelly-ball-main-control" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px;">
+                    <span style="font-weight: 600; width: 100%;">网页内悬浮球</span>
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                         <span>启用悬浮球</span>
                         <label class="toggle-switch"><input type="checkbox" id="jellyBallToggle"><span class="slider"></span></label>
                     </div>
-                </div>
-
-                <div id="jelly-ball-options-container" style="display: none; width: 100%; flex-direction: column; gap: 15px;">
-                    <div class="toggle-section">
-                        <span>启用左滑返回 (应用内网页)</span>
-                        <label class="toggle-switch"><input type="checkbox" id="jellySwipeBackToggle"><span class="slider"></span></label>
+                    <!-- [新增] 悬浮球设置入口 -->
+                    <div id="jellyBallSettingsEntry" style="width: 100%; display: none;">
+                         <button id="openJellyBallSettingsBtn" class="modal-button" style="width: 100%; margin-top: 10px;">悬浮球设置</button>
                     </div>
-
-                    <div class="toggle-section" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px;">
-                        <label style="font-size: 14px; color: #5a6778; font-weight: 600;">自定义功能</label>
-                        <div id="jelly-function-checkboxes" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 15px; width: 100%;"></div>
-                    </div>
-                    
-                                        <div class="toggle-section" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                        <label for="jellyBallCssTextarea" style="font-size: 14px; color: #5a6778; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                            <span>自定义CSS (云同步)</span>
-                            <button id="show-jelly-css-help" style="background:none; border:none; font-size: 20px; cursor:pointer; padding:0; line-height: 1;" title="CSS提示词向导">💡</button>
-                        </label>
-                        <div style="display: flex; gap: 10px; width:100%; align-items: flex-start;">
-                            <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="4" placeholder=".jelly-ball-wrapper {&#10;  /* 控制外圈辉光和位置 */&#10;}&#10;#floating-jellyfish-ball {&#10;  /* 控制中间圆球 */&#10;  background: #ff0000 !important;&#10;}" style="flex-grow: 1;"></textarea>
-                            <div id="jellyCssPreview" style="width: 52px; height: 52px; border: 1px solid rgba(128,128,128,0.2); border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background:var(--bg-day-element); box-shadow: inset 2px 2px 4px var(--shadow-dark-day), inset -2px -2px 4px var(--shadow-light-day);"><div id="jellyCssPreviewBall" style="width: 42px; height: 42px; border-radius: 50%; font-size: 22px; display:flex; align-items:center; justify-content:center;">🪼</div></div>
-                        </div>
-                        <button id="applyJellyBallCssBtn" class="modal-button" style="width: 100%;">应用样式</button>
-                    </div>
-
                 </div>
 
                 <div class="theme-style-selector">
@@ -3207,94 +3186,131 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
 
         function _getEnabledFunctions() { const settings=currentConfig.settings.jellyBall?.functions||{}; return ALL_FUNCTIONS.filter(func=>settings[func.id]!==false); }
 
-        function initSettings() {
+         function initSettings() {
             const toggle = document.getElementById('jellyBallToggle');
-            const swipeBackToggle = document.getElementById('jellySwipeBackToggle');
-            const optionsContainer = document.getElementById('jelly-ball-options-container');
-            const cssTextarea = document.getElementById('jellyBallCssTextarea');
-            const applyCssBtn = document.getElementById('applyJellyBallCssBtn');
+            const settingsEntry = document.getElementById('jellyBallSettingsEntry');
+            const openSettingsBtn = document.getElementById('openJellyBallSettingsBtn');
             const customStyleTag = document.getElementById('custom-jelly-ball-styles');
-            const cssPreview = document.getElementById('jellyCssPreview');
-            const previewBall = document.getElementById('jellyCssPreviewBall');
-                        const checkboxContainer = document.getElementById('jelly-function-checkboxes');
-            let previewStyleTag = document.getElementById('jelly-preview-style');
-            if (!previewStyleTag) {
-                previewStyleTag = document.createElement('style');
-                previewStyleTag.id = 'jelly-preview-style';
-                document.head.appendChild(previewStyleTag);
-            }
-            
+
+            // 确保配置对象存在
             if (!currentConfig.settings.jellyBall) {
-                currentConfig.settings.jellyBall = { enabled: false, swipeBack: true, functions: {}, customCSS: ''};
+                currentConfig.settings.jellyBall = { enabled: false, swipeBack: true, functions: {}, customCSS: '' };
+            }
+            const settings = currentConfig.settings.jellyBall;
+            
+            // 动态创建悬浮球设置窗口
+            function openJellyBallSettingsWindow() {
+                const modalId = 'jelly-ball-settings-modal';
+                if (document.getElementById(modalId)) return; // 防止重复创建
+
+                const modalOverlay = document.createElement('div');
+                modalOverlay.id = modalId;
+                modalOverlay.className = 'modal-overlay show';
+                modalOverlay.style.zIndex = '1002'; // 比主题设置高一级
+
+                const modalContent = document.createElement('div');
+                modalContent.className = 'modal-content';
+                modalContent.style.maxWidth = '400px';
+
+                modalContent.innerHTML = `
+                    <div class="modal-header">
+                        <div class="modal-title-group"><span>悬浮球设置</span></div>
+                        <button class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body" id="jelly-ball-options-container" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="toggle-section">
+                            <span>启用左滑返回 (应用内网页)</span>
+                            <label class="toggle-switch"><input type="checkbox" id="jellySwipeBackToggle"><span class="slider"></span></label>
+                        </div>
+                        <div class="toggle-section" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px;">
+                            <label style="font-size: 14px; color: #5a6778; font-weight: 600;">自定义功能</label>
+                            <div id="jelly-function-checkboxes" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 15px; width: 100%;"></div>
+                        </div>
+                        <div class="toggle-section" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                            <label for="jellyBallCssTextarea" style="font-size: 14px; color: #5a6778; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                <span>自定义CSS (云同步)</span>
+                                <button id="show-jelly-css-help" style="background:none; border:none; font-size: 20px; cursor:pointer; padding:0; line-height: 1;" title="CSS提示词向导">💡</button>
+                            </label>
+                            <div style="display: flex; gap: 10px; width:100%; align-items: flex-start;">
+                                <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="4" placeholder=".jelly-ball-wrapper { ... }"></textarea>
+                                <div id="jellyCssPreview" style="..."><div id="jellyCssPreviewBall" style="...">🪼</div></div>
+                            </div>
+                            <button id="applyJellyBallCssBtn" class="modal-button" style="width: 100%;">应用样式</button>
+                        </div>
+                    </div>
+                `;
+                
+                modalOverlay.appendChild(modalContent);
+                document.body.appendChild(modalOverlay);
+
+                // 在新窗口内部绑定事件和初始化状态
+                const closeBtn = modalContent.querySelector('.close-btn');
+                const swipeBackToggle = modalContent.querySelector('#jellySwipeBackToggle');
+                const checkboxContainer = modalContent.querySelector('#jelly-function-checkboxes');
+                const cssTextarea = modalContent.querySelector('#jellyBallCssTextarea');
+                const applyCssBtn = modalContent.querySelector('#applyJellyBallCssBtn');
+
+                // 关闭逻辑
+                const closeModal = () => { modalOverlay.classList.remove('show'); modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true }); };
+                closeBtn.onclick = closeModal;
+                modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeModal(); };
+
+                // 初始化控件状态
+                swipeBackToggle.checked = settings.swipeBack !== false;
+                checkboxContainer.innerHTML = '';
+                ALL_FUNCTIONS.forEach(func => {
+                    const isChecked = settings.functions?.[func.id] !== false;
+                    checkboxContainer.innerHTML += `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                           <label for="jelly_func_${func.id}" style="cursor:pointer;...">${func.icon} ${func.title}</label>
+                           <label class="toggle-switch"><input type="checkbox" id="jelly_func_${func.id}" data-function-id="${func.id}" ${isChecked ? 'checked' : ''}><span class="slider"></span></label>
+                        </div>`;
+                });
+                cssTextarea.value = settings.customCSS || '';
+
+                // 绑定事件监听
+                swipeBackToggle.addEventListener('change', () => { settings.swipeBack = swipeBackToggle.checked; saveGlobalConfig('Update Jellyfish Ball settings'); });
+                checkboxContainer.addEventListener('change', (e) => {
+                    const checkbox = e.target;
+                    if (checkbox.dataset.functionId) {
+                        if (!settings.functions) settings.functions = {};
+                        settings.functions[checkbox.dataset.functionId] = checkbox.checked;
+                        _renderMenuButtons();
+                        saveGlobalConfig('Update Jellyfish Ball settings');
+                    }
+                });
+                applyCssBtn.addEventListener('click', () => {
+                   settings.customCSS = cssTextarea.value;
+                   customStyleTag.innerHTML = settings.customCSS;
+                   if(ball) { _destroy(); _create(); } 
+                   saveGlobalConfig('Update Jellyfish Ball CSS');
+                   alert('自定义样式已应用并同步至云端！');
+                });
+                modalContent.querySelector('#show-jelly-css-help').addEventListener('click', () => {
+                    document.getElementById('jelly-css-help-modal').classList.add('show');
+                });
             }
 
-
-            const settings = currentConfig.settings.jellyBall;
-            toggle.checked = settings.enabled || false;
-            swipeBackToggle.checked = settings.swipeBack !== false;
-            
-            checkboxContainer.innerHTML = '';
-            ALL_FUNCTIONS.forEach(func => {
-                const isChecked = settings.functions?.[func.id] !== false;
-                const checkboxHtml = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                       <label for="jelly_func_${func.id}" style="cursor:pointer; display:flex; align-items:center; gap: 5px;">${func.icon} ${func.title}</label>
-                       <label class="toggle-switch"><input type="checkbox" id="jelly_func_${func.id}" data-function-id="${func.id}" ${isChecked ? 'checked' : ''}><span class="slider"></span></label>
-                    </div>`;
-                checkboxContainer.innerHTML += checkboxHtml;
-            });
-            
-            function updateUIVisibility() { optionsContainer.style.display = toggle.checked ? 'flex' : 'none'; }
-            
-            toggle.addEventListener('change', () => { settings.enabled = toggle.checked; updateUIVisibility(); if (settings.enabled) _create(); else _destroy(); saveGlobalConfig('Update Jellyfish Ball settings'); });
-            swipeBackToggle.addEventListener('change', () => { settings.swipeBack = swipeBackToggle.checked; saveGlobalConfig('Update Jellyfish Ball settings'); });
-            
-            checkboxContainer.addEventListener('change', (e) => {
-                const checkbox = e.target;
-                if (checkbox.dataset.functionId) {
-                    if (!settings.functions) settings.functions = {};
-                    settings.functions[checkbox.dataset.functionId] = checkbox.checked;
-                    _renderMenuButtons(); 
-                    saveGlobalConfig('Update Jellyfish Ball settings');
-                }
-            });
-
-            cssTextarea.value = settings.customCSS || '';
-            customStyleTag.innerHTML = settings.customCSS || '';
-            
-                                    const updatePreview = () => {
-                const previewCss = cssTextarea.value
-                    .replace(/\.jelly-ball-wrapper/g, `#${cssPreview.id}`)
-                    .replace(/#floating-jellyfish-ball/g, `#${previewBall.id}`)
-                    .replace(/\.jelly-ball-glow/g, 'display:none');
-                
-                const styleTag = document.getElementById('jelly-preview-style');
-                if (styleTag) {
-                    styleTag.textContent = previewCss; // 使用 textContent 效率更高
-                    // 强制浏览器重新计算样式，解决部分浏览器下的渲染延迟问题
-                    void previewBall.offsetWidth; 
-                }
+            // 主开关的UI和逻辑控制
+            const updateUIVisibility = () => {
+                settingsEntry.style.display = toggle.checked ? 'block' : 'none';
             };
+            
+            toggle.checked = settings.enabled || false;
+            customStyleTag.innerHTML = settings.customCSS || ''; // 初始加载CSS
 
-
-
-            cssTextarea.addEventListener('input', updatePreview);
-            applyCssBtn.addEventListener('click', () => {
-               settings.customCSS = cssTextarea.value;
-               customStyleTag.innerHTML = settings.customCSS;
-               if(ball) { _destroy(); _create(); } // Re-create to apply styles
-               saveGlobalConfig('Update Jellyfish Ball settings');
-               alert('自定义样式已应用并同步至云端！');
+            toggle.addEventListener('change', () => {
+                settings.enabled = toggle.checked;
+                updateUIVisibility();
+                if (settings.enabled) _create(); else _destroy();
+                saveGlobalConfig('Toggle Jellyfish Ball');
             });
+
+            openSettingsBtn.addEventListener('click', openJellyBallSettingsWindow);
             
             updateUIVisibility();
-            setTimeout(updatePreview, 100);
-
-            // New: CSS help modal logic
-            document.getElementById('show-jelly-css-help').addEventListener('click', () => {
-                document.getElementById('jelly-css-help-modal').classList.add('show');
-            });
         }
+
 
         return { init: initSettings, create: _create, destroy: _destroy };
     })();
