@@ -1292,31 +1292,39 @@ body.dark-mode .widget-shortcut:active {
     box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1);
 }
 
-/* 备忘录组件样式 */
+/* --- 备忘录小组件样式 --- */
 .widget-memo {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    text-align: left;
-    gap: 5px;
+    box-sizing: border-box; /* 确保 padding 不会撑大元素 */
+    text-align: center;
+    color: var(--widget-text-color);
+    background-color: var(--widget-background-color);
 }
-.widget-memo-title {
-    font-size: 16px;
-    font-weight: bold;
+
+.widget-memo .widget-memo-title {
+    font-weight: 700;  /* [修改] 确保标题加粗 */
+    font-size: 1em;    /* 使用相对单位，使其能随小组件大小缩放 */
+    margin-bottom: 4px;
     width: 100%;
+    
+    /* [新增] 防止标题过长换行破坏布局 */
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; 
 }
-.widget-memo-content {
-    font-size: 13px;
-    font-weight: normal;
-    opacity: 0.8;
-    display: -webkit-box;
-    -webkit-line-clamp: 4; /* 根据组件大小调整显示行数 */
-    -webkit-box-orient: vertical;
+
+/* [新增] 备忘录内容样式 */
+.widget-memo .widget-memo-content {
+    font-weight: 300; /* 更细的字体 */
+    font-size: 0.8em;
+    opacity: 0.8;     /* 变淡的效果 */
+    width: 100%;
+    
+    /* 核心：实现多行文本溢出显示省略号 */
     overflow: hidden;
-    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3; /* 最多显示3行，你可以根据需要调整 */
+    line-height: 1.4;
 }
 /* 超大备忘录可以显示更多行 */
 .widget-xl .widget-memo-content { -webkit-line-clamp: 6; }
@@ -7160,12 +7168,28 @@ const blob = b64toBlob(blobData.content, contentType);
                     case 'memo':
                         const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
                         widgetEl.classList.add('widget-memo');
+
                         if (memo) {
                             if (widgetConfig.size === '1x1') {
+                                // 1x1 尺寸：只显示居中的图标，可以正常应用圆形/方形样式
                                 widgetEl.innerHTML = '&#9993;';
-                                widgetEl.style.fontSize = '24px';
+                                widgetEl.style.fontSize = '2em';
                             } else {
-                                widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div>`;
+                                // [核心修复] 大于1x1时，强制使用方形以获得最佳内容显示效果
+                                widgetEl.classList.remove('widget-shape-circle', 'widget-shape-capsule');
+                                widgetEl.classList.add('widget-shape-square');
+
+                                // 大于 1x1 的尺寸：显示标题和内容
+                                widgetEl.innerHTML = `
+                                    <div class="widget-memo-title">${memo.title || '无标题'}</div>
+                                    <div class="widget-memo-content">${memo.content || '无内容'}</div>
+                                `;
+                                // 调整 flex 布局以支持垂直排列
+                                widgetEl.style.flexDirection = 'column';
+                                widgetEl.style.alignItems = 'flex-start';
+                                widgetEl.style.justifyContent = 'flex-start';
+                                widgetEl.style.padding = '12px';
+                                widgetEl.style.textAlign = 'left';
                             }
                             widgetEl.style.cursor = 'pointer';
                             widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
@@ -7173,6 +7197,8 @@ const blob = b64toBlob(blobData.content, contentType);
                             widgetEl.textContent = '备忘录未找到';
                         }
                         break;
+
+
                     case 'shortcut':
                         const buttonConfig = findButtonConfigByHref(widgetConfig.content);
                         widgetEl.classList.add('widget-shortcut');
