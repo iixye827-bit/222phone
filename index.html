@@ -6195,39 +6195,43 @@ const blob = b64toBlob(blobData.content, contentType);
             setTimeout(() => overlay.classList.add('show'), 10);
         }
         
-        // [重构] 渲染锁屏组件
+        // [V3 最终修复] 渲染锁屏组件
         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
-            grid.innerHTML = ''; // 清空，准备重新渲染
+            grid.innerHTML = ''; // 清空，准备全新渲染
+
+            // 1. [核心] 创建一个完整的、静态的 4x8 网格骨架
+            const cells = [];
+            for (let i = 0; i < 32; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.cellIndex = i;
+                grid.appendChild(cell);
+                cells.push(cell); // 将所有单元格的引用存起来，方便后续操作
+            }
 
             const widgetsData = currentConfig.lockscreenWidgets || {};
 
-            // [V-最终修复] 直接遍历存在的组件，并为它们设置精确的网格位置
+            // 2. [核心] 遍历已配置的组件，将它们精准地“放置”到骨架上
             Object.keys(widgetsData).forEach(startIndexStr => {
                 const startIndex = parseInt(startIndexStr, 10);
                 const widgetConfig = widgetsData[startIndex]?.[0];
 
-                if (!widgetConfig) return; // 安全检查
+                if (!widgetConfig || !cells[startIndex]) return; // 安全检查
 
-                // 1. 根据索引计算出起始行列
-                const startRow = Math.floor(startIndex / 4) + 1;
-                const startCol = (startIndex % 4) + 1;
+                const startCell = cells[startIndex];
                 const [cols, rows] = widgetConfig.size.split('x').map(Number);
-
-                // 2. 创建组件的容器
-                const componentContainer = document.createElement('div');
-
-                // 3. [核心] 使用 style 属性直接定义其在网格中的位置和跨度
-                componentContainer.style.gridRowStart = startRow;
-                componentContainer.style.gridColumnStart = startCol;
-                componentContainer.style.gridRowEnd = `span ${rows}`;
-                componentContainer.style.gridColumnEnd = `span ${cols}`;
                 
-                // 4. 创建内部的 widget 元素并填充内容 (这部分逻辑不变)
+                // 3. [核心] 让起始单元格扩展，并填充内容
+                startCell.style.gridColumn = `span ${cols}`;
+                startCell.style.gridRow = `span ${rows}`;
+                startCell.classList.add('widget-container'); // 添加一个标识，表明这是个有内容的容器
+                
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
+                // 这部分填充内容的逻辑保持不变
                 switch (widgetConfig.type) {
                     case 'image':
                         widgetEl.classList.add('widget-image');
@@ -6265,10 +6269,21 @@ const blob = b64toBlob(blobData.content, contentType);
                         break;
                 }
                 
-                componentContainer.appendChild(widgetEl);
-                grid.appendChild(componentContainer);
+                startCell.appendChild(widgetEl);
+
+                // 4. [核心] 将被这个大组件覆盖的其他单元格隐藏
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (r === 0 && c === 0) continue; // 跳过起始单元格自身
+                        const coveredIndex = startIndex + (r * 4) + c;
+                        if (cells[coveredIndex]) {
+                            cells[coveredIndex].style.display = 'none';
+                        }
+                    }
+                }
             });
         }
+
 
 
 
