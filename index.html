@@ -1787,107 +1787,113 @@ body.dark-mode .simulated-phone-screen {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 /* =============================================================== */
-/* ============= [新增] V5 锁屏图片选择器样式 ================ */
+/* ============= [V5 新增] 模拟器删除按钮优化样式 ============ */
 /* =============================================================== */
-.picker-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* 组件容器，用于定位和 hover 效果 */
+.widget-container-wrapper {
+    position: relative;
+    /* grid-area 将由 JS 设置 */
 }
-.picker-header {
+
+/* 删除按钮的包裹层，用于居中和捕获点击 */
+.widget-delete-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(128,128,128,0.2);
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    pointer-events: none; /* 默认不可见不可点 */
+    transition: opacity 0.2s ease;
 }
-.picker-back-btn {
-    background: transparent;
-    border: none;
+
+/* 仅当包裹层被 hover 时，显示删除按钮 */
+.widget-container-wrapper:hover .widget-delete-wrapper {
+    opacity: 1;
+    pointer-events: auto; /* hover 时可点击 */
+}
+
+/* 居中且更大的删除按钮本体 */
+.widget-delete-btn-centered {
+    width: 28px;
+    height: 28px;
+    background-color: rgba(245, 101, 101, 0.8);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
     font-size: 20px;
     font-weight: bold;
+    line-height: 26px; /* 垂直居中叉号 */
+    text-align: center;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 50%;
-    line-height: 1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background-color 0.2s;
 }
-.picker-back-btn:hover {
-    background-color: rgba(0,0,0,0.05);
+
+.widget-delete-btn-centered:hover {
+    transform: scale(1.1);
+    background-color: #f56565;
 }
-body.dark-mode .picker-back-btn:hover {
-    background-color: rgba(255,255,255,0.08);
-}
-.picker-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #889;
-}
-.picker-list, .picker-grid {
-    max-height: calc(80vh - 150px); /* 确保内容区不会过高 */
-    min-height: 150px;
-    overflow-y: auto;
-    padding: 5px;
-}
-.picker-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.picker-item {
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ============= [V7 新增] 居中加载指示器样式 ============= */
+/* =============================================================== */
+.loading-indicator-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 15px;
-    border-radius: 8px;
+    justify-content: center;
+    z-index: 9999; /* 确保在最顶层 */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.loading-indicator-overlay.show {
+    opacity: 1;
+}
+
+.loading-indicator-box {
+    background-color: var(--content-bg);
+    padding: 25px 40px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    text-align: center;
+    transform: scale(0.95);
+    transition: transform 0.2s ease-in-out;
+}
+
+.loading-indicator-overlay.show .loading-indicator-box {
+    transform: scale(1);
+}
+
+.loading-indicator-text {
+    font-size: 16px;
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+.loading-indicator-cancel-btn {
+    background-color: #e53e3e;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
     cursor: pointer;
     transition: background-color 0.2s;
-    background-color: rgba(0,0,0,0.02);
 }
-.picker-item:hover {
-    background-color: rgba(0,0,0,0.05);
-}
-body.dark-mode .picker-item:hover {
-    background-color: rgba(255,255,255,0.08);
-}
-.picker-item-icon {
-    font-size: 24px;
-}
-.picker-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 10px;
-}
-.picker-grid-item {
-    aspect-ratio: 1 / 1;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    background-color: rgba(128,128,128,0.1);
-}
-.picker-grid-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.picker-grid-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-#widget-selection-status {
-    font-size: 12px;
-    color: #889;
-    text-align: center;
-    margin-top: -10px;
-    margin-bottom: 8px;
-    min-height: 16px;
-    transition: opacity 0.3s;
-}
-.widget-preview-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px; /* 匹配预览项的圆角 */
+
+.loading-indicator-cancel-btn:hover {
+    background-color: #c53030;
 }
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
@@ -3352,27 +3358,60 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
         }
     }
     
-    async function fetchFromGithub(path, endpoint = 'contents') {
+    async function fetchFromGithub(path, method = 'GET', body = null, signal = null) {
         if (!checkConfig(false)) return { data: null, error: "GitHub未配置" };
-        if (endpoint === 'contents') updateSyncStatus('syncing', `正在从云端读取...`);
         
+        let endpoint, displayContext, showSyncIndicator = false;
+        if(method === 'contents' || method === 'git') { // Legacy compatibility
+            endpoint = method;
+            method = 'GET';
+        } else {
+            endpoint = 'contents';
+        }
+
+        if(path.startsWith('git/blobs')) {
+            endpoint = 'git'; // Override for blob fetches
+            path = path.substring(4);
+            displayContext = '读取文件内容';
+        } else {
+            displayContext = `读取 ${path}`;
+            showSyncIndicator = true;
+        }
+
+        if (showSyncIndicator) updateSyncStatus('syncing', `正在从云端读取...`);
+
         const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${endpoint}/${path}`;
+        
         try {
-            const response = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` }, cache: 'no-cache' });
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` },
+                body: body ? JSON.stringify(body) : null,
+                signal: signal, // Pass the signal to fetch
+                cache: 'no-cache'
+            });
+
             if (response.status === 404) return { data: null, error: null, response };
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(`${response.status}: ${JSON.stringify(errorData)}`);
+                 const errorData = await response.json().catch(() => ({}));
+                 throw new Error(`${response.status}: ${JSON.stringify(errorData)}`);
             }
+            
             const data = await response.json();
-            if (endpoint === 'contents') updateSyncStatus('synced', '读取成功');
+            if (showSyncIndicator) updateSyncStatus('synced', '读取成功');
             return { data, response };
+
         } catch (error) {
-            const userMessage = await handleApiError(`读取 ${path}`, error);
-            if (endpoint === 'contents') updateSyncStatus('error', userMessage);
+            if (error.name === 'AbortError') {
+                console.log('Fetch aborted by user.');
+                return { data: null, error: '用户取消了操作' };
+            }
+            const userMessage = await handleApiError(displayContext, error);
+            if (showSyncIndicator) updateSyncStatus('error', userMessage);
             return { data: null, error: userMessage, response: null };
         }
     }
+
 
     async function saveToGithub(path, content, commitMessage, sha = null) {
         if (!checkConfig(true)) {
@@ -4353,13 +4392,14 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
     document.getElementById('nukeDataBtn').addEventListener('click', nukeAllData);
     
     // ===== [START] MEMORY APP LOGIC =====
+    let memoryCache = null; // [修复] 将 memoryCache 提升到模块共享作用域
     const MemoryApp = (() => {
         const MEMORY_DATA_PATH = 'memory/data.json';
         const MEMORY_PHOTOS_PATH = 'memory/photos/';
-        let memoryCache = null;
         let memoryDataSha = null;
         let isSaving = false;
         let saveTimeout = null;
+
         
         const ui = {
             modal: document.getElementById('memoryModal'),
@@ -6233,9 +6273,11 @@ const blob = b64toBlob(blobData.content, contentType);
             }
         }
 
+
         const MobileModeManager = (() => {
             let isEnabled = false;
             let currentPickerWindow = null;
+            let pendingWidgetContent = null; // [V5 新增] 用于暂存待生成的组件内容
             let ghostEl = null;
             let draggedWidgetInfo = null;
             let dragTargetCell = null;
@@ -6254,10 +6296,29 @@ const blob = b64toBlob(blobData.content, contentType);
 
             function closeAnyOpenWindow() {
                 if (currentPickerWindow) {
-                    currentPickerWindow.remove();
+                    const windowContainerToClose = currentPickerWindow;
+                    const innerWindow = windowContainerToClose.querySelector('.floating-project-window');
+
+                    // 如果内部窗口存在，则触发它的关闭动画
+                    if (innerWindow) {
+                        innerWindow.classList.remove('visible');
+                        
+                        // 监听动画结束事件，在动画完成后再安全地移除整个容器
+                        innerWindow.addEventListener('transitionend', () => {
+                            if (windowContainerToClose.parentNode) {
+                                windowContainerToClose.remove();
+                            }
+                        }, { once: true });
+                    } else {
+                        // 如果没有内部窗口，作为备用方案直接移除
+                        windowContainerToClose.remove();
+                    }
+
+                    // 立即将引用设为 null，以便新窗口可以被创建
                     currentPickerWindow = null;
                 }
             }
+
 
             function createPickerWindow(title, content) {
                 closeAnyOpenWindow();
@@ -6278,154 +6339,268 @@ const blob = b64toBlob(blobData.content, contentType);
                 currentPickerWindow = container;
                 return container;
             }
-            
-            // [新增] 图片选择器的核心逻辑
-            function showImagePickerForWidget(onSelect) {
-                const pickerContainer = document.createElement('div');
-                pickerContainer.className = 'picker-container';
 
-                const showAlbumList = () => {
-                    pickerContainer.innerHTML = `
-                        <div class="picker-header"><div class="picker-title">选择相册</div></div>
-                        <div class="picker-list"></div>
-                    `;
-                    const listEl = pickerContainer.querySelector('.picker-list');
-                    if (!memoryCache.album.folders || memoryCache.album.folders.length === 0) {
-                        listEl.textContent = '没有相册，请先在“记忆”中创建。';
-                    } else {
-                        memoryCache.album.folders.forEach(folder => {
-                            const itemEl = document.createElement('div');
-                            itemEl.className = 'picker-item';
-                            itemEl.innerHTML = `<span class="picker-item-icon">🖼️</span> <span>${folder.name}</span>`;
-                            itemEl.onclick = () => showPhotoGrid(folder.id, folder.name);
-                            listEl.appendChild(itemEl);
-                        });
-                    }
-                };
-                
-                const showPhotoGrid = (albumId, albumName) => {
-                    pickerContainer.innerHTML = `
-                        <div class="picker-header">
-                            <button class="picker-back-btn">&#10094;</button>
-                            <div class="picker-title">${albumName}</div>
-                        </div>
-                        <div class="picker-grid"></div>
-                    `;
-                    pickerContainer.querySelector('.picker-back-btn').onclick = showAlbumList;
-
-                    const gridEl = pickerContainer.querySelector('.picker-grid');
-                    const photos = memoryCache.album.items.filter(item => item.albumId === albumId && (item.type === 'photo' || item.type === 'photoset'));
-                    
-                    if (photos.length === 0) {
-                        gridEl.innerHTML = '此相册中没有图片。';
-                    } else {
-                        photos.forEach(item => {
-                            // 无论照片集还是单张照片，我们都只取第一张作为可选封面
-                            const photoToShow = item.type === 'photo' ? item : item.photos[0];
-                            if (!photoToShow) return;
-
-                            const gridItem = document.createElement('div');
-                            gridItem.className = 'picker-grid-item';
-                            const img = document.createElement('img');
-                            getSecureFileUrl(photoToShow.path).then(url => { if (url) img.src = url; });
-                            gridItem.appendChild(img);
-                            gridItem.onclick = () => {
-                                const title = photoToShow.title || photoToShow.path.split('/').pop();
-                                onSelect({ content: photoToShow.path, text: title });
-                            };
-                            gridEl.appendChild(gridItem);
-                        });
-                    }
-                };
-
-                showAlbumList();
-                createPickerWindow('选择一张图片', pickerContainer);
+            function showImagePicker(onSelect) {
+                const grid = document.createElement('div');
+                grid.className = 'picker-grid';
+                const allPhotos = memoryCache.album.items.filter(item => item.type === 'photo' || (item.type === 'photoset' && item.photos.length > 0));
+                if (allPhotos.length === 0) grid.textContent = '相册中没有图片。';
+                else {
+                    allPhotos.forEach(item => {
+                        const photoToShow = item.type === 'photo' ? item : item.photos[0];
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'picker-grid-item';
+                        const img = document.createElement('img');
+                        getSecureFileUrl(photoToShow.path).then(url => { if (url) img.src = url; });
+                        gridItem.appendChild(img);
+                        gridItem.onclick = () => onSelect(photoToShow.path);
+                        grid.appendChild(gridItem);
+                    });
+                }
+                createPickerWindow('选择一张图片', grid);
             }
 
             function showMemoPicker(onSelect) {
-                // ... (原有代码不变)
+                const list = document.createElement('div');
+                list.className = 'picker-list';
+                if (!memoryCache.memo.notes || memoryCache.memo.notes.length === 0) list.textContent = '没有备忘录。';
+                else {
+                    memoryCache.memo.notes.forEach(note => {
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'picker-item';
+                        itemEl.textContent = note.title || '无标题';
+                        itemEl.onclick = () => onSelect(note.id);
+                        list.appendChild(itemEl);
+                    });
+                }
+                createPickerWindow('选择一个备忘录', list);
             }
+
             function showShortcutPicker(onSelect) {
-                // ... (原有代码不变)
+                const list = document.createElement('div');
+                list.className = 'picker-list';
+                const allButtons = currentConfig.categories.flatMap(c => c.buttons);
+                if (allButtons.length === 0) list.textContent = '没有已添加的项目。';
+                else {
+                    const uniqueButtons = Array.from(new Map(allButtons.map(item => [item.href, item])).values());
+                    uniqueButtons.forEach(btn => {
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'picker-item';
+                        itemEl.textContent = btn.text;
+                        itemEl.onclick = () => onSelect({ content: btn.href, text: btn.text });
+                        list.appendChild(itemEl);
+                    });
+                }
+                createPickerWindow('选择一个快捷方式', list);
             }
+
             async function saveWidgetConfig(cellIndex, widgetData) {
-                // ... (原有代码不变)
+                if (!currentConfig.lockscreenWidgets[cellIndex]) {
+                    currentConfig.lockscreenWidgets[cellIndex] = [];
+                }
+                currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); // Add to the beginning
+                await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
+                renderLockscreenWidgets();
+                closeAnyOpenWindow();
+                const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                if (settingsWindow) {
+                    const grid = settingsWindow.querySelector('.settings-grid');
+                    renderSettingsGrid(grid);
+                }
             }
+
             async function deleteWidgetFromCell(cellIndex) {
-                 // ... (原有代码不变)
+                delete currentConfig.lockscreenWidgets[cellIndex];
+                await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
+                renderLockscreenWidgets();
+                const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                if (settingsWindow) {
+                    const grid = settingsWindow.querySelector('.settings-grid');
+                    renderSettingsGrid(grid);
+                }
             }
 
-            // [新增] 生成最终可拖拽的预览组件
-            function generateWidgetPreview(widgetInfo) {
-                const previewArea = document.getElementById('new-widget-preview-area');
-                const selectionStatus = document.getElementById('widget-selection-status');
-                const confirmBtn = document.getElementById('confirm-widget-btn');
+            // [V4 新增] 显示相册文件夹列表的悬浮窗
+            function showAlbumPicker(onSelectCallback) {
+                const list = document.createElement('div');
+                list.className = 'picker-list';
 
-                previewArea.innerHTML = '';
-                selectionStatus.textContent = '';
-                confirmBtn.textContent = '选择内容'; // 恢复按钮文本
-
-                const previewItem = document.createElement('div');
-                previewItem.className = 'widget-preview-item';
-                previewItem.dataset.widgetSize = widgetInfo.size;
-                previewItem.dataset.widgetType = widgetInfo.type;
-                previewItem.dataset.widgetContent = widgetInfo.content;
-                previewItem.dataset.widgetText = widgetInfo.text || '';
-                previewItem.draggable = true;
-
-                // 根据类型生成不同的预览内容
-                if (widgetInfo.type === 'image') {
-                    const img = document.createElement('img');
-                    getSecureFileUrl(widgetInfo.content).then(url => { if(url) img.src = url; });
-                    previewItem.appendChild(img);
+                const folders = memoryCache.album.folders;
+                if (!folders || folders.length === 0) {
+                    list.textContent = '相册中没有文件夹。';
                 } else {
-                     const typeTextMap = { 'shortcut': '快捷方式', 'image': '图片', 'memo': '备忘录', 'html': 'HTML' };
-                     previewItem.textContent = `${widgetInfo.size.replace('x', 'x')} ${widgetInfo.text || typeTextMap[widgetInfo.type]}`;
+                    folders.forEach(folder => {
+                        const itemCount = memoryCache.album.items.filter(p => p.albumId === folder.id).length;
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'picker-item';
+                        itemEl.innerHTML = `<span>${folder.name}</span><span style="font-size: 0.8em; color: #889; float: right;">${itemCount} ></span>`;
+                        itemEl.onclick = () => {
+                            // 点击文件夹后，打开该文件夹内的图片列表
+                            showPhotosInAlbumPicker(folder.id, onSelectCallback);
+                        };
+                        list.appendChild(itemEl);
+                    });
                 }
-
-                previewItem.addEventListener('mousedown', handleDragStart);
-                previewItem.addEventListener('touchstart', handleDragStart, { passive: false });
-                
-                previewArea.appendChild(previewItem);
-                previewArea.classList.add('has-widget');
+                createPickerWindow('选择一个相册', list);
             }
 
-            // [新增] 根据类型打开对应的选择器
-            function openWidgetContentPicker(widgetConfig) {
-                const onSelectContent = (data) => {
-                    const selectionStatus = document.getElementById('widget-selection-status');
-                    widgetConfig.content = data.content;
-                    widgetConfig.text = data.text;
-                    const displayName = data.text || '未命名';
-                    selectionStatus.textContent = `已选择: ${displayName}`;
-                    closeAnyOpenWindow();
-                    
-                    // 将生成预览的逻辑单独处理
-                    generateWidgetPreview(widgetConfig);
-                };
+            // [V4 新增] 显示指定相册内图片网格的悬浮窗
+            function showPhotosInAlbumPicker(albumId, onSelectCallback) {
+                const grid = document.createElement('div');
+                grid.className = 'picker-grid';
 
-                switch (widgetConfig.type) {
-                    case 'image':
-                        showImagePickerForWidget(onSelectContent);
-                        break;
-                    case 'memo':
-                        showMemoPicker((id) => {
-                            const memo = memoryCache.memo.notes.find(n => n.id === id);
-                            onSelectContent({ content: id, text: memo.title || '无标题备忘录' });
-                        });
-                        break;
-                    case 'shortcut':
-                        showShortcutPicker(onSelectContent);
-                        break;
-                    case 'html': // HTML类型不需要选择内容
-                        generateWidgetPreview(widgetConfig);
-                        break;
+                const allItems = memoryCache.album.items.filter(item => item.albumId === albumId);
+                const allPhotos = allItems.flatMap(item => item.type === 'photo' ? item : (item.photos || []));
+
+                if (allPhotos.length === 0) {
+                    grid.textContent = '此相册中没有图片。';
+                } else {
+                    allPhotos.forEach(photo => {
+                        const gridItem = document.createElement('div');
+                        gridItem.className = 'picker-grid-item';
+                        const img = document.createElement('img');
+                        getSecureFileUrl(photo.path).then(url => { if (url) img.src = url; });
+                        gridItem.appendChild(img);
+
+                        gridItem.onclick = () => {
+                            const adderContainer = document.getElementById('lockscreen-settings-modal').querySelector('.component-adder');
+                            
+                            // 在“确认”按钮上方显示已选择信息
+                            const infoSpan = document.createElement('span');
+                            infoSpan.id = 'selection-info';
+                            infoSpan.style.fontSize = '12px';
+                            infoSpan.style.color = '#889';
+                            infoSpan.style.textAlign = 'center';
+                            infoSpan.style.display = 'block';
+                            infoSpan.style.marginTop = '-10px';
+                            infoSpan.style.marginBottom = '10px';
+                            const fileName = photo.path.split('/').pop();
+                            infoSpan.textContent = `已选择：${photo.title || fileName}`;
+                            
+                            const confirmBtn = adderContainer.querySelector('#confirm-widget-btn');
+                            adderContainer.insertBefore(infoSpan, confirmBtn);
+
+                            // 关闭悬浮窗并执行最终的回调
+                            closeAnyOpenWindow();
+                            onSelectCallback({ path: photo.path, title: photo.title || fileName });
+                        };
+                        grid.appendChild(gridItem);
+                    });
                 }
+                const folderName = memoryCache.album.folders.find(f => f.id === albumId)?.name || '相册';
+                createPickerWindow(folderName, grid);
             }
+
             
+            // [V7 修复与优化] 创建设置窗口，集成可取消的加载指示器
             function openLockscreenSettingsWindow() {
                 const modalId = 'lockscreen-settings-modal';
                 if (document.getElementById(modalId)) return;
+
+                // [V7 核心] 加载指示器管理器
+                const LoadingIndicator = (() => {
+                    let overlay = null;
+                    let abortController = null;
+
+                    function show(message, onCancel) {
+                        if (overlay) return; // 防止重复显示
+                        abortController = new AbortController();
+
+                        overlay = document.createElement('div');
+                        overlay.className = 'loading-indicator-overlay';
+                        overlay.innerHTML = `
+                            <div class="loading-indicator-box">
+                                <div class="loading-indicator-text">${message}</div>
+                                <button class="loading-indicator-cancel-btn">取消</button>
+                            </div>
+                        `;
+                        document.body.appendChild(overlay);
+
+                        overlay.querySelector('.loading-indicator-cancel-btn').onclick = () => {
+                            abortController.abort(); // 发送中止信号
+                            hide();
+                            if (onCancel) onCancel();
+                        };
+                        
+                        // 触发 CSS 过渡
+                        requestAnimationFrame(() => overlay.classList.add('show'));
+                    }
+
+                    function hide() {
+                        if (!overlay) return;
+                        const overlayToRemove = overlay; // [修复] 捕获当前的 DOM 元素
+                        overlayToRemove.classList.remove('show');
+                        // [修复] 在事件监听器中使用捕获的元素，而不是会被置空的变量
+                        overlayToRemove.addEventListener('transitionend', () => overlayToRemove.remove(), { once: true });
+                        overlay = null; // 立即将主变量置空，防止重复调用
+                        abortController = null;
+                    }
+
+
+                    return {
+                        show,
+                        hide,
+                        getSignal: () => abortController?.signal
+                    };
+                })();
+
+                // [V8 修复] 增强的智能缓存数据加载器 (针对移动端优化)
+                async function ensureMemoryDataIsLoaded(signal) {
+                    // 如果缓存已存在，直接成功返回
+                    if (memoryCache && memoryCache.album) {
+                        return { success: true };
+                    }
+
+                    const MEMORY_DATA_PATH = 'memory/data.json';
+                    
+                    try {
+                        const { data, error, response } = await fetchFromGithub(MEMORY_DATA_PATH, 'GET', null, signal);
+                        
+                        // 1. 检查用户是否主动取消
+                        if (signal?.aborted) {
+                            console.log('Data loading cancelled by user.');
+                            return { success: false, reason: 'cancelled' };
+                        }
+
+                        // 2. 检查网络或权限等硬性错误
+                        // fetchFromGithub 内部已经处理了
+                        if (error) {
+                            // 直接将 fetchFromGithub 返回的、对用户友好的错误信息显示出来
+                            alert(`加载相册数据失败: ${error}\n\n请检查您的网络连接和GitHub配置。`);
+                            return { success: false, reason: 'error' };
+                        }
+                        
+                        // 3. 检查文件是否存在 (404 Not Found)
+                        // response.status === 404 意味着仓库里还没有 memory/data.json 文件
+                        if (response && response.status === 404) {
+                             console.log('memory/data.json not found on remote. Creating new initial data.');
+                             // 这是正常情况，比如用户第一次使用记忆功能，我们为其创建一个空的
+                             const getInitialData = () => ({ memo: { folders: [{ id: Date.now(), name: "默认文件夹" }], notes: [] }, album: { folders: [{ id: Date.now() + 1, name: "我的照片" }], items: [] } });
+                             memoryCache = getInitialData();
+                        } else if (data) {
+                            // 4. 如果文件存在，则解析它
+                            memoryCache = JSON.parse(b64_to_utf8(data.content));
+                        } else {
+                            // 兜底情况，如果 data 和 error 都为 null，说明发生了未知问题
+                            throw new Error("从云端获取的数据为空，但没有明确错误。");
+                        }
+
+                        // 5. 确保数据结构完整
+                        if (!memoryCache.memo) memoryCache.memo = { folders: [], notes: [] };
+                        if (!memoryCache.album) memoryCache.album = { folders: [], items: [] };
+
+                        // 6. 一切顺利，成功返回
+                        return { success: true };
+
+                    } catch (e) {
+                        // 捕获所有其他意外错误，例如 JSON 解析失败
+                        console.error('Critical error in ensureMemoryDataIsLoaded:', e);
+                        alert(`处理相册数据时发生严重错误: ${e.message}\n\n这可能是因为云端文件已损坏。您可以尝试进入“记忆”功能，它会自动尝试修复或重建数据。`);
+                        return { success: false, reason: 'critical' };
+                    }
+                }
+
+                // --- UI 创建部分 (保持不变) ---
                 const modalOverlay = document.createElement('div');
                 modalOverlay.id = modalId;
                 modalOverlay.className = 'modal-overlay show';
@@ -6449,34 +6624,10 @@ const blob = b64toBlob(blobData.content, contentType);
                 adderContainer.className = 'component-adder';
                 adderContainer.innerHTML = `
                     <div class="adder-controls-row">
-                        <div class="adder-control-group">
-                            <label>尺寸 (宽x高)</label>
-                            <div class="size-selector">
-                                <div class="roller-container">
-                                    <button class="roller-btn" data-roller="width" data-dir="-1">-</button>
-                                    <span class="roller-display" id="width-display">1</span>
-                                    <button class="roller-btn" data-roller="width" data-dir="1">+</button>
-                                </div>
-                                <span>&times;</span>
-                                <div class="roller-container">
-                                    <button class="roller-btn" data-roller="height" data-dir="-1">-</button>
-                                    <span class="roller-display" id="height-display">1</span>
-                                    <button class="roller-btn" data-roller="height" data-dir="1">+</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="adder-control-group">
-                            <label>类型</label>
-                            <select id="widget-type-selector" class="modal-select">
-                                <option value="shortcut">快捷按钮</option>
-                                <option value="image">图片</option>
-                                <option value="memo">备忘录</option>
-                                <option value="html">HTML</option>
-                            </select>
-                        </div>
+                        <div class="adder-control-group"> <label>尺寸 (宽x高)</label> <div class="size-selector"> <div class="roller-container"> <button class="roller-btn" data-roller="width" data-dir="-1">-</button> <span class="roller-display" id="width-display">1</span> <button class="roller-btn" data-roller="width" data-dir="1">+</button> </div> <span>&times;</span> <div class="roller-container"> <button class="roller-btn" data-roller="height" data-dir="-1">-</button> <span class="roller-display" id="height-display">1</span> <button class="roller-btn" data-roller="height" data-dir="1">+</button> </div> </div> </div>
+                        <div class="adder-control-group"> <label>类型</label> <select id="widget-type-selector" class="modal-select"> <option value="shortcut">快捷按钮</option> <option value="image">图片</option> <option value="memo">备忘录</option> <option value="html">HTML</option> </select> </div>
                     </div>
-                    <div id="widget-selection-status"></div>
-                    <button id="confirm-widget-btn" class="modal-button">选择内容</button>
+                    <button id="confirm-widget-btn" class="modal-button">确认并生成</button>
                     <div id="new-widget-preview-area">将生成的组件拖入上方屏幕</div>
                 `;
                 body.append(phoneScreen, adderContainer);
@@ -6484,106 +6635,281 @@ const blob = b64toBlob(blobData.content, contentType);
                 modalContent.appendChild(settingsContainer);
                 modalOverlay.appendChild(modalContent);
                 document.body.appendChild(modalOverlay);
+
+                // --- 事件监听器设置 ---
                 const closeModal = () => { closeAnyOpenWindow(); modalOverlay.classList.remove('show'); modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true }); };
                 header.querySelector('.close-btn').onclick = closeModal;
                 modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeModal(); };
                 renderSettingsGrid(gridContainer);
-                const widthDisplay = adderContainer.querySelector('#width-display');
-                const heightDisplay = adderContainer.querySelector('#height-display');
-                adderContainer.querySelectorAll('.roller-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const targetRoller = btn.dataset.roller;
-                        const direction = parseInt(btn.dataset.dir, 10);
-                        const display = targetRoller === 'width' ? widthDisplay : heightDisplay;
-                        const max = targetRoller === 'width' ? 4 : 8;
-                        let newValue = parseInt(display.textContent, 10) + direction;
-                        if (newValue < 1) newValue = 1; if (newValue > max) newValue = max;
-                        display.textContent = newValue;
-                        // 清空状态
-                        adderContainer.querySelector('#widget-selection-status').textContent = '';
-                        adderContainer.querySelector('#new-widget-preview-area').innerHTML = '将生成的组件拖入上方屏幕';
-                        adderContainer.querySelector('#new-widget-preview-area').classList.remove('has-widget');
-                    });
-                });
-                // [修改] “确认并生成”按钮的新逻辑
-                adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
-                    const confirmBtn = adderContainer.querySelector('#confirm-widget-btn');
-                    confirmBtn.textContent = '加载中...'; // 临时状态
-                    const widgetConfig = {
-                        size: `${widthDisplay.textContent}x${heightDisplay.textContent}`,
-                        type: adderContainer.querySelector('#widget-type-selector').value
+                const widthDisplay = adderContainer.querySelector('#width-display'), heightDisplay = adderContainer.querySelector('#height-display');
+                adderContainer.querySelectorAll('.roller-btn').forEach(btn => btn.addEventListener('click', () => { const t = btn.dataset.roller, d = parseInt(btn.dataset.dir, 10), el = t === 'width' ? widthDisplay : heightDisplay, max = t === 'width' ? 4 : 8; let val = parseInt(el.textContent, 10) + d; el.textContent = Math.max(1, Math.min(val, max)); }));
+
+                // [V7 优化] 类型选择器的事件监听器
+                adderContainer.querySelector('#widget-type-selector').addEventListener('change', async function() {
+                    if (this.value !== 'image') return;
+                    
+                    const selector = this;
+                    const originalSelectedIndex = selector.selectedIndex; // 记录原始选项
+
+                    // 清理工作
+                    adderContainer.querySelector('#new-widget-preview-area').innerHTML = '将生成的组件拖入上方屏幕';
+                    adderContainer.querySelector('#new-widget-preview-area').classList.remove('has-widget');
+                    pendingWidgetContent = null;
+                    adderContainer.querySelector('#selection-info')?.remove();
+                    
+                    const onCancel = () => {
+                        selector.selectedIndex = originalSelectedIndex; // 恢复选择
+                        console.log('相册加载已取消');
                     };
-                    openWidgetContentPicker(widgetConfig);
+
+                    LoadingIndicator.show('正在加载相册...', onCancel);
+                    
+                    const { success, reason } = await ensureMemoryDataIsLoaded(LoadingIndicator.getSignal());
+                    LoadingIndicator.hide();
+
+                    if (success) {
+                        showAlbumPicker(photoData => {
+                            pendingWidgetContent = { type: 'image', size: `${widthDisplay.textContent}x${heightDisplay.textContent}`, content: photoData.path };
+                            const infoSpan = document.createElement('span');
+                            infoSpan.id = 'selection-info';
+                            infoSpan.style.cssText = 'font-size:12px;color:#889;text-align:center;display:block;margin-top:-10px;margin-bottom:10px;';
+                            infoSpan.textContent = `已选择：${photoData.title}`;
+                            adderContainer.insertBefore(infoSpan, adderContainer.querySelector('#confirm-widget-btn'));
+                        });
+                    } else if(reason !== 'cancelled') {
+                        selector.selectedIndex = originalSelectedIndex; // 加载失败也恢复选择
+                    }
+                });
+                
+                // 确认按钮逻辑保持不变
+                adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
+                    const type = adderContainer.querySelector('#widget-type-selector').value;
+                    const previewArea = adderContainer.querySelector('#new-widget-preview-area');
+                    adderContainer.querySelector('#selection-info')?.remove();
+                    if (pendingWidgetContent && pendingWidgetContent.type === 'image') {
+                        previewArea.innerHTML = '';
+                        const item = document.createElement('div');
+                        item.className = 'widget-preview-item';
+                        item.style.cssText = 'padding:0; overflow:hidden;';
+                        Object.assign(item.dataset, { widgetSize: pendingWidgetContent.size, widgetType: 'image', widgetContent: pendingWidgetContent.content });
+                        item.draggable = true;
+                        item.innerHTML = `<img style="width:100%;height:100%;object-fit:cover;pointer-events:none;">`;
+                        getSecureFileUrl(pendingWidgetContent.content).then(url => { if(url) item.querySelector('img').src = url; });
+                        item.addEventListener('mousedown', handleDragStart);
+                        item.addEventListener('touchstart', handleDragStart, { passive: false });
+                        previewArea.appendChild(item);
+                        pendingWidgetContent = null;
+                    } else if (type !== 'image') {
+                        const size = `${widthDisplay.textContent}x${heightDisplay.textContent}`;
+                        const typeTextMap = { 'shortcut': '快捷方式', 'memo': '备忘录', 'html': 'HTML' };
+                        previewArea.innerHTML = '';
+                        const item = document.createElement('div');
+                        item.className = 'widget-preview-item';
+                        Object.assign(item.dataset, { widgetSize: size, widgetType: type });
+                        item.draggable = true;
+                        item.textContent = `${size} ${typeTextMap[type]}`;
+                        item.addEventListener('mousedown', handleDragStart);
+                        item.addEventListener('touchstart', handleDragStart, { passive: false });
+                        previewArea.appendChild(item);
+                    } else {
+                        alert('请先选择“图片”类型，并从弹出的窗口中选择一张图片。');
+                    }
+                    previewArea.classList.toggle('has-widget', previewArea.childElementCount > 0);
                 });
             }
 
+
+            // [V5 重构] 渲染网格，并集成新的可点击删除按钮
             async function renderSettingsGrid(gridContainer) {
-                 // ... (原有代码不变)
+                gridContainer.innerHTML = ''; // 清空容器
+
+                // 1. 创建底层虚线网格
+                for (let i = 0; i < 32; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'settings-grid-cell';
+                    cell.dataset.cellIndex = i;
+                    gridContainer.appendChild(cell);
+                }
+
+                const widgets = currentConfig.lockscreenWidgets || {};
+
+                // 2. 遍历已配置的组件，为每个组件创建独立的包裹层
+                for (const startIndexStr in widgets) {
+                    const startIndex = parseInt(startIndexStr);
+                    const widgetConfig = widgets[startIndex]?.[0];
+                    if (!widgetConfig) continue;
+
+                    const [cols, rows] = widgetConfig.size.split('x').map(Number);
+                    
+                    // A. 创建最外层的容器
+                    const container = document.createElement('div');
+                    container.className = 'widget-container-wrapper';
+
+                    const startRow = Math.floor(startIndex / 4) + 1;
+                    const startCol = (startIndex % 4) + 1;
+                    container.style.gridArea = `${startRow} / ${startCol} / ${startRow + rows} / ${startCol + cols}`;
+
+                    // B. 创建组件预览内容的占位符
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'widget-placeholder';
+                    placeholder.style.position = 'absolute'; // 让其在容器内绝对定位
+                    placeholder.style.inset = '0'; // 填满容器
+                    
+                    switch (widgetConfig.type) {
+                        case 'image':
+                            getSecureFileUrl(widgetConfig.content).then(url => { if (url) placeholder.style.backgroundImage = `url(${url})`; });
+                            break;
+                        case 'memo':
+                            const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
+                            placeholder.innerHTML = memo ? `<div class="settings-widget-preview-memo-title">${memo.title||'无标题'}</div><div class="settings-widget-preview-memo-content">${memo.content||''}</div>` : '备忘录丢失';
+                            break;
+                        case 'shortcut':
+                            const btnCfg = findButtonConfigByHref(widgetConfig.content);
+                            placeholder.textContent = btnCfg ? btnCfg.text : '快捷方式丢失';
+                            break;
+                        case 'html':
+                            placeholder.textContent = 'HTML';
+                            break;
+                    }
+                    
+                    // C. 创建删除按钮及其包裹层
+                    const deleteWrapper = document.createElement('div');
+                    deleteWrapper.className = 'widget-delete-wrapper';
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'widget-delete-btn-centered';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm('确定要删除这个组件吗？')) {
+                            deleteWidgetFromCell(startIndex);
+                        }
+                    };
+                    
+                    deleteWrapper.appendChild(deleteBtn);
+                    
+                    // D. 组装并添加到网格中
+                    container.appendChild(placeholder);
+                    container.appendChild(deleteWrapper);
+                    gridContainer.appendChild(container);
+                }
             }
-            
+
+
+
             function handleDragStart(e) {
                 e.preventDefault();
                 const item = e.currentTarget;
-                // [修改] 拖拽时携带完整信息
-                draggedWidgetInfo = {
-                    size: item.dataset.widgetSize,
+                // [核心修改] 将 content 信息也加入拖拽数据中
+                draggedWidgetInfo = { 
+                    size: item.dataset.widgetSize, 
                     type: item.dataset.widgetType,
-                    content: item.dataset.widgetContent,
-                    text: item.dataset.widgetText
+                    content: item.dataset.widgetContent // 对于图片类型，这里会是图片的路径
                 };
-                
                 ghostEl = document.createElement('div');
                 ghostEl.className = 'widget-ghost';
-
-                // [修改] 如果是图片，ghost也显示图片
-                if (draggedWidgetInfo.type === 'image') {
-                    const img = document.createElement('img');
-                    getSecureFileUrl(draggedWidgetInfo.content).then(url => { if(url) img.src = url; });
-                    img.style.cssText = "width:100%; height:100%; object-fit:cover; border-radius: 12px;";
-                    ghostEl.appendChild(img);
-                } else {
-                    ghostEl.textContent = item.textContent;
-                }
-                
+                ghostEl.textContent = item.textContent;
                 document.body.appendChild(ghostEl);
                 
+                // [核心修改] 
+                // 动态计算 ghost 尺寸，使其与模拟器中的格子比例完全一致
                 const gridEl = document.querySelector('#lockscreen-settings-modal .settings-grid');
                 if (!gridEl) return;
+                
                 const gridRect = gridEl.getBoundingClientRect();
-                const singleCellWidth = (gridRect.width - (3 * 5)) / 4;
-                const singleCellHeight = (gridRect.height - (7 * 5)) / 8;
-                const gap = 5;
+                const singleCellWidth = (gridRect.width - (3 * 5)) / 4; // (总宽 - 3个间距) / 4列
+                const singleCellHeight = (gridRect.height - (7 * 5)) / 8; // (总高 - 7个间距) / 8行
+                const gap = 5; // grid-gap
+
                 const [cols, rows] = draggedWidgetInfo.size.split('x').map(Number);
+
                 ghostEl.style.width = `${cols * singleCellWidth + (cols - 1) * gap}px`;
                 ghostEl.style.height = `${rows * singleCellHeight + (rows - 1) * gap}px`;
+                // [修改结束]
 
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
                 ghostEl.style.top = `${clientY - ghostEl.offsetHeight / 2}px`;
-
+                ghostEl.style.zIndex = '9999';
                 document.addEventListener('mousemove', handleDragMove);
                 document.addEventListener('mouseup', handleDragEnd, { once: true });
                 document.addEventListener('touchmove', handleDragMove, { passive: false });
                 document.addEventListener('touchend', handleDragEnd, { once: true });
             }
-            
+
+
             function isPlacementValid(startCell, size) {
-                 // ... (原有代码不变)
+                const occupied = new Set();
+                Object.keys(currentConfig.lockscreenWidgets || {}).forEach(iStr => {
+                     const i = parseInt(iStr);
+                     const w = currentConfig.lockscreenWidgets[i][0];
+                     const [c, r] = w.size.split('x').map(Number);
+                     for(let y=0; y<r; y++) for(let x=0; x<c; x++) occupied.add(i + y*4 + x);
+                });
+
+                const startIndex = parseInt(startCell.dataset.cellIndex, 10);
+                const [cols, rows] = size.split('x').map(Number);
+
+                if ((startIndex % 4) + cols > 4) return false;
+                if (Math.floor(startIndex/4) + rows > 8) return false;
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (occupied.has(startIndex + r * 4 + c)) return false;
+                    }
+                }
+                return true;
             }
 
             function handleDragMove(e) {
-                 // ... (原有代码不变)
+                if (!ghostEl) return;
+                e.preventDefault();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                ghostEl.style.left = `${clientX - ghostEl.offsetWidth / 2}px`;
+                ghostEl.style.top = `${clientY - ghostEl.offsetHeight / 2}px`;
+                if (dragTargetCell) dragTargetCell.classList.remove('drag-over');
+                ghostEl.style.display = 'none';
+                const elBelow = document.elementFromPoint(clientX, clientY);
+                ghostEl.style.display = 'flex';
+                const cell = elBelow ? elBelow.closest('.settings-grid-cell') : null;
+                if (cell && isPlacementValid(cell, draggedWidgetInfo.size)) {
+                    dragTargetCell = cell;
+                    dragTargetCell.classList.add('drag-over');
+                } else {
+                    dragTargetCell = null;
+                }
             }
             
-            // [修改] 拖拽结束逻辑
             function handleDragEnd() {
                 if (dragTargetCell) {
                     dragTargetCell.classList.remove('drag-over');
                     const cellIndex = parseInt(dragTargetCell.dataset.cellIndex, 10);
-                    // 此时 draggedWidgetInfo 已包含所有需要的信息
+                    // 包含了 size, type, 以及 image 类型的 content
                     const newWidget = { id: Date.now(), ...draggedWidgetInfo };
-                    saveWidgetConfig(cellIndex, newWidget); 
+
+                    const onSelectContent = (data) => {
+                         // 对于非图片类型，在这里设置 content
+                        if (typeof data === 'object' && data !== null) {
+                            newWidget.content = data.content; newWidget.text = data.text;
+                        } else if (data) {
+                            newWidget.content = data;
+                        }
+                        saveWidgetConfig(cellIndex, newWidget);
+                    };
+
+                    // [核心修改] 根据类型决定后续操作
+                    if (newWidget.type === 'image') {
+                        // 如果是图片，并且 content 已经存在 (从预览块拖拽而来)，直接保存
+                        saveWidgetConfig(cellIndex, newWidget);
+                    } else if (newWidget.type === 'memo') {
+                        showMemoPicker(onSelectContent);
+                    } else if (newWidget.type === 'shortcut') {
+                        showShortcutPicker(onSelectContent);
+                    } else if (newWidget.type === 'html') {
+                        onSelectContent(null); // HTML 不需要额外内容
+                    }
                 }
                 if (ghostEl) ghostEl.remove();
                 ghostEl = null; draggedWidgetInfo = null; dragTargetCell = null;
@@ -6591,31 +6917,97 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.removeEventListener('touchmove', handleDragMove);
             }
 
+
             function applyMode(enable) {
-                 // ... (原有代码不变)
+                const homeScreenPage = document.getElementById('homeScreenPage');
+                const mainWrapper = document.getElementById('mainWrapper');
+                const elementsToMove = [document.getElementById('pageOverlay'), document.getElementById('titleCard'), document.getElementById('categoryNavContainer'), document.getElementById('navContainer')].filter(Boolean);
+                isEnabled = enable;
+                document.body.classList.toggle('mobile-mode', enable);
+                ui.settingsEntry.style.display = enable ? 'block' : 'none';
+                if (enable) {
+                    elementsToMove.forEach(el => homeScreenPage.appendChild(el));
+                    currentPage = 0; currentTranslate = 0;
+                    ui.slider.style.transition = 'none';
+                    ui.slider.style.transform = `translateX(0px)`;
+                    ui.slider.classList.remove('show-home-screen');
+                    renderLockscreenWidgets();
+                    attachSwipeListeners();
+                } else {
+                    elementsToMove.forEach(el => document.body.insertBefore(el, mainWrapper));
+                    detachSwipeListeners();
+                    ui.slider.style.transition = 'none';
+                    ui.slider.style.transform = `translateX(0px)`;
+                    ui.slider.classList.remove('show-home-screen');
+                    document.body.classList.remove('mobile-home-screen-active');
+                }
+                if (!currentConfig.settings.mobileMode) currentConfig.settings.mobileMode = {};
+                currentConfig.settings.mobileMode.enabled = enable;
+                saveGlobalConfig('Toggle mobile mode');
             }
+
             function handleTouchStart(e) {
-                 // ... (原有代码不变)
+                if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder')) return;
+                ui.slider.style.transition = 'none';
+                startX = e.touches[0].clientX;
+                const transformMatrix = window.getComputedStyle(ui.slider).transform;
+                currentTranslate = (transformMatrix !== 'none') ? parseFloat(transformMatrix.split(',')[4]) : 0;
+                isSwiping = true;
             }
+
             function handleTouchMove(e) {
-                 // ... (原有代码不变)
+                if (!isSwiping || !isEnabled) return;
+                e.preventDefault();
+                const diffX = e.touches[0].clientX - startX;
+                const pageWidth = ui.slider.offsetWidth / 2;
+                const limitedTranslate = Math.max(-pageWidth, Math.min(0, currentTranslate + diffX));
+                ui.slider.style.transform = `translateX(${limitedTranslate}px)`;
             }
+
             function handleTouchEnd(e) {
-                 // ... (原有代码不变)
+                if (!isSwiping || !isEnabled) return;
+                isSwiping = false;
+                const diffX = e.changedTouches[0].clientX - startX;
+                const threshold = window.innerWidth / 4;
+                if (Math.abs(diffX) > threshold) {
+                    if (diffX < 0 && currentPage === 0) currentPage = 1; else if (diffX > 0 && currentPage === 1) currentPage = 0;
+                }
+                snapToPage();
             }
+
             function snapToPage() {
-                // ... (原有代码不变)
+                const pageWidth = ui.slider.offsetWidth / 2;
+                const targetTranslate = currentPage === 1 ? -pageWidth : 0;
+                ui.slider.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                ui.slider.style.transform = `translateX(${targetTranslate}px)`;
+                currentTranslate = targetTranslate;
+                ui.slider.classList.toggle('show-home-screen', currentPage === 1);
+                document.body.classList.toggle('mobile-home-screen-active', currentPage === 1);
             }
+
             function attachSwipeListeners() {
-                // ... (原有代码不变)
+                const options = { passive: false };
+                ui.wrapper.addEventListener('touchstart', handleTouchStart, options);
+                ui.wrapper.addEventListener('touchmove', handleTouchMove, options);
+                ui.wrapper.addEventListener('touchend', handleTouchEnd, { passive: true });
             }
+
             function detachSwipeListeners() {
-                // ... (原有代码不变)
+                const options = { passive: false };
+                ui.wrapper.removeEventListener('touchstart', handleTouchStart, options);
+                ui.wrapper.removeEventListener('touchmove', handleTouchMove, options);
+                ui.wrapper.removeEventListener('touchend', handleTouchEnd, { passive: true });
             }
 
             return {
                 init() {
-                    // ... (原有代码不变)
+                    if (!currentConfig.settings) currentConfig.settings = {};
+                    const mobileSettings = currentConfig.settings.mobileMode || { enabled: false };
+                    ui.toggle.checked = mobileSettings.enabled;
+                    if (!currentConfig.lockscreenWidgets) currentConfig.lockscreenWidgets = {};
+                    if (mobileSettings.enabled) applyMode(true);
+                    ui.toggle.addEventListener('change', (e) => applyMode(e.target.checked));
+                    ui.openSettingsBtn.addEventListener('click', openLockscreenSettingsWindow);
                 }
             };
         })();
