@@ -1603,10 +1603,11 @@ body.dark-mode .widget-preview-item {
     transform: scale(0.95);
 }
 
-/* [新增] 组件形状样式 */
-.widget.widget-shape-circle {
-    border-radius: 50%;
+/* [新增] 胶囊形状样式 */
+.widget.widget-shape-capsule {
+    border-radius: 9999px;
 }
+
 /* 针对快捷方式组件的额外圆形样式优化 */
 .widget-shortcut.widget-shape-square {
     border-radius: 16px; /* 让方形快捷按钮也保持统一的方正圆弧 */
@@ -7133,11 +7134,18 @@ const blob = b64toBlob(blobData.content, contentType);
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
+                // [核心修改] 根据小组件的宽高比, 决定是圆形还是胶囊形
                 if (widgetConfig.shape === 'circle') {
-                    widgetEl.classList.add('widget-shape-circle');
+                    const [cols, rows] = widgetConfig.size.split('x').map(Number);
+                    if (cols === rows) {
+                        widgetEl.classList.add('widget-shape-circle'); // 正方形 -> 正圆形
+                    } else {
+                        widgetEl.classList.add('widget-shape-capsule'); // 长方形 -> 胶囊形
+                    }
                 } else {
                     widgetEl.classList.add('widget-shape-square');
                 }
+
 
                 switch (widgetConfig.type) {
                     case 'image':
