@@ -6196,7 +6196,7 @@ const blob = b64toBlob(blobData.content, contentType);
         }
         
         // [重构] 渲染锁屏组件
-         function renderLockscreenWidgets() {
+        function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
             grid.innerHTML = '';
@@ -6204,42 +6204,48 @@ const blob = b64toBlob(blobData.content, contentType);
             const widgetsData = currentConfig.lockscreenWidgets || {};
             const occupiedCells = new Set();
 
-            // 使用单次循环来创建和填充，这是更安全的方法
-            for (let i = 0; i < 32; i++) {
-                if (occupiedCells.has(i)) {
-                    continue; // 如果此单元格已被大组件覆盖，则跳过
-                }
-                
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                cell.dataset.cellIndex = i;
-                grid.appendChild(cell);
+            // [V-修复] 首先计算所有被占用的单元格
+            Object.keys(widgetsData).forEach(startIndexStr => {
+                const startIndex = parseInt(startIndexStr, 10);
+                const widgetConfig = widgetsData[startIndex]?.[0];
+                if (!widgetConfig) return;
 
-                const widgetsInCell = widgetsData[i];
-                if (widgetsInCell && widgetsInCell.length > 0) {
-                    const widgetConfig = widgetsInCell[0]; // 每个起始格只处理一个组件
-
-                    // 应用尺寸并标记占用的格子
-                    if (widgetConfig.size === '2x2') {
-                        cell.classList.add('widget-size-2x2');
-                        occupiedCells.add(i + 1); occupiedCells.add(i + 4); occupiedCells.add(i + 5);
-                    } else if (widgetConfig.size === '4x2') {
-                        cell.classList.add('widget-size-4x2');
-                        for(let j=1; j<4; j++) occupiedCells.add(i+j);
-                        for(let j=0; j<4; j++) occupiedCells.add(i+4+j);
+                const [cols, rows] = widgetConfig.size.split('x').map(Number);
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        // 将起始单元格自身也标记，简化后续逻辑
+                        occupiedCells.add(startIndex + (r * 4) + c);
                     }
+                }
+            });
+
+            // [V-修复] 再次遍历以创建和填充组件
+            for (let i = 0; i < 32; i++) {
+                // 如果当前单元格是一个组件的起始点
+                if (widgetsData[i] && widgetsData[i].length > 0) {
+                    const widgetConfig = widgetsData[i][0];
+                    const [cols, rows] = widgetConfig.size.split('x').map(Number);
+
+                    // 创建一个代表整个组件区域的容器，而不是单个cell
+                    const componentContainer = document.createElement('div');
+                    componentContainer.className = 'grid-cell'; // 基础样式
+                    componentContainer.style.gridColumn = `span ${cols}`;
+                    componentContainer.style.gridRow = `span ${rows}`;
                     
                     const widgetEl = document.createElement('div');
-                    widgetEl.className = 'widget'; // 基础类
+                    widgetEl.className = 'widget';
 
-                    // 填充内容
                     switch (widgetConfig.type) {
                         case 'image':
-                            // 对于图片，我们直接设置单元格背景，而不是创建子元素
+                            // [V-修复] 创建img标签以应用object-fit:cover
+                            widgetEl.classList.add('widget-image');
+                            const img = document.createElement('img');
+                            img.alt = 'Image Widget';
                             getSecureFileUrl(widgetConfig.content).then(url => {
-                                if(url) cell.style.backgroundImage = `url(${url})`;
+                                if (url) img.src = url;
                             });
-                            cell.classList.add('widget'); // 赋予单元格组件样式
+                            widgetEl.appendChild(img);
+                            componentContainer.appendChild(widgetEl);
                             break;
                         case 'memo':
                             const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
@@ -6251,14 +6257,14 @@ const blob = b64toBlob(blobData.content, contentType);
                             } else {
                                 widgetEl.textContent = '备忘录未找到';
                             }
-                            cell.appendChild(widgetEl);
+                            componentContainer.appendChild(widgetEl);
                             break;
                         case 'shortcut':
                             const buttonConfig = findButtonConfigByHref(widgetConfig.content);
                             widgetEl.classList.add('widget-shortcut');
                             widgetEl.textContent = buttonConfig ? buttonConfig.text : '快捷方式';
                             widgetEl.dataset.href = widgetConfig.content;
-                            widgetEl.addEventListener('click', function(e) {
+                            widgetEl.addEventListener('click', function (e) {
                                 e.stopPropagation();
                                 if (buttonConfig && buttonConfig.openExternally) {
                                     window.open(this.dataset.href, '_blank', 'noopener,noreferrer');
@@ -6266,12 +6272,26 @@ const blob = b64toBlob(blobData.content, contentType);
                                     openIframeModal(this.dataset.href);
                                 }
                             });
-                             cell.appendChild(widgetEl);
+                            componentContainer.appendChild(widgetEl);
                             break;
+                        // 可以添加对其他类型的处理
                     }
+                    grid.appendChild(componentContainer);
+                }
+                // [V-修复] 如果当前单元格被占用，但不是起始点，则什么都不做
+                else if (occupiedCells.has(i)) {
+                    // This cell is part of a larger widget, so we do nothing.
+                    // The grid layout will automatically handle the empty space.
+                }
+                // 如果当前单元格是空的，创建一个透明的占位符
+                else {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'grid-cell';
+                    grid.appendChild(emptyCell);
                 }
             }
         }
+
 
 
         const MobileModeManager = (() => {
