@@ -6218,14 +6218,13 @@ const blob = b64toBlob(blobData.content, contentType);
                 // 2. 创建组件的容器
                 const componentContainer = document.createElement('div');
                 
-                // [BUG修复] 添加 min-height: 0 来防止 iframe 撑开网格布局
+                // [BUG修复] 添加 min-height: 0 来防止 iframe 等内容撑开网格布局
                 componentContainer.style.minHeight = '0';
 
                 // 3. [核心] 使用 style 属性直接定义其在网格中的位置和跨度
                 componentContainer.style.gridRowStart = startRow;
                 componentContainer.style.gridColumnStart = startCol;
-                componentContainer.style.gridRowEnd = `span ${rows}`;
-                componentContainer.style.gridColumnEnd = `span ${cols}`;
+
                 
                 // 4. 创建内部的 widget 元素并填充内容 (这部分逻辑不变)
                 const widgetEl = document.createElement('div');
