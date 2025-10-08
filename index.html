@@ -6195,43 +6195,39 @@ const blob = b64toBlob(blobData.content, contentType);
             setTimeout(() => overlay.classList.add('show'), 10);
         }
         
-        // [V3 最终修复] 渲染锁屏组件
+        // [重构] 渲染锁屏组件
         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
-            grid.innerHTML = ''; // 清空，准备全新渲染
-
-            // 1. [核心] 创建一个完整的、静态的 4x8 网格骨架
-            const cells = [];
-            for (let i = 0; i < 32; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                cell.dataset.cellIndex = i;
-                grid.appendChild(cell);
-                cells.push(cell); // 将所有单元格的引用存起来，方便后续操作
-            }
+            grid.innerHTML = ''; // 清空，准备重新渲染
 
             const widgetsData = currentConfig.lockscreenWidgets || {};
 
-            // 2. [核心] 遍历已配置的组件，将它们精准地“放置”到骨架上
+            // [V-最终修复] 直接遍历存在的组件，并为它们设置精确的网格位置
             Object.keys(widgetsData).forEach(startIndexStr => {
                 const startIndex = parseInt(startIndexStr, 10);
                 const widgetConfig = widgetsData[startIndex]?.[0];
 
-                if (!widgetConfig || !cells[startIndex]) return; // 安全检查
+                if (!widgetConfig) return; // 安全检查
 
-                const startCell = cells[startIndex];
+                // 1. 根据索引计算出起始行列
+                const startRow = Math.floor(startIndex / 4) + 1;
+                const startCol = (startIndex % 4) + 1;
                 const [cols, rows] = widgetConfig.size.split('x').map(Number);
+
+                // 2. 创建组件的容器
+                const componentContainer = document.createElement('div');
+
+                // 3. [核心] 使用 style 属性直接定义其在网格中的位置和跨度
+                componentContainer.style.gridRowStart = startRow;
+                componentContainer.style.gridColumnStart = startCol;
+                componentContainer.style.gridRowEnd = `span ${rows}`;
+                componentContainer.style.gridColumnEnd = `span ${cols}`;
                 
-                // 3. [核心] 让起始单元格扩展，并填充内容
-                startCell.style.gridColumn = `span ${cols}`;
-                startCell.style.gridRow = `span ${rows}`;
-                startCell.classList.add('widget-container'); // 添加一个标识，表明这是个有内容的容器
-                
+                // 4. 创建内部的 widget 元素并填充内容 (这部分逻辑不变)
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
-                // 这部分填充内容的逻辑保持不变
                 switch (widgetConfig.type) {
                     case 'image':
                         widgetEl.classList.add('widget-image');
@@ -6269,21 +6265,10 @@ const blob = b64toBlob(blobData.content, contentType);
                         break;
                 }
                 
-                startCell.appendChild(widgetEl);
-
-                // 4. [核心] 将被这个大组件覆盖的其他单元格隐藏
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        if (r === 0 && c === 0) continue; // 跳过起始单元格自身
-                        const coveredIndex = startIndex + (r * 4) + c;
-                        if (cells[coveredIndex]) {
-                            cells[coveredIndex].style.display = 'none';
-                        }
-                    }
-                }
+                componentContainer.appendChild(widgetEl);
+                grid.appendChild(componentContainer);
             });
         }
-
 
 
 
@@ -6733,21 +6718,32 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
 
-            // [V5 重构] 渲染网格，并集成新的可点击删除按钮
+            // [V5 重构 & V9 拖拽修复] 渲染网格，应用JS绝对定位布局
             async function renderSettingsGrid(gridContainer) {
                 gridContainer.innerHTML = ''; // 清空容器
 
-                // 1. 创建底层虚线网格
+                // 1. 创建底层虚线网格 (保持不变)
                 for (let i = 0; i < 32; i++) {
                     const cell = document.createElement('div');
                     cell.className = 'settings-grid-cell';
                     cell.dataset.cellIndex = i;
                     gridContainer.appendChild(cell);
                 }
+                 // --- [核心修改：JS 绝对定位布局] ---
+                const gridRect = gridContainer.getBoundingClientRect();
+                const gap = 4; // 从CSS中获取的gap值
+                const cellWidth = (gridRect.width - (3 * gap)) / 4;
+                const cellHeight = (gridRect.height - (7 * gap)) / 8;
+
+                // 检查计算是否有效，如果容器尚未渲染，则退出以避免错误
+                if (cellWidth <= 0 || cellHeight <= 0) {
+                    console.warn("Grid container has no dimensions, skipping widget render.");
+                    return;
+                }
 
                 const widgets = currentConfig.lockscreenWidgets || {};
 
-                // 2. 遍历已配置的组件，为每个组件创建独立的包裹层
+                // 2. 遍历已配置的组件，为每个组件创建独立的、绝对定位的包裹层
                 for (const startIndexStr in widgets) {
                     const startIndex = parseInt(startIndexStr);
                     const widgetConfig = widgets[startIndex]?.[0];
@@ -6755,22 +6751,34 @@ const blob = b64toBlob(blobData.content, contentType);
 
                     const [cols, rows] = widgetConfig.size.split('x').map(Number);
                     
-                    // A. 创建最外层的容器
+                    // A. 计算精确的像素位置和大小
+                    const startRow_0based = Math.floor(startIndex / 4);
+                    const startCol_0based = startIndex % 4;
+
+                    const top = startRow_0based * (cellHeight + gap);
+                    const left = startCol_0based * (cellWidth + gap);
+                    const width = cols * cellWidth + (cols - 1) * gap;
+                    const height = rows * cellHeight + (rows - 1) * gap;
+
+                    // B. 创建最外层的容器并应用绝对定位样式
                     const container = document.createElement('div');
                     container.className = 'widget-container-wrapper';
+                    Object.assign(container.style, {
+                        position: 'absolute',
+                        top: `${top}px`,
+                        left: `${left}px`,
+                        width: `${width}px`,
+                        height: `${height}px`,
+                    });
 
-                    const startRow = Math.floor(startIndex / 4) + 1;
-                    const startCol = (startIndex % 4) + 1;
-                    container.style.gridArea = `${startRow} / ${startCol} / ${startRow + rows} / ${startCol + cols}`;
-
-                    // B. 创建组件预览内容的占位符
+                    // C. 创建组件预览内容的占位符 (内部逻辑不变)
                     const placeholder = document.createElement('div');
                     placeholder.className = 'widget-placeholder';
-                    placeholder.style.position = 'absolute'; // 让其在容器内绝对定位
-                    placeholder.style.inset = '0'; // 填满容器
+                    placeholder.style.position = 'absolute';
+                    placeholder.style.inset = '0';
                     
                     switch (widgetConfig.type) {
-                        case 'image':
+                         case 'image':
                             getSecureFileUrl(widgetConfig.content).then(url => { if (url) placeholder.style.backgroundImage = `url(${url})`; });
                             break;
                         case 'memo':
@@ -6786,10 +6794,9 @@ const blob = b64toBlob(blobData.content, contentType);
                             break;
                     }
                     
-                    // C. 创建删除按钮及其包裹层
+                    // D. 创建删除按钮及其包裹层 (内部逻辑不变)
                     const deleteWrapper = document.createElement('div');
                     deleteWrapper.className = 'widget-delete-wrapper';
-                    
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'widget-delete-btn-centered';
                     deleteBtn.innerHTML = '&times;';
@@ -6799,15 +6806,15 @@ const blob = b64toBlob(blobData.content, contentType);
                             deleteWidgetFromCell(startIndex);
                         }
                     };
-                    
                     deleteWrapper.appendChild(deleteBtn);
                     
-                    // D. 组装并添加到网格中
+                    // E. 组装并添加到网格中
                     container.appendChild(placeholder);
                     container.appendChild(deleteWrapper);
                     gridContainer.appendChild(container);
                 }
             }
+
 
 
 
