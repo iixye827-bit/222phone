@@ -989,11 +989,12 @@ body.mobile-mode .home-screen-page {
     height: 100%;
     flex-shrink: 0;
     overflow: hidden; /* [修复] 禁止页面滚动 */
-    padding: 20px;
+    padding: 4vh 30px; /* [核心修改] 增加垂直和水平内边距，压缩内容区 */
     display: flex;
     flex-direction: column;
     align-items: center;
 }
+
 
 
 
@@ -1008,7 +1009,9 @@ body.mobile-mode .home-screen-page {
     flex-grow: 1;
     position: relative; /* [核心修改] 改为相对定位，作为绝对定位组件的容器 */
     min-height: 0;
+    --widget-gap: 15px; /* [新增] 定义间距变量 */
 }
+
 
 
 .home-screen-page .title-card,
@@ -7080,15 +7083,14 @@ const blob = b64toBlob(blobData.content, contentType);
         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
-            grid.innerHTML = ''; 
+            grid.innerHTML = '';
 
             // 1. 获取网格容器的精确尺寸和间距
             const gridRect = grid.getBoundingClientRect();
-            const gap = 12; // 与 CSS 中的 gap 值保持一致
+            const gap = 15; // [核心修改] 将间距从 12px 增加到 15px
             const totalWidth = gridRect.width;
             const totalHeight = gridRect.height;
-            
-            // 如果容器还未渲染完成，则不执行计算，避免除以0
+
             if (totalWidth <= 0 || totalHeight <= 0) return;
 
             // 2. 计算单个网格单元的精确像素尺寸
@@ -7192,6 +7194,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 grid.appendChild(componentContainer);
             });
         }
+
 
 
 
