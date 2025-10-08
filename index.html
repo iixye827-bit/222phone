@@ -7165,17 +7165,20 @@ const blob = b64toBlob(blobData.content, contentType);
                         });
                         widgetEl.appendChild(img);
                         break;
-                     case 'memo':
+                    case 'memo':
                         const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
                         widgetEl.classList.add('widget-memo');
 
                         if (memo) {
-                            // [核心修改] 根据尺寸决定显示内容
                             if (widgetConfig.size === '1x1') {
-                                // 1x1 尺寸：只显示居中的图标
+                                // 1x1 尺寸：只显示居中的图标，可以正常应用圆形/方形样式
                                 widgetEl.innerHTML = '&#9993;';
-                                widgetEl.style.fontSize = '2em'; // 使用em单位更好地缩放
+                                widgetEl.style.fontSize = '2em';
                             } else {
+                                // [核心修复] 大于1x1时，强制使用方形以获得最佳内容显示效果
+                                widgetEl.classList.remove('widget-shape-circle', 'widget-shape-capsule');
+                                widgetEl.classList.add('widget-shape-square');
+
                                 // 大于 1x1 的尺寸：显示标题和内容
                                 widgetEl.innerHTML = `
                                     <div class="widget-memo-title">${memo.title || '无标题'}</div>
@@ -7194,6 +7197,7 @@ const blob = b64toBlob(blobData.content, contentType);
                             widgetEl.textContent = '备忘录未找到';
                         }
                         break;
+
 
                     case 'shortcut':
                         const buttonConfig = findButtonConfigByHref(widgetConfig.content);
