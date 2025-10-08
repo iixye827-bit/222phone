@@ -1611,6 +1611,25 @@ body.dark-mode .widget-preview-item {
     cursor: grabbing;
     transform: scale(0.95);
 }
+
+/* [新增] 组件形状样式 */
+.widget.widget-shape-circle {
+    border-radius: 50%;
+}
+/* 针对快捷方式组件的额外圆形样式优化 */
+.widget-shortcut.widget-shape-square {
+    border-radius: 16px; /* 让方形快捷按钮也保持统一的方正圆弧 */
+}
+/* [新增] 预览项形状样式 */
+.widget-preview-item.shape-circle {
+    border-radius: 50%;
+    /* 强制预览块为正方形，以显示完美的圆形 */
+    width: 80px; 
+    height: 80px;
+    padding: 10px; /* 调整内边距以适应大小 */
+    flex-shrink: 0; /* 防止被压缩 */
+}
+
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
@@ -6323,7 +6342,7 @@ const blob = b64toBlob(blobData.content, contentType);
         const MobileModeManager = (() => {
             let isEnabled = false;
             let currentPickerWindow = null;
-            let pendingWidgetContent = null; // [V5 新增] 用于暂存待生成的组件内容
+            let pendingWidgetContent = null; 
             let ghostEl = null;
             let draggedWidgetInfo = null;
             let dragTargetCell = null;
@@ -6344,23 +6363,16 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (currentPickerWindow) {
                     const windowContainerToClose = currentPickerWindow;
                     const innerWindow = windowContainerToClose.querySelector('.floating-project-window');
-
-                    // 如果内部窗口存在，则触发它的关闭动画
                     if (innerWindow) {
                         innerWindow.classList.remove('visible');
-                        
-                        // 监听动画结束事件，在动画完成后再安全地移除整个容器
                         innerWindow.addEventListener('transitionend', () => {
                             if (windowContainerToClose.parentNode) {
                                 windowContainerToClose.remove();
                             }
                         }, { once: true });
                     } else {
-                        // 如果没有内部窗口，作为备用方案直接移除
                         windowContainerToClose.remove();
                     }
-
-                    // 立即将引用设为 null，以便新窗口可以被创建
                     currentPickerWindow = null;
                 }
             }
@@ -6486,7 +6498,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (!currentConfig.lockscreenWidgets[cellIndex]) {
                     currentConfig.lockscreenWidgets[cellIndex] = [];
                 }
-                currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); // Add to the beginning
+                currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); 
                 await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
                 renderLockscreenWidgets();
                 closeAnyOpenWindow();
@@ -6508,7 +6520,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
             }
 
-            // [V4 新增] 显示相册文件夹列表的悬浮窗
             function showAlbumPicker(onSelectCallback) {
                 const list = document.createElement('div');
                 list.className = 'picker-list';
@@ -6523,7 +6534,6 @@ const blob = b64toBlob(blobData.content, contentType);
                         itemEl.className = 'picker-item';
                         itemEl.innerHTML = `<span>${folder.name}</span><span style="font-size: 0.8em; color: #889; float: right;">${itemCount} ></span>`;
                         itemEl.onclick = () => {
-                            // 点击文件夹后，打开该文件夹内的图片列表
                             showPhotosInAlbumPicker(folder.id, onSelectCallback);
                         };
                         list.appendChild(itemEl);
@@ -6532,7 +6542,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 createPickerWindow('选择一个相册', list);
             }
 
-            // [V4 新增] 显示指定相册内图片网格的悬浮窗
             function showPhotosInAlbumPicker(albumId, onSelectCallback) {
                 const grid = document.createElement('div');
                 grid.className = 'picker-grid';
@@ -6553,7 +6562,6 @@ const blob = b64toBlob(blobData.content, contentType);
                         gridItem.onclick = () => {
                             const adderContainer = document.getElementById('lockscreen-settings-modal').querySelector('.component-adder');
                             
-                            // 在“确认”按钮上方显示已选择信息
                             const infoSpan = document.createElement('span');
                             infoSpan.id = 'selection-info';
                             infoSpan.style.fontSize = '12px';
@@ -6568,7 +6576,6 @@ const blob = b64toBlob(blobData.content, contentType);
                             const confirmBtn = adderContainer.querySelector('#confirm-widget-btn');
                             adderContainer.insertBefore(infoSpan, confirmBtn);
 
-                            // 关闭悬浮窗并执行最终的回调
                             closeAnyOpenWindow();
                             onSelectCallback({ path: photo.path, title: photo.title || fileName });
                         };
@@ -6580,9 +6587,7 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             
-             // [V8 修复] 增强的智能缓存数据加载器 (针对移动端优化)
             async function ensureMemoryDataIsLoaded(signal) {
-                // 如果缓存已存在，直接成功返回
                 if (memoryCache && memoryCache.album) {
                     return { success: true };
                 }
@@ -6592,19 +6597,16 @@ const blob = b64toBlob(blobData.content, contentType);
                 try {
                     const { data, error, response } = await fetchFromGithub(MEMORY_DATA_PATH, 'GET', null, signal);
                     
-                    // 1. 检查用户是否主动取消
                     if (signal?.aborted) {
                         console.log('Data loading cancelled by user.');
                         return { success: false, reason: 'cancelled' };
                     }
 
-                    // 2. 检查网络或权限等硬性错误
                     if (error) {
                         alert(`加载相册数据失败: ${error}\n\n请检查您的网络连接和GitHub配置。`);
                         return { success: false, reason: 'error' };
                     }
                     
-                    // 3. 检查文件是否存在 (404 Not Found)
                     if (response && response.status === 404) {
                          console.log('memory/data.json not found on remote. Creating new initial data.');
                          const getInitialData = () => ({ memo: { folders: [{ id: Date.now(), name: "默认文件夹" }], notes: [] }, album: { folders: [{ id: Date.now() + 1, name: "我的照片" }], items: [] } });
@@ -6614,8 +6616,6 @@ const blob = b64toBlob(blobData.content, contentType);
                     } else {
                         throw new Error("从云端获取的数据为空，但没有明确错误。");
                     }
-
-                    // 5. 确保数据结构完整
                     if (!memoryCache.memo) memoryCache.memo = { folders: [], notes: [] };
                     if (!memoryCache.album) memoryCache.album = { folders: [], items: [] };
 
@@ -6628,18 +6628,15 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
             }
             
-            // [V7 修复与优化] 创建设置窗口，集成可取消的加载指示器
             function openLockscreenSettingsWindow() {
                 const modalId = 'lockscreen-settings-modal';
                 if (document.getElementById(modalId)) return;
-
-                // [V7 核心] 加载指示器管理器
                 const LoadingIndicator = (() => {
                     let overlay = null;
                     let abortController = null;
 
                     function show(message, onCancel) {
-                        if (overlay) return; // 防止重复显示
+                        if (overlay) return;
                         abortController = new AbortController();
 
                         overlay = document.createElement('div');
@@ -6653,7 +6650,7 @@ const blob = b64toBlob(blobData.content, contentType);
                         document.body.appendChild(overlay);
 
                         overlay.querySelector('.loading-indicator-cancel-btn').onclick = () => {
-                            abortController.abort(); // 发送中止信号
+                            abortController.abort();
                             hide();
                             if (onCancel) onCancel();
                         };
@@ -6676,8 +6673,6 @@ const blob = b64toBlob(blobData.content, contentType);
                         getSignal: () => abortController?.signal
                     };
                 })();
-
-                // --- UI 创建部分 (保持不变) ---
                 const modalOverlay = document.createElement('div');
                 modalOverlay.id = modalId;
                 modalOverlay.className = 'modal-overlay show';
@@ -6705,7 +6700,7 @@ const blob = b64toBlob(blobData.content, contentType);
                         <div class="adder-control-group"> <label>类型</label> <select id="widget-type-selector" class="modal-select"> <option value="shortcut">快捷按钮</option> <option value="image">图片</option> <option value="memo">备忘录</option> <option value="html">HTML</option> </select> </div>
                     </div>
                     <button id="confirm-widget-btn" class="modal-button">确认并生成</button>
-                    <div id="new-widget-preview-area">将生成的组件拖入上方屏幕</div>
+                    <div id="new-widget-preview-area" style="display: flex; justify-content: center; align-items: center; gap: 15px;">将生成的组件拖入上方屏幕</div>
                 `;
                 body.append(phoneScreen, adderContainer);
                 settingsContainer.append(header, body);
@@ -6713,7 +6708,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 modalOverlay.appendChild(modalContent);
                 document.body.appendChild(modalOverlay);
 
-                // --- 事件监听器设置 ---
                 const closeModal = () => { closeAnyOpenWindow(); modalOverlay.classList.remove('show'); modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true }); };
                 header.querySelector('.close-btn').onclick = closeModal;
                 modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeModal(); };
@@ -6721,71 +6715,75 @@ const blob = b64toBlob(blobData.content, contentType);
                 const widthDisplay = adderContainer.querySelector('#width-display'), heightDisplay = adderContainer.querySelector('#height-display');
                 adderContainer.querySelectorAll('.roller-btn').forEach(btn => btn.addEventListener('click', () => { const t = btn.dataset.roller, d = parseInt(btn.dataset.dir, 10), el = t === 'width' ? widthDisplay : heightDisplay, max = t === 'width' ? 4 : 8; let val = parseInt(el.textContent, 10) + d; el.textContent = Math.max(1, Math.min(val, max)); }));
                 
-                // [再次修改] 类型选择器的事件监听器 (不处理任何弹窗)
                 adderContainer.querySelector('#widget-type-selector').addEventListener('change', function() {
-                    // 通用清理工作，当切换任何类型时，都重置预览区
                     adderContainer.querySelector('#new-widget-preview-area').innerHTML = '将生成的组件拖入上方屏幕';
                     adderContainer.querySelector('#new-widget-preview-area').classList.remove('has-widget');
                     pendingWidgetContent = null;
                     adderContainer.querySelector('#selection-info')?.remove();
                 });
 
-
-                // [再次修改] 确认按钮逻辑 (所有类型都生成通用占位符)
+                // ============ [核心修改点 1: "确认并生成" 按钮逻辑] ============
                 adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
                     const type = adderContainer.querySelector('#widget-type-selector').value;
                     const previewArea = adderContainer.querySelector('#new-widget-preview-area');
 
-                    // 清理工作
                     adderContainer.querySelector('#selection-info')?.remove();
                     previewArea.innerHTML = ''; 
 
-                    // 统一为所有类型创建通用预览块
                     const size = `${widthDisplay.textContent}x${heightDisplay.textContent}`;
                     const typeTextMap = { 'shortcut': '快捷方式', 'image': '图片', 'memo': '备忘录', 'html': 'HTML' };
+                    const descriptiveText = `${size} ${typeTextMap[type] || type}`;
+                    
+                    // 创建函数，用于生成一个预览项
+                    const createPreviewItem = (shape) => {
+                        const item = document.createElement('div');
+                        item.className = 'widget-preview-item';
+                        if (shape === 'circle') {
+                            item.classList.add('shape-circle');
+                        }
+                        Object.assign(item.dataset, { 
+                            widgetSize: size, 
+                            widgetType: type,
+                            widgetShape: shape // [新增] 将形状信息存入 dataset
+                        });
+                        item.textContent = descriptiveText;
+                        item.draggable = true;
+                        item.addEventListener('mousedown', handleDragStart);
+                        item.addEventListener('touchstart', handleDragStart, { passive: false });
+                        return item;
+                    };
 
-                    const newPreviewItem = document.createElement('div');
-                    newPreviewItem.className = 'widget-preview-item';
-                    Object.assign(newPreviewItem.dataset, { widgetSize: size, widgetType: type });
-                    newPreviewItem.textContent = `${size} ${typeTextMap[type] || type}`;
+                    // 创建并添加方形和圆形预览项
+                    const squarePreview = createPreviewItem('square');
+                    const circlePreview = createPreviewItem('circle');
 
-                    newPreviewItem.draggable = true;
-                    newPreviewItem.addEventListener('mousedown', handleDragStart);
-                    newPreviewItem.addEventListener('touchstart', handleDragStart, { passive: false });
-                    previewArea.appendChild(newPreviewItem);
+                    previewArea.appendChild(circlePreview);
+                    previewArea.appendChild(squarePreview);
                     
                     previewArea.classList.toggle('has-widget', previewArea.childElementCount > 0);
                 });
             }
 
-
-
-            // [V5 重构 & V9 拖拽修复] 渲染网格，应用JS绝对定位布局
             async function renderSettingsGrid(gridContainer) {
-                gridContainer.innerHTML = ''; // 清空容器
-
-                // 1. 创建底层虚线网格 (保持不变)
+                gridContainer.innerHTML = ''; 
                 for (let i = 0; i < 32; i++) {
                     const cell = document.createElement('div');
                     cell.className = 'settings-grid-cell';
                     cell.dataset.cellIndex = i;
                     gridContainer.appendChild(cell);
                 }
-                 // --- [核心修改：JS 绝对定位布局] ---
                 const gridRect = gridContainer.getBoundingClientRect();
-                const gap = 4; // 从CSS中获取的gap值
+                const gap = 4;
                 const cellWidth = (gridRect.width - (3 * gap)) / 4;
                 const cellHeight = (gridRect.height - (7 * gap)) / 8;
 
-                // 检查计算是否有效，如果容器尚未渲染，则退出以避免错误
                 if (cellWidth <= 0 || cellHeight <= 0) {
                     console.warn("Grid container has no dimensions, skipping widget render.");
                     return;
                 }
 
                 const widgets = currentConfig.lockscreenWidgets || {};
-
-                // 2. 遍历已配置的组件，为每个组件创建独立的、绝对定位的包裹层
+                
                 for (const startIndexStr in widgets) {
                     const startIndex = parseInt(startIndexStr);
                     const widgetConfig = widgets[startIndex]?.[0];
@@ -6793,7 +6791,6 @@ const blob = b64toBlob(blobData.content, contentType);
 
                     const [cols, rows] = widgetConfig.size.split('x').map(Number);
                     
-                    // A. 计算精确的像素位置和大小
                     const startRow_0based = Math.floor(startIndex / 4);
                     const startCol_0based = startIndex % 4;
 
@@ -6802,7 +6799,6 @@ const blob = b64toBlob(blobData.content, contentType);
                     const width = cols * cellWidth + (cols - 1) * gap;
                     const height = rows * cellHeight + (rows - 1) * gap;
 
-                    // B. 创建最外层的容器并应用绝对定位样式
                     const container = document.createElement('div');
                     container.className = 'widget-container-wrapper';
                     Object.assign(container.style, {
@@ -6812,8 +6808,7 @@ const blob = b64toBlob(blobData.content, contentType);
                         width: `${width}px`,
                         height: `${height}px`,
                     });
-
-                    // C. 创建组件预览内容的占位符 (内部逻辑不变)
+                    
                     const placeholder = document.createElement('div');
                     placeholder.className = 'widget-placeholder';
                     placeholder.style.position = 'absolute';
@@ -6821,15 +6816,14 @@ const blob = b64toBlob(blobData.content, contentType);
                     
                     switch (widgetConfig.type) {
                         case 'image':
-                            // [核心修复] 使用 <img> 元素替代背景图，以实现更好的缩放控制
-                            placeholder.style.padding = '0'; // 图片组件不需要内边距
-                            placeholder.style.overflow = 'hidden'; // 确保图片不超出圆角
+                            placeholder.style.padding = '0';
+                            placeholder.style.overflow = 'hidden';
                             const img = document.createElement('img');
                             Object.assign(img.style, {
                                 width: '100%',
                                 height: '100%',
-                                objectFit: 'cover', // 保证图片按比例填充，裁剪多余部分
-                                borderRadius: 'inherit' // 继承父容器的圆角
+                                objectFit: 'cover',
+                                borderRadius: 'inherit'
                             });
                             img.alt = 'Image Preview';
                             getSecureFileUrl(widgetConfig.content).then(url => {
@@ -6850,8 +6844,6 @@ const blob = b64toBlob(blobData.content, contentType);
                             break;
                     }
 
-                    
-                    // D. 创建删除按钮及其包裹层 (内部逻辑不变)
                     const deleteWrapper = document.createElement('div');
                     deleteWrapper.className = 'widget-delete-wrapper';
                     const deleteBtn = document.createElement('button');
@@ -6864,8 +6856,6 @@ const blob = b64toBlob(blobData.content, contentType);
                         }
                     };
                     deleteWrapper.appendChild(deleteBtn);
-                    
-                    // E. 组装并添加到网格中
                     container.appendChild(placeholder);
                     container.appendChild(deleteWrapper);
                     gridContainer.appendChild(container);
@@ -6873,37 +6863,36 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
 
-
-
+            // ============ [核心修改点 2: 拖拽开始时捕获形状信息] ============
             function handleDragStart(e) {
                 e.preventDefault();
                 const item = e.currentTarget;
-                // [核心修改] 将 content 信息也加入拖拽数据中
                 draggedWidgetInfo = { 
                     size: item.dataset.widgetSize, 
                     type: item.dataset.widgetType,
-                    content: item.dataset.widgetContent // 对于图片类型，这里会是图片的路径
+                    shape: item.dataset.widgetShape, // [新增] 捕获形状
+                    content: item.dataset.widgetContent
                 };
                 ghostEl = document.createElement('div');
                 ghostEl.className = 'widget-ghost';
+                if (draggedWidgetInfo.shape === 'circle') { // [新增] 让拖拽虚影也变成圆形
+                    ghostEl.style.borderRadius = '50%';
+                }
                 ghostEl.textContent = item.textContent;
                 document.body.appendChild(ghostEl);
                 
-                // [核心修改] 
-                // 动态计算 ghost 尺寸，使其与模拟器中的格子比例完全一致
                 const gridEl = document.querySelector('#lockscreen-settings-modal .settings-grid');
                 if (!gridEl) return;
                 
                 const gridRect = gridEl.getBoundingClientRect();
-                const singleCellWidth = (gridRect.width - (3 * 5)) / 4; // (总宽 - 3个间距) / 4列
-                const singleCellHeight = (gridRect.height - (7 * 5)) / 8; // (总高 - 7个间距) / 8行
-                const gap = 5; // grid-gap
+                const singleCellWidth = (gridRect.width - (3 * 5)) / 4;
+                const singleCellHeight = (gridRect.height - (7 * 5)) / 8;
+                const gap = 5;
 
                 const [cols, rows] = draggedWidgetInfo.size.split('x').map(Number);
 
                 ghostEl.style.width = `${cols * singleCellWidth + (cols - 1) * gap}px`;
                 ghostEl.style.height = `${rows * singleCellHeight + (rows - 1) * gap}px`;
-                // [修改结束]
 
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -6970,20 +6959,18 @@ const blob = b64toBlob(blobData.content, contentType);
                         if (typeof data === 'object' && data !== null) {
                             newWidget.content = data.content; 
                             newWidget.text = data.text;
-                        } else { // 对于图片、备忘录、HTML，data 是一个字符串或null
+                        } else {
                             newWidget.content = data;
                         }
                         saveWidgetConfig(cellIndex, newWidget);
                     };
 
-                    // 根据类型决定后续操作
                     if (newWidget.type === 'memo' || newWidget.type === 'image') {
-                        // [统一逻辑] 备忘录和图片都需要预加载数据
                         const { success } = await ensureMemoryDataIsLoaded();
                         if (success) {
                             if (newWidget.type === 'memo') {
                                 showMemoPicker(onSelectContent);
-                            } else { // type is 'image'
+                            } else {
                                 showAlbumPicker(photoData => onSelectContent(photoData.path));
                             }
                         }
@@ -6999,7 +6986,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.removeEventListener('touchmove', handleDragMove);
             }
 
-            async function applyMode(enable) { // 将函数声明为 async
+            async function applyMode(enable) {
                 const homeScreenPage = document.getElementById('homeScreenPage');
                 const mainWrapper = document.getElementById('mainWrapper');
                 const elementsToMove = [document.getElementById('pageOverlay'), document.getElementById('titleCard'), document.getElementById('categoryNavContainer'), document.getElementById('navContainer')].filter(Boolean);
@@ -7008,11 +6995,9 @@ const blob = b64toBlob(blobData.content, contentType);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
                 
                 if (enable) {
-                    // [核心修复] 在渲染任何锁屏内容前，先确保数据已加载
                     const { success } = await ensureMemoryDataIsLoaded();
                     if (!success) {
                         alert("加载锁屏组件数据失败，部分组件可能无法显示。请检查网络后刷新重试。");
-                        // 即使失败，也要继续执行UI布局，避免白屏
                     }
                     
                     elementsToMove.forEach(el => homeScreenPage.appendChild(el));
@@ -7020,7 +7005,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     ui.slider.style.transition = 'none';
                     ui.slider.style.transform = `translateX(0px)`;
                     ui.slider.classList.remove('show-home-screen');
-                    renderLockscreenWidgets(); // 现在调用时 memoryCache 已被填充
+                    renderLockscreenWidgets();
                     attachSwipeListeners();
                 } else {
                     elementsToMove.forEach(el => document.body.insertBefore(el, mainWrapper));
@@ -7103,6 +7088,100 @@ const blob = b64toBlob(blobData.content, contentType);
             };
         })();
 
+        // ============ [核心修改点 3: 渲染锁屏组件时应用形状] ============
+        function renderLockscreenWidgets() {
+            const grid = document.getElementById('lockscreenGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const widgetsData = currentConfig.lockscreenWidgets || {};
+            
+            Object.keys(widgetsData).forEach(startIndexStr => {
+                const startIndex = parseInt(startIndexStr, 10);
+                const widgetConfig = widgetsData[startIndex]?.[0];
+
+                if (!widgetConfig) return;
+
+                const startRow = Math.floor(startIndex / 4) + 1;
+                const startCol = (startIndex % 4) + 1;
+                const [cols, rows] = widgetConfig.size.split('x').map(Number);
+
+                const componentContainer = document.createElement('div');
+                
+                if (widgetConfig.type === 'html') {
+                    componentContainer.classList.add('html-widget-container');
+                }
+                
+                componentContainer.style.gridRowStart = startRow;
+                componentContainer.style.gridColumnStart = startCol;
+                componentContainer.style.gridRowEnd = `span ${rows}`;
+                componentContainer.style.gridColumnEnd = `span ${cols}`;
+                
+                const widgetEl = document.createElement('div');
+                widgetEl.className = 'widget';
+
+                // [新增] 根据保存的形状添加对应的 CSS 类
+                if (widgetConfig.shape === 'circle') {
+                    widgetEl.classList.add('widget-shape-circle');
+                } else {
+                    widgetEl.classList.add('widget-shape-square'); // 默认或明确指定方形
+                }
+
+                switch (widgetConfig.type) {
+                    case 'image':
+                        widgetEl.classList.add('widget-image');
+                        const img = document.createElement('img');
+                        img.alt = 'Image Widget';
+                        getSecureFileUrl(widgetConfig.content).then(url => {
+                            if (url) img.src = url;
+                        });
+                        widgetEl.appendChild(img);
+                        break;
+                    case 'memo':
+                        const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
+                        widgetEl.classList.add('widget-memo');
+                        if (memo) {
+                            if (widgetConfig.size === '1x1') {
+                                widgetEl.innerHTML = '&#9993;';
+                                widgetEl.style.fontSize = '24px';
+                            } else {
+                                widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div>`;
+                            }
+                            widgetEl.style.cursor = 'pointer';
+                            widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
+                        } else {
+                            widgetEl.textContent = '备忘录未找到';
+                        }
+                        break;
+                    case 'shortcut':
+                        const buttonConfig = findButtonConfigByHref(widgetConfig.content);
+                        widgetEl.classList.add('widget-shortcut');
+                        widgetEl.textContent = buttonConfig ? buttonConfig.text : '快捷方式';
+                        widgetEl.dataset.href = widgetConfig.content;
+                        widgetEl.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            if (buttonConfig && buttonConfig.openExternally) {
+                                window.open(this.dataset.href, '_blank', 'noopener,noreferrer');
+                            } else {
+                                openIframeModal(this.dataset.href);
+                            }
+                        });
+                        break;
+                    case 'html':
+                        widgetEl.style.padding = '0';
+                        widgetEl.style.overflow = 'hidden';
+                        const iframe = document.createElement('iframe');
+                        iframe.className = 'widget-html-iframe';
+                        iframe.srcdoc = widgetConfig.content || '<p style="color: inherit; opacity: 0.6;">未提供HTML内容</p>';
+                        iframe.scrolling = 'no';
+                        widgetEl.appendChild(iframe);
+                        break;
+                }
+                
+                componentContainer.appendChild(widgetEl);
+                grid.appendChild(componentContainer);
+            });
+        }
 
 
         // 初始化手机模式管理器
