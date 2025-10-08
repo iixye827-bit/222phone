@@ -6662,77 +6662,39 @@ const blob = b64toBlob(blobData.content, contentType);
                 const widthDisplay = adderContainer.querySelector('#width-display'), heightDisplay = adderContainer.querySelector('#height-display');
                 adderContainer.querySelectorAll('.roller-btn').forEach(btn => btn.addEventListener('click', () => { const t = btn.dataset.roller, d = parseInt(btn.dataset.dir, 10), el = t === 'width' ? widthDisplay : heightDisplay, max = t === 'width' ? 4 : 8; let val = parseInt(el.textContent, 10) + d; el.textContent = Math.max(1, Math.min(val, max)); }));
                 
-                // [已修改] 类型选择器的事件监听器 (只处理图片)
-                adderContainer.querySelector('#widget-type-selector').addEventListener('change', async function() {
-                    const selectedType = this.value;
-                    const selector = this;
-                    const originalSelectedIndex = selector.selectedIndex;
-
+                // [再次修改] 类型选择器的事件监听器 (不处理任何弹窗)
+                adderContainer.querySelector('#widget-type-selector').addEventListener('change', function() {
+                    // 通用清理工作，当切换任何类型时，都重置预览区
                     adderContainer.querySelector('#new-widget-preview-area').innerHTML = '将生成的组件拖入上方屏幕';
                     adderContainer.querySelector('#new-widget-preview-area').classList.remove('has-widget');
                     pendingWidgetContent = null;
                     adderContainer.querySelector('#selection-info')?.remove();
-
-                    const onCancel = () => { selector.selectedIndex = originalSelectedIndex; console.log('Data loading cancelled'); };
-                    
-                    if (selectedType === 'image') {
-                        LoadingIndicator.show('正在加载数据...', onCancel);
-                        const { success, reason } = await ensureMemoryDataIsLoaded(LoadingIndicator.getSignal());
-                        LoadingIndicator.hide();
-
-                        if (!success) {
-                            if (reason !== 'cancelled') selector.selectedIndex = originalSelectedIndex;
-                            return;
-                        }
-                        
-                        showAlbumPicker(photoData => {
-                            pendingWidgetContent = { type: 'image', size: `${widthDisplay.textContent}x${heightDisplay.textContent}`, content: photoData.path };
-                            adderContainer.querySelector('#selection-info')?.remove();
-                            const infoSpan = document.createElement('span');
-                            infoSpan.id = 'selection-info';
-                            infoSpan.style.cssText = 'font-size:12px;color:#889;text-align:center;display:block;margin-top:-10px;margin-bottom:10px;';
-                            infoSpan.textContent = `已选择：${photoData.title}`;
-                            adderContainer.insertBefore(infoSpan, adderContainer.querySelector('#confirm-widget-btn'));
-                        });
-                    }
                 });
 
-                // [已修改] 确认按钮逻辑 (备忘录生成通用占位符)
+
+                // [再次修改] 确认按钮逻辑 (所有类型都生成通用占位符)
                 adderContainer.querySelector('#confirm-widget-btn').addEventListener('click', () => {
                     const type = adderContainer.querySelector('#widget-type-selector').value;
                     const previewArea = adderContainer.querySelector('#new-widget-preview-area');
+
+                    // 清理工作
                     adderContainer.querySelector('#selection-info')?.remove();
                     previewArea.innerHTML = ''; 
 
-                    let newPreviewItem = null;
+                    // 统一为所有类型创建通用预览块
+                    const size = `${widthDisplay.textContent}x${heightDisplay.textContent}`;
+                    const typeTextMap = { 'shortcut': '快捷方式', 'image': '图片', 'memo': '备忘录', 'html': 'HTML' };
 
-                    if (pendingWidgetContent && pendingWidgetContent.type === 'image') {
-                        newPreviewItem = document.createElement('div');
-                        newPreviewItem.className = 'widget-preview-item';
-                        newPreviewItem.style.cssText = 'padding:0; overflow:hidden;';
-                        Object.assign(newPreviewItem.dataset, { widgetSize: pendingWidgetContent.size, widgetType: 'image', widgetContent: pendingWidgetContent.content });
-                        newPreviewItem.innerHTML = `<img style="width:100%;height:100%;object-fit:cover;pointer-events:none;">`;
-                        getSecureFileUrl(pendingWidgetContent.content).then(url => { if (url) newPreviewItem.querySelector('img').src = url; });
-                        pendingWidgetContent = null;
-                    } 
-                    else if (type !== 'image') { 
-                        const size = `${widthDisplay.textContent}x${heightDisplay.textContent}`;
-                        const typeTextMap = { 'shortcut': '快捷方式', 'memo': '备忘录', 'html': 'HTML' };
-                        newPreviewItem = document.createElement('div');
-                        newPreviewItem.className = 'widget-preview-item';
-                        Object.assign(newPreviewItem.dataset, { widgetSize: size, widgetType: type });
-                        newPreviewItem.textContent = `${size} ${typeTextMap[type]}`;
-                    } 
-                    else {
-                        alert(`请先选择一个"图片"。`);
-                    }
+                    const newPreviewItem = document.createElement('div');
+                    newPreviewItem.className = 'widget-preview-item';
+                    Object.assign(newPreviewItem.dataset, { widgetSize: size, widgetType: type });
+                    newPreviewItem.textContent = `${size} ${typeTextMap[type] || type}`;
 
-                    if (newPreviewItem) {
-                        newPreviewItem.draggable = true;
-                        newPreviewItem.addEventListener('mousedown', handleDragStart);
-                        newPreviewItem.addEventListener('touchstart', handleDragStart, { passive: false });
-                        previewArea.appendChild(newPreviewItem);
-                    }
+                    newPreviewItem.draggable = true;
+                    newPreviewItem.addEventListener('mousedown', handleDragStart);
+                    newPreviewItem.addEventListener('touchstart', handleDragStart, { passive: false });
+                    previewArea.appendChild(newPreviewItem);
+                    
                     previewArea.classList.toggle('has-widget', previewArea.childElementCount > 0);
                 });
             }
@@ -6939,7 +6901,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
             }
             
-            async function handleDragEnd() { // 将函数声明为 async
+            async function handleDragEnd() {
                 if (dragTargetCell) {
                     dragTargetCell.classList.remove('drag-over');
                     const cellIndex = parseInt(dragTargetCell.dataset.cellIndex, 10);
@@ -6950,19 +6912,21 @@ const blob = b64toBlob(blobData.content, contentType);
                             newWidget.content = data.content; 
                             newWidget.text = data.text;
                         } else if (data) {
-                            newWidget.content = data;
+                            newWidget.content = data; // 对于图片和备忘录，data 是一个字符串
                         }
                         saveWidgetConfig(cellIndex, newWidget);
                     };
 
                     // 根据类型决定后续操作
-                    if (newWidget.type === 'image') {
-                        saveWidgetConfig(cellIndex, newWidget);
-                    } else if (newWidget.type === 'memo') {
-                        // 在此加载数据，修复报错
+                    if (newWidget.type === 'memo' || newWidget.type === 'image') {
+                        // [统一逻辑] 备忘录和图片都需要预加载数据
                         const { success } = await ensureMemoryDataIsLoaded();
                         if (success) {
-                            showMemoPicker(onSelectContent);
+                            if (newWidget.type === 'memo') {
+                                showMemoPicker(onSelectContent);
+                            } else { // type is 'image'
+                                showAlbumPicker(photoData => onSelectContent(photoData.path));
+                            }
                         }
                     } else if (newWidget.type === 'shortcut') {
                         showShortcutPicker(onSelectContent);
@@ -6975,6 +6939,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.removeEventListener('mousemove', handleDragMove);
                 document.removeEventListener('touchmove', handleDragMove);
             }
+
 
 
             async function applyMode(enable) { // 将函数声明为 async
