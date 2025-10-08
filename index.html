@@ -6228,7 +6228,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
-                switch (widgetConfig.type) {
+                 switch (widgetConfig.type) {
                     case 'image':
                         widgetEl.classList.add('widget-image');
                         const img = document.createElement('img');
@@ -6275,7 +6275,22 @@ const blob = b64toBlob(blobData.content, contentType);
                             }
                         });
                         break;
+                    case 'html':
+                        // [新增] HTML 组件渲染逻辑
+                        // 为了安全和隔离，我们使用 iframe 来渲染用户提供的HTML
+                        widgetEl.style.padding = '0'; // HTML组件通常不需要内边距
+                        widgetEl.style.overflow = 'hidden'; // 确保内容不溢出
+                        const iframe = document.createElement('iframe');
+                        iframe.className = 'widget-html-iframe';
+                        // 使用 srcdoc 属性来安全地设置内容，这可以防止跨站脚本（XSS）攻击
+                        // 并且可以很好地继承父级的CSS变量（如果需要）
+                        iframe.srcdoc = widgetConfig.content || '<p style="color: inherit; opacity: 0.6;">未提供HTML内容</p>';
+                        // 阻止 iframe 捕获滚动事件，让页面可以正常滚动
+                        iframe.scrolling = 'no';
+                        widgetEl.appendChild(iframe);
+                        break;
                 }
+
 
                 
                 componentContainer.appendChild(widgetEl);
@@ -6405,6 +6420,31 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
                 createPickerWindow('选择一个快捷方式', list);
             }
+
+            function showHtmlInputWindow(onSave) {
+                const contentWrapper = document.createElement('div');
+                contentWrapper.style.display = 'flex';
+                contentWrapper.style.flexDirection = 'column';
+                contentWrapper.style.gap = '15px';
+
+                const textarea = document.createElement('textarea');
+                textarea.className = 'modal-textarea html-editor-textarea';
+                textarea.placeholder = '在此输入您的HTML代码...';
+                
+                const completeButton = document.createElement('button');
+                completeButton.className = 'modal-button';
+                completeButton.textContent = '完成';
+                
+                completeButton.onclick = () => {
+                    onSave(textarea.value);
+                };
+
+                contentWrapper.appendChild(textarea);
+                contentWrapper.appendChild(completeButton);
+                
+                createPickerWindow('输入HTML内容', contentWrapper);
+            }
+
 
             function showMemoPicker(onSelect) {
                 const list = document.createElement('div');
@@ -6911,8 +6951,8 @@ const blob = b64toBlob(blobData.content, contentType);
                         if (typeof data === 'object' && data !== null) {
                             newWidget.content = data.content; 
                             newWidget.text = data.text;
-                        } else if (data) {
-                            newWidget.content = data; // 对于图片和备忘录，data 是一个字符串
+                        } else { // 对于图片、备忘录、HTML，data 是一个字符串或null
+                            newWidget.content = data;
                         }
                         saveWidgetConfig(cellIndex, newWidget);
                     };
@@ -6931,7 +6971,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     } else if (newWidget.type === 'shortcut') {
                         showShortcutPicker(onSelectContent);
                     } else if (newWidget.type === 'html') {
-                        onSelectContent(null);
+                        showHtmlInputWindow(onSelectContent);
                     }
                 }
                 if (ghostEl) ghostEl.remove();
@@ -6939,8 +6979,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.removeEventListener('mousemove', handleDragMove);
                 document.removeEventListener('touchmove', handleDragMove);
             }
-
-
 
             async function applyMode(enable) { // 将函数声明为 async
                 const homeScreenPage = document.getElementById('homeScreenPage');
