@@ -1000,30 +1000,16 @@ body.mobile-mode .home-screen-page {
 .lock-screen-page {
     padding-top: 2vh;
     padding-bottom: 2vh;
+    overflow: hidden; /* 确保页面本身不滚动 */
 }
 .lockscreen-grid {
     width: 100%;
     max-width: 500px;
     flex-grow: 1;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(8, 1fr);
-    gap: 12px;
-    min-height: 0; /* [核心修复] 允许网格容器在flex布局中被压缩 */
+    position: relative; /* [核心修改] 改为相对定位，作为绝对定位组件的容器 */
+    min-height: 0;
 }
 
-
-.grid-cell {
-    /* 默认情况下，格子是完全透明的 */
-    background: transparent;
-    border: none;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s, border-color 0.2s;
-    position: relative;
-}
 
 .home-screen-page .title-card,
 .home-screen-page .category-nav-container,
@@ -7094,7 +7080,20 @@ const blob = b64toBlob(blobData.content, contentType);
         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
-            grid.innerHTML = '';
+            grid.innerHTML = ''; 
+
+            // 1. 获取网格容器的精确尺寸和间距
+            const gridRect = grid.getBoundingClientRect();
+            const gap = 12; // 与 CSS 中的 gap 值保持一致
+            const totalWidth = gridRect.width;
+            const totalHeight = gridRect.height;
+            
+            // 如果容器还未渲染完成，则不执行计算，避免除以0
+            if (totalWidth <= 0 || totalHeight <= 0) return;
+
+            // 2. 计算单个网格单元的精确像素尺寸
+            const cellWidth = (totalWidth - (3 * gap)) / 4;
+            const cellHeight = (totalHeight - (7 * gap)) / 8;
 
             const widgetsData = currentConfig.lockscreenWidgets || {};
             
@@ -7104,29 +7103,38 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 if (!widgetConfig) return;
 
-                const startRow = Math.floor(startIndex / 4) + 1;
-                const startCol = (startIndex % 4) + 1;
+                // 3. 计算组件的起始行列（0-indexed）
+                const startRow_0based = Math.floor(startIndex / 4);
+                const startCol_0based = startIndex % 4;
                 const [cols, rows] = widgetConfig.size.split('x').map(Number);
-
-                const componentContainer = document.createElement('div');
                 
+                // 4. 计算组件的绝对位置 (top, left) 和尺寸 (width, height)
+                const top = startRow_0based * (cellHeight + gap);
+                const left = startCol_0based * (cellWidth + gap);
+                const width = (cols * cellWidth) + ((cols - 1) * gap);
+                const height = (rows * cellHeight) + ((rows - 1) * gap);
+
+                // 5. 创建容器并应用绝对定位样式
+                const componentContainer = document.createElement('div');
+                componentContainer.style.position = 'absolute';
+                Object.assign(componentContainer.style, {
+                    top: `${top}px`,
+                    left: `${left}px`,
+                    width: `${width}px`,
+                    height: `${height}px`
+                });
+
                 if (widgetConfig.type === 'html') {
                     componentContainer.classList.add('html-widget-container');
                 }
                 
-                componentContainer.style.gridRowStart = startRow;
-                componentContainer.style.gridColumnStart = startCol;
-                componentContainer.style.gridRowEnd = `span ${rows}`;
-                componentContainer.style.gridColumnEnd = `span ${cols}`;
-                
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
-                // [新增] 根据保存的形状添加对应的 CSS 类
                 if (widgetConfig.shape === 'circle') {
                     widgetEl.classList.add('widget-shape-circle');
                 } else {
-                    widgetEl.classList.add('widget-shape-square'); // 默认或明确指定方形
+                    widgetEl.classList.add('widget-shape-square');
                 }
 
                 switch (widgetConfig.type) {
@@ -7184,6 +7192,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 grid.appendChild(componentContainer);
             });
         }
+
 
 
         // 初始化手机模式管理器
