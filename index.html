@@ -6217,6 +6217,9 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 // 2. 创建组件的容器
                 const componentContainer = document.createElement('div');
+                
+                // [BUG修复] 添加 min-height: 0 来防止 iframe 撑开网格布局
+                componentContainer.style.minHeight = '0';
 
                 // 3. [核心] 使用 style 属性直接定义其在网格中的位置和跨度
                 componentContainer.style.gridRowStart = startRow;
@@ -6228,7 +6231,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
-                 switch (widgetConfig.type) {
+                switch (widgetConfig.type) {
                     case 'image':
                         widgetEl.classList.add('widget-image');
                         const img = document.createElement('img');
@@ -6291,13 +6294,11 @@ const blob = b64toBlob(blobData.content, contentType);
                         break;
                 }
 
-
                 
                 componentContainer.appendChild(widgetEl);
                 grid.appendChild(componentContainer);
             });
         }
-
 
 
 
