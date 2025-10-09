@@ -3559,6 +3559,24 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
         updateSyncStatus('syncing', `正在同步: ${commitMessage}`);
         const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
         const body = { message: commitMessage, content: content, branch: 'main' };
+
+        // ============ [核心修复逻辑] ============
+        // 如果调用时没有提供 sha，主动去服务器查询一次
+        if (!sha) {
+            try {
+                const { data: remoteFileData } = await fetchFromGithub(path);
+                // 如果文件在服务器上已存在，就使用它的 sha
+                if (remoteFileData && remoteFileData.sha) {
+                    console.warn(`Local sha for "${path}" was missing. Fetched remote sha to prevent 422 error.`);
+                    sha = remoteFileData.sha;
+                }
+            } catch (e) {
+                // 如果查询失败，可能是网络问题，按原流程继续尝试，让错误处理接管
+                console.error(`Pre-save check for "${path}" failed`, e);
+            }
+        }
+        // =====================================
+
         if (sha) { body.sha = sha; }
 
         try {
@@ -3571,8 +3589,9 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                if (response.status === 409 || (errorData.message && errorData.message.includes("sha doesn't match"))) {
-                    const conflictMessage = `同步冲突：云端数据已被更新，请使用“手动同步与修复”功能后再试。`;
+                // 422 错误现在也应被更友好的冲突信息捕获
+                if (response.status === 409 || response.status === 422 || (errorData.message && errorData.message.includes("sha "))) {
+                    const conflictMessage = `同步冲突：云端数据已被更新。请刷新页面或使用“手动同步与修复”功能后再试。`;
                     updateSyncStatus('error', conflictMessage);
                     return { sha: null, error: conflictMessage };
                 }
@@ -3588,6 +3607,7 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
             return { sha: null, error: userMessage };
         }
     }
+
 
     
     async function uploadFileViaGitData({ file, path, commitMessage, onProgress }) {
