@@ -2088,6 +2088,13 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     text-decoration: line-through;
     opacity: 0.6;
 }
+/* [V3 修复] 允许待办事项的文本内容换行 */
+.todo-text {
+    flex: 1; /* 让文本容器占据所有剩余空间 */
+    min-width: 0; /* 关键：允许 flex item 收缩并换行其内容 */
+    word-break: break-word; /* 确保长单词或URL也能正确换行 */
+}
+
 
 .memo-toolbar {
     flex-shrink: 0;
