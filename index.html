@@ -2377,16 +2377,32 @@ body.dark-mode #jelly-css-preview-container {
                     <li><strong>调整大小</strong>: 拖动窗口右下角可以等比例缩放窗口大小。</li>
                 </ul>
             </div>
+            <div class="important-note" style="margin-top: 15px;">
+                <h4>📱 锁屏组件</h4>
+                <p>通过 <code>主题设置 → 手机模式</code>，您可以开启一个模拟手机桌面的锁屏界面。在这里，您可以自由添加和布局多种实用小组件。</p>
+                <ul>
+                    <li><strong>自由布局</strong>: 在设置界面，通过拖拽即可将组件放置在锁屏网格的任意位置。</li>
+                    <li><strong>多种尺寸与形状</strong>: 支持创建不同尺寸（如2x2, 4x2）和形状（方形、圆形）的组件。</li>
+                    <li><strong>丰富组件类型</strong>:
+                        <ul>
+                            <li><strong>快捷方式</strong>: 将任意项目（链接或上传的应用）固定到锁屏，实现一键直达。</li>
+                            <li><strong>备忘录</strong>: 直接在锁屏上预览指定备忘录的内容，或实时查看和完成待办事项。</li>
+                            <li><strong>图片</strong>: 从“记忆相册”中选择一张图片作为锁屏背景或装饰。</li>
+                            <li><strong>HTML</strong>: 支持嵌入自定义HTML代码，实现天气、时钟等高度个性化功能。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
         </div>
     </details>
     <details>
         <summary>📷 记忆功能</summary>
         <div class="details-content">
-            <p>一个集成了备忘录、相册和文件云盘的私人空间，所有数据都安全地存储在您的GitHub私有仓库中。您可以从主入口进入相应模块进行管理。</p>
-            <h4>💫 漫游模式</h4>
+            <p>一个集成了备忘录、相册和文件云盘的私人空间，所有数据都安全地存储在您的GitHub私有仓库中。</p>
             <ul>
-                <li><strong>音乐播放</strong>: 您可以上传自己的音乐和歌词文件，在漫游模式中播放。</li>
-                <li><strong>便捷播放</strong>: 在音乐设置的播放列表中，直接点击歌曲名即可自动进入漫游模式并开始播放。</li>
+                <li><strong>备忘录</strong>: 支持文件夹分类管理。编辑器提供待办清单、多种文字格式和可一键复制的代码块功能，满足不同的记录需求。</li>
+                <li><strong>相册</strong>: 支持创建多个相册，批量上传照片，并可进入沉浸式的“漫游模式”浏览，支持配合背景音乐播放。</li>
+                <li><strong>文件夹</strong>: 一个轻量级的文件云盘，支持按项目分类上传、下载和管理各类文件。</li>
             </ul>
         </div>
     </details>
@@ -2397,6 +2413,15 @@ body.dark-mode #jelly-css-preview-container {
                         <div class="update-header-info">
                             <p><strong>小红书ID:</strong> 淡季水母</p>
                             <p><strong>QQ交流群:</strong> 563191005</p>
+                        </div>
+                         <div class="update-log-entry">
+                            <h4>v5.3.0 <span class="update-date">- 2025.10.11</span></h4>
+                            <ul>
+                                <li><span class="tag new">新功能</span> <strong>锁屏组件</strong>: 新增手机模式与锁屏组件功能，支持高度自定义布局与多种组件类型。（详见“功能介绍”）</li>
+                                <li><span class="tag new">新功能</span> <strong>备忘录增强</strong>: 新增待办事项（清单）功能；支持加粗、斜体、下划线和删除线等文字格式；新增可一键复制代码块功能。</li>
+                                <li><span class="tag fix">修复</span> 解决了悬浮球在部分内嵌网页中无法显示的问题。</li>
+                                <li><span class="tag fix">修复</span> 修复了在悬浮球设置中，自定义CSS输入框无法实时预览样式的问题。</li>
+                            </ul>
                         </div>
                         <div class="update-log-entry">
                             <h4>v4.1.0 <span class="update-date">- 2025.10.04</span></h4>
@@ -2468,7 +2493,7 @@ body.dark-mode #jelly-css-preview-container {
                         </div>
                         
                         <footer class="update-footer">
-                            当前版本: v4.1.0
+                            当前版本: v5.3.0
                         </footer>
                     </div>
                     <div id="help-page-3" class="help-page-content">
@@ -2659,14 +2684,16 @@ body.dark-mode #jelly-css-preview-container {
                 <div class="modal-title-group"><span>⚠️ iOS 用户重要提示</span></div>
             </div>
             <div class="modal-body">
-                <p>尊敬的 iOS 用户，由于系统对 Web 应用沙箱（Sandbox）环境的严格限制，当您将本应用“添加到主屏幕”后，每次从后台彻底关闭应用（上划清除）都可能导致 <strong>iframe 内的项目数据被清除</strong>。</p>
-                <p>为避免数据丢失，我们建议您：</p>
+                <p>尊敬的 iOS 用户，由于系统对 Web 应用沙箱（Sandbox）环境的严格限制，当您将本应用“添加到主屏幕”后，每次从后台彻底关闭应用（上划清除）都可能导致 iframe 内的项目数据被清除。</p>
+                <div class="important-note">
+                    <p><strong>强烈建议您在使用依赖数据保存的项目前，先进行少量操作测试，确保数据能够正常导入、导出和保存，避免重要数据意外丢失。</strong></p>
+                </div>
+                <p style="margin-top: 15px;">为最大程度保障数据安全，建议：</p>
                 <ol style="margin-left: 20px; line-height: 1.7;">
-                    <li><strong>使用“标签页模式”打开项目</strong>：在“管理项目”页面上传或编辑项目时，开启“在新标签页中打开”开关。这会使用系统浏览器打开，数据更安全，但可能无法实现完全全屏。</li>
-                    <li><strong>直接在浏览器中使用</strong>：通过 Safari 等浏览器直接访问本站，而不是通过桌面图标，这是最稳妥的方式。</li>
+                    <li><strong>使用“文件版”上传项目</strong>：对于您拥有源代码的项目，通过“管理项目”中的“上传项目”功能进行上传。</li>
+                    <li><strong>使用浏览器打开</strong>：对于外部网站链接，在添加或编辑时，开启“在新标签页中打开”开关。项目将通过Safari等系统浏览器打开，数据由浏览器自身管理，更稳定。</li>
                 </ol>
-                <p style="margin-top: 15px;">为保障您的数据安全，强烈建议您<strong>定期备份</strong>重要数据。</p>
-                <button id="iosWarningConfirmBtn" class="modal-button" style="margin-top: 15px;">我已知晓</button>
+                <button id="iosWarningConfirmBtn" class="modal-button" style="margin-top: 15px;">我已了解风险</button>
             </div>
         </div>
     </div>
@@ -7925,8 +7952,6 @@ const blob = b64toBlob(blobData.content, contentType);
                     MemoryApp.scheduleSave(); // 复用 MemoryApp 的保存逻辑
                 }
             });
-
-
     </script>
 </body>
 </html>
