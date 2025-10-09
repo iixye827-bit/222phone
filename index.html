@@ -1294,40 +1294,46 @@ body.dark-mode .widget-shortcut:active {
 
 /* --- 备忘录小组件样式 --- */
 .widget-memo {
-    box-sizing: border-box; /* 确保 padding 不会撑大元素 */
-    text-align: center;
+    /* [V2 修复] 改为 Flex 布局以精确控制子元素 */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 12px;
+    text-align: left;
     color: var(--widget-text-color);
     background-color: var(--widget-background-color);
 }
 
 .widget-memo .widget-memo-title {
-    font-weight: 700;  /* [修改] 确保标题加粗 */
-    font-size: 1em;    /* 使用相对单位，使其能随小组件大小缩放 */
-    margin-bottom: 4px;
+    /* [V2 修复] 确保标题不会被压缩 */
+    flex-shrink: 0; 
+    font-weight: 700;
+    font-size: 1em;
+    margin-bottom: 6px; /* 稍微增加与内容的间距 */
     width: 100%;
-    
-    /* [新增] 防止标题过长换行破坏布局 */
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
 
-/* [新增] 备忘录内容样式 */
 .widget-memo .widget-memo-content {
-    font-weight: 300; /* 更细的字体 */
-    font-size: 0.8em;
-    opacity: 0.8;     /* 变淡的效果 */
+    /* [V2 修复] 让内容区域填满剩余空间并应用截断 */
+    flex-grow: 1; 
+    min-height: 0; /* 允许 flex item 收缩 */
+    font-weight: 400; /* [优化] 调整字重以提高可读性 */
+    font-size: 0.9em;
+    opacity: 0.85;
     width: 100%;
+    line-height: 1.5;
     
-    /* 核心：实现多行文本溢出显示省略号 */
+    /* 核心截断逻辑 */
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3; /* 最多显示3行，你可以根据需要调整 */
-    line-height: 1.4;
+    /* line-clamp 将由 JS 动态设置 */
 }
-/* 超大备忘录可以显示更多行 */
-.widget-xl .widget-memo-content { -webkit-line-clamp: 6; }
+
 
 
 /* 图片组件样式 */
@@ -7007,29 +7013,41 @@ const blob = b64toBlob(blobData.content, contentType);
 
 
 
-             async function saveWidgetConfig(cellIndex, widgetData) {
+             async function saveWidgetConfig(cellIndex, widgetData, onCompleteCallback) {
                 if (!currentConfig.lockscreenWidgets[cellIndex]) {
                     currentConfig.lockscreenWidgets[cellIndex] = [];
                 }
-                currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); 
+                currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData);
+
+                // [V3 修复] 等待保存操作完成
                 await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
-                
-                // --- 核心修复点 ---
-                // 确保在数据更新后，立即重新渲染锁屏和设置模拟器
+
+                // [V3 修复] 在保存完成后，才执行UI更新和回调
                 renderLockscreenWidgets();
-                
-                const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if (settingsWindow && settingsWindow.classList.contains('show')) {
-                    const grid = settingsWindow.querySelector('.settings-grid');
-                    if (grid) {
-                        renderSettingsGrid(grid);
-                    }
+                const settingsModal = document.getElementById('lockscreen-settings-modal');
+                if (settingsModal?.classList.contains('show')) {
+                    renderSettingsGrid(settingsModal.querySelector('.settings-grid'));
                 }
-                // --- 修复结束 ---
                 
-                closeAnyOpenWindow();
+                // [V3 修复] 执行传入的回调，例如关闭选择器窗口
+                if (typeof onCompleteCallback === 'function') {
+                    onCompleteCallback();
+                }
             }
 
+            async function deleteWidgetFromCell(cellIndex) {
+                delete currentConfig.lockscreenWidgets[cellIndex];
+                
+                // [V3 修复] 等待删除操作完成
+                await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
+
+                // [V3 修复] 在保存完成后，才执行UI更新
+                renderLockscreenWidgets();
+                const settingsModal = document.getElementById('lockscreen-settings-modal');
+                if (settingsModal?.classList.contains('show')) {
+                    renderSettingsGrid(settingsModal.querySelector('.settings-grid'));
+                }
+            }
 
 
                 async function deleteWidgetFromCell(cellIndex) {
@@ -7298,7 +7316,8 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             async function renderSettingsGrid(gridContainer) {
-                gridContainer.innerHTML = ''; 
+                if (!gridContainer) return;
+                gridContainer.innerHTML = '';
                 for (let i = 0; i < 32; i++) {
                     const cell = document.createElement('div');
                     cell.className = 'settings-grid-cell';
@@ -7311,22 +7330,19 @@ const blob = b64toBlob(blobData.content, contentType);
                 const cellHeight = (gridRect.height - (7 * gap)) / 8;
 
                 if (cellWidth <= 0 || cellHeight <= 0) {
-                    console.warn("Grid container has no dimensions, skipping widget render.");
                     return;
                 }
 
                 const widgets = currentConfig.lockscreenWidgets || {};
-                
+
                 for (const startIndexStr in widgets) {
                     const startIndex = parseInt(startIndexStr);
                     const widgetConfig = widgets[startIndex]?.[0];
                     if (!widgetConfig) continue;
 
                     const [cols, rows] = widgetConfig.size.split('x').map(Number);
-                    
                     const startRow_0based = Math.floor(startIndex / 4);
                     const startCol_0based = startIndex % 4;
-
                     const top = startRow_0based * (cellHeight + gap);
                     const left = startCol_0based * (cellWidth + gap);
                     const width = cols * cellWidth + (cols - 1) * gap;
@@ -7334,34 +7350,21 @@ const blob = b64toBlob(blobData.content, contentType);
 
                     const container = document.createElement('div');
                     container.className = 'widget-container-wrapper';
-                    Object.assign(container.style, {
-                        position: 'absolute',
-                        top: `${top}px`,
-                        left: `${left}px`,
-                        width: `${width}px`,
-                        height: `${height}px`,
-                    });
-                    
+                    Object.assign(container.style, { position: 'absolute', top: `${top}px`, left: `${left}px`, width: `${width}px`, height: `${height}px` });
+
                     const placeholder = document.createElement('div');
                     placeholder.className = 'widget-placeholder';
                     placeholder.style.position = 'absolute';
                     placeholder.style.inset = '0';
-                    
+
                     switch (widgetConfig.type) {
                         case 'image':
                             placeholder.style.padding = '0';
                             placeholder.style.overflow = 'hidden';
                             const img = document.createElement('img');
-                            Object.assign(img.style, {
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                borderRadius: 'inherit'
-                            });
+                            Object.assign(img.style, { width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' });
                             img.alt = 'Image Preview';
-                            getSecureFileUrl(widgetConfig.content).then(url => {
-                                if (url) img.src = url;
-                            });
+                            getSecureFileUrl(widgetConfig.content).then(url => { if (url) img.src = url; });
                             placeholder.appendChild(img);
                             break;
                         case 'memo':
@@ -7385,6 +7388,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     deleteBtn.onclick = (e) => {
                         e.stopPropagation();
                         if (confirm('确定要删除这个组件吗？')) {
+                            // [V3 修复] 调用修改后的异步函数
                             deleteWidgetFromCell(startIndex);
                         }
                     };
@@ -7482,40 +7486,43 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
             }
             
-            async function handleDragEnd() {
+              async function handleDragEnd() {
                 if (dragTargetCell) {
                     dragTargetCell.classList.remove('drag-over');
                     const cellIndex = parseInt(dragTargetCell.dataset.cellIndex, 10);
                     const newWidget = { id: Date.now(), ...draggedWidgetInfo };
 
-         const onSelectContent = (data) => {
-                        // data is now an object: { content, text?, background? }
+                    // [V3 修复] onSelectContent 现在调用带回调的 saveWidgetConfig
+                    const onSelectContent = (data) => {
                         newWidget.content = data.content;
                         if (data.text) newWidget.text = data.text;
                         if (data.background) newWidget.background = data.background;
                         
-                        saveWidgetConfig(cellIndex, newWidget);
+                        // 传入 closeAnyOpenWindow 作为保存成功后的回调函数
+                        saveWidgetConfig(cellIndex, newWidget, closeAnyOpenWindow);
                     };
 
-                    if (newWidget.type === 'memo' || newWidget.type === 'image' || newWidget.type === 'shortcut') {
+                    if (['memo', 'image', 'shortcut'].includes(newWidget.type)) {
                         const { success } = await ensureMemoryDataIsLoaded();
                         if (success) {
-                            if (newWidget.type === 'memo' || newWidget.type === 'shortcut') {
-                                showContentAndBackgroundPicker(newWidget.type, onSelectContent);
-                            } else { // type === 'image'
+                            if (newWidget.type === 'image') {
                                 showAlbumPicker(photoData => onSelectContent({ content: photoData.path }));
+                            } else {
+                                showContentAndBackgroundPicker(newWidget.type, onSelectContent);
                             }
                         }
                     } else if (newWidget.type === 'html') {
                         showHtmlInputWindow(htmlContent => onSelectContent({ content: htmlContent }));
                     }
-
                 }
+
                 if (ghostEl) ghostEl.remove();
                 ghostEl = null; draggedWidgetInfo = null; dragTargetCell = null;
                 document.removeEventListener('mousemove', handleDragMove);
                 document.removeEventListener('touchmove', handleDragMove);
             }
+
+
 
             async function applyMode(enable) {
                 const homeScreenPage = document.getElementById('homeScreenPage');
@@ -7619,7 +7626,6 @@ const blob = b64toBlob(blobData.content, contentType);
             };
         })();
 
-        // ============ [核心修改点 3: 渲染锁屏组件时应用形状] ============
         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
@@ -7629,7 +7635,6 @@ const blob = b64toBlob(blobData.content, contentType);
             const gap = 15;
             const totalWidth = gridRect.width;
             const totalHeight = gridRect.height;
-
             if (totalWidth <= 0 || totalHeight <= 0) return;
 
             const cellWidth = (totalWidth - (3 * gap)) / 4;
@@ -7640,7 +7645,6 @@ const blob = b64toBlob(blobData.content, contentType);
             Object.keys(widgetsData).forEach(startIndexStr => {
                 const startIndex = parseInt(startIndexStr, 10);
                 const widgetConfig = widgetsData[startIndex]?.[0];
-
                 if (!widgetConfig) return;
 
                 const startRow_0based = Math.floor(startIndex / 4);
@@ -7667,24 +7671,21 @@ const blob = b64toBlob(blobData.content, contentType);
                     widgetEl.classList.add('widget-shape-square');
                 }
 
-                // ============ [新功能实现] 应用背景样式 ============
                 if (widgetConfig.background) {
                     if (widgetConfig.background.startsWith('data:image')) {
                         widgetEl.style.backgroundImage = `url(${widgetConfig.background})`;
                         widgetEl.style.backgroundSize = 'cover';
                         widgetEl.style.backgroundPosition = 'center';
-                        // 针对快捷按钮，如果背景是图片，则隐藏文字
                         if (widgetConfig.type === 'shortcut') {
-                           widgetEl.style.color = 'transparent'; // 隐藏文字
-                           widgetEl.style.textIndent = '9999px'; // 确保文字被移出可视区域
+                           widgetEl.style.color = 'transparent';
+                           widgetEl.style.textIndent = '9999px';
                            widgetEl.style.overflow = 'hidden';
                         }
-                    } else { // 假定是颜色
+                    } else {
                         widgetEl.style.backgroundColor = widgetConfig.background;
-                        widgetEl.style.backgroundImage = 'none'; // 清除可能存在的图片背景
+                        widgetEl.style.backgroundImage = 'none';
                     }
                 }
-                // ===============================================
 
                 switch (widgetConfig.type) {
                     case 'image':
@@ -7704,8 +7705,24 @@ const blob = b64toBlob(blobData.content, contentType);
                             } else {
                                 widgetEl.classList.remove('widget-shape-circle', 'widget-shape-capsule');
                                 widgetEl.classList.add('widget-shape-square');
-                                widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div> <div class="widget-memo-content">${memo.content || '无内容'}</div>`;
-                                Object.assign(widgetEl.style, { flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '12px', textAlign: 'left' });
+                                
+                                const titleEl = document.createElement('div');
+                                titleEl.className = 'widget-memo-title';
+                                titleEl.textContent = memo.title || '无标题';
+                                
+                                const contentEl = document.createElement('div');
+                                contentEl.className = 'widget-memo-content';
+                                contentEl.innerHTML = memo.content || '无内容';
+                                
+                                // [V2 修复] 计算并应用 line-clamp
+                                const heightInUnits = parseInt(rows, 10);
+                                if (heightInUnits > 0) {
+                                    const lineClampValue = 1 + (heightInUnits - 1) * 2;
+                                    contentEl.style.webkitLineClamp = lineClampValue;
+                                    contentEl.style.setProperty('-webkit-line-clamp', lineClampValue); // 确保生效
+                                }
+
+                                widgetEl.append(titleEl, contentEl);
                             }
                             widgetEl.style.cursor = 'pointer';
                             widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
@@ -7743,6 +7760,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 grid.appendChild(componentContainer);
             });
         }
+
 
 
 
