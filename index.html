@@ -2054,13 +2054,15 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     list-style: none;
     padding-left: 0;
 }
-#memoryModal #note-content-editor li {
+/* 通用待办清单样式 (编辑器 & 小组件) */
+#memoryModal #note-content-editor li,
+.widget-memo .widget-memo-content li {
     display: flex;
     align-items: flex-start;
     margin-bottom: 8px;
 }
-/* 自定义待办清单圆点 */
-#memoryModal #note-content-editor li::before {
+#memoryModal #note-content-editor li::before,
+.widget-memo .widget-memo-content li::before {
     content: '○';
     font-size: 1.2em;
     margin-right: 10px;
@@ -2068,16 +2070,19 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     color: #889;
     font-weight: bold;
     display: inline-block;
-    line-height: 1.5; /* 对齐文本 */
+    line-height: 1.5;
 }
-#memoryModal #note-content-editor li.completed::before {
+#memoryModal #note-content-editor li.completed::before,
+.widget-memo .widget-memo-content li.completed::before {
     content: '●';
     color: var(--hold-border);
 }
-#memoryModal #note-content-editor li.completed .todo-text {
+#memoryModal #note-content-editor li.completed .todo-text,
+.widget-memo .widget-memo-content li.completed .todo-text {
     text-decoration: line-through;
     opacity: 0.6;
 }
+
 .memo-toolbar {
     flex-shrink: 0;
     display: flex;
@@ -2125,6 +2130,66 @@ body.dark-mode .memo-toolbar {
     background-color: rgba(128,128,128,0.1);
     padding: 4px 10px;
     border-radius: 6px;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] 备忘录代码块 v1.0 样式 ================ */
+/* =============================================================== */
+.memo-code-block {
+    position: relative;
+    background-color: rgba(128,128,128,0.1);
+    border: 1px solid rgba(128,128,128,0.15);
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 10px 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.9em;
+}
+.code-block-copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.15);
+    color: inherit;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+.memo-code-block:hover .code-block-copy-btn {
+    opacity: 1;
+}
+.code-block-copy-btn:hover {
+    background-color: rgba(0,0,0,0.2);
+}
+body.dark-mode .memo-code-block {
+    background-color: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+}
+body.dark-mode .code-block-copy-btn {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+}
+body.dark-mode .code-block-copy-btn:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] 备忘录工具栏激活状态 ================ */
+/* =============================================================== */
+.toolbar-btn.active {
+    font-weight: 900; /* 使用更粗的字重表示激活 */
+    opacity: 1;
+    transform: scale(1.1);
 }
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
@@ -2618,7 +2683,7 @@ body.dark-mode .memo-toolbar {
                             <button class="toolbar-btn" data-command="italic" title="斜体" style="font-style: italic;">I</button>
                             <button class="toolbar-btn" data-command="underline" title="下划线" style="text-decoration: underline;">U</button>
                             <button class="toolbar-btn strikethrough" data-command="strikeThrough" title="删除线">S</button>
-                            <button class="toolbar-btn toolbar-btn-code-copy" data-command="copyCode" title="复制为纯文本">复制</button>
+                            <button class="toolbar-btn" data-command="createCodeBlock" title="代码块" style="margin-left: auto;">&lt;/&gt;</button>
                         </div>
                     </div>
                 </div>
@@ -5581,6 +5646,152 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                         actions[target.dataset.action](target);
                     }
                 });
+                // [新增] 备忘录富文本编辑器逻辑 v2
+                const editor = document.getElementById('note-content-editor');
+                const toolbar = document.querySelector('.memo-toolbar');
+
+                const updateToolbarState = () => {
+                    const commands = ['bold', 'italic', 'underline', 'strikeThrough'];
+                    commands.forEach(command => {
+                        const button = toolbar.querySelector(`[data-command="${command}"]`);
+                        if (button) {
+                            button.classList.toggle('active', document.queryCommandState(command));
+                        }
+                    });
+                };
+
+                toolbar.addEventListener('click', (e) => {
+                    const button = e.target.closest('.toolbar-btn');
+                    if (!button) return;
+
+                    const command = button.dataset.command;
+                    editor.focus();
+
+                    if (command === 'createCodeBlock') {
+                        const selection = window.getSelection();
+                        if (!selection.rangeCount || selection.isCollapsed) {
+                            showTopToast('请先选择一段文字', 2000);
+                            return;
+                        }
+                        const range = selection.getRangeAt(0);
+                        const selectedText = range.toString();
+                        const codeBlock = document.createElement('div');
+                        codeBlock.className = 'memo-code-block';
+                        const pre = document.createElement('pre');
+                        pre.style.margin = '0';
+                        pre.textContent = selectedText;
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'code-block-copy-btn';
+                        copyBtn.contentEditable = 'false'; // 核心修复点
+                        copyBtn.textContent = '❏';
+                        copyBtn.title = '复制';
+                        codeBlock.appendChild(copyBtn);
+                        codeBlock.appendChild(pre);
+                        range.deleteContents();
+                        const fragment = document.createDocumentFragment();
+                        fragment.appendChild(codeBlock);
+                        fragment.appendChild(document.createTextNode('\u200B'));
+                        range.insertNode(fragment);
+                        range.setStartAfter(codeBlock.nextSibling);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    } else if (command === 'todo') {
+                        document.execCommand('insertUnorderedList', false, null);
+                        setTimeout(() => {
+                            const listItems = editor.querySelectorAll('li');
+                            listItems.forEach(li => {
+                                if (!li.querySelector('.todo-text')) {
+                                    const textNode = document.createTextNode(li.textContent.trim());
+                                    const span = document.createElement('span');
+                                    span.className = 'todo-text';
+                                    span.appendChild(textNode);
+                                    li.innerHTML = '';
+                                    li.appendChild(span);
+                                }
+                            });
+                        }, 50);
+                    } else {
+                        document.execCommand(command, false, null);
+                    }
+                    setTimeout(updateToolbarState, 0); // 延迟更新以获取最新状态
+                });
+
+                editor.addEventListener('keyup', updateToolbarState);
+                editor.addEventListener('mouseup', updateToolbarState);
+                 // 编辑器内部的交互事件（待办清单完成/代码块复制）
+                editor.addEventListener('click', (e) => {
+                    const li = e.target.closest('li');
+                    const copyBtn = e.target.closest('.code-block-copy-btn');
+
+                    if (li) {
+                        li.classList.toggle('completed');
+                    } else if (copyBtn) {
+                        const codeBlock = copyBtn.closest('.memo-code-block');
+                        const textToCopy = codeBlock.querySelector('pre')?.textContent || '';
+                        
+                        // 核心修复点：添加剪贴板 API 兼容性处理
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(textToCopy).then(() => {
+                                const originalText = copyBtn.textContent;
+                                copyBtn.textContent = '✓';
+                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+                            }).catch(err => {
+                                console.error('Copy failed:', err);
+                                showTopToast('复制失败', 2000);
+                            });
+                        } else {
+                            // Fallback for insecure contexts (like file://)
+                            const textArea = document.createElement("textarea");
+                            textArea.value = textToCopy;
+                            textArea.style.position = "fixed";
+                            textArea.style.left = "-9999px";
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                const originalText = copyBtn.textContent;
+                                copyBtn.textContent = '✓';
+                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+                            } catch (err) {
+                                console.error('Fallback copy failed', err);
+                                showTopToast('复制失败', 2000);
+                            }
+                            document.body.removeChild(textArea);
+                        }
+                    }
+                     // 点击编辑器任何地方都更新一下工具栏状态
+                    updateToolbarState();
+                });
+
+
+
+                // 编辑器内部的交互事件（待办清单完成/代码块复制）
+                editor.addEventListener('click', (e) => {
+                    const li = e.target.closest('li');
+                    const copyBtn = e.target.closest('.code-block-copy-btn');
+
+                    if (li) {
+                        li.classList.toggle('completed');
+                    } else if (copyBtn) {
+                        const codeBlock = copyBtn.closest('.memo-code-block');
+                        const textToCopy = codeBlock.querySelector('pre')?.textContent || '';
+                        
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            const originalText = copyBtn.textContent;
+                            copyBtn.textContent = '✓';
+                            setTimeout(() => {
+                                copyBtn.textContent = originalText;
+                            }, 1500);
+                        }).catch(err => {
+                            console.error('Copy failed:', err);
+                            showTopToast('复制失败', 2000);
+                        });
+                    }
+                });
+
+
                 ui.folderModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 ui.photoDetailsModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 ui.photoViewer.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
@@ -6808,37 +7019,48 @@ const blob = b64toBlob(blobData.content, contentType);
 
 
 
-            async function saveWidgetConfig(cellIndex, widgetData) {
+             async function saveWidgetConfig(cellIndex, widgetData) {
                 if (!currentConfig.lockscreenWidgets[cellIndex]) {
                     currentConfig.lockscreenWidgets[cellIndex] = [];
                 }
                 currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); 
                 await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
                 
-                // 立即反馈到真实锁屏和设置模拟器
+                // --- 核心修复点 ---
+                // 确保在数据更新后，立即重新渲染锁屏和设置模拟器
                 renderLockscreenWidgets();
+                
                 const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if (settingsWindow) {
+                if (settingsWindow && settingsWindow.classList.contains('show')) {
                     const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid); // 核心修改：立即重新渲染模拟器
+                    if (grid) {
+                        renderSettingsGrid(grid);
+                    }
                 }
+                // --- 修复结束 ---
                 
                 closeAnyOpenWindow();
             }
 
 
-            async function deleteWidgetFromCell(cellIndex) {
-                delete currentConfig.lockscreenWidgets[cellIndex];
-                await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
-                
-                // 立即反馈到真实锁屏和设置模拟器
-                renderLockscreenWidgets();
-                const settingsWindow = document.getElementById('lockscreen-settings-modal');
-                if (settingsWindow) {
-                    const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid); // 核心修改：立即重新渲染模拟器
+
+                async function deleteWidgetFromCell(cellIndex) {
+                    delete currentConfig.lockscreenWidgets[cellIndex];
+                    await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
+                    
+                    // --- 核心修复点 ---
+                    // 确保在数据更新后，立即重新渲染锁屏和设置模拟器
+                    renderLockscreenWidgets(); 
+                    
+                    const settingsWindow = document.getElementById('lockscreen-settings-modal');
+                    if (settingsWindow && settingsWindow.classList.contains('show')) {
+                        const grid = settingsWindow.querySelector('.settings-grid');
+                        if (grid) {
+                           renderSettingsGrid(grid);
+                        }
+                    }
+                    // --- 修复结束 ---
                 }
-            }
 
 
             function showAlbumPicker(onSelectCallback) {
