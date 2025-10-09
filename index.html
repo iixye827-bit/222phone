@@ -106,11 +106,12 @@
 
 
         .nav-container { 
-            width: 100%; max-width: 1200px; margin: 0 auto; /* [修改] 移除垂直margin，改为水平居中 */
+            width: 100%; max-width: 1200px; margin: 10px auto; /* [核心恢复] 恢复垂直margin，并保持水平居中 */
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 25px; padding: 10px 20px; /* [修改] 调整内边距 */
+            gap: 25px; padding: 20px; /* [核心恢复] 恢复原来的padding */
             position: relative; z-index: 10; touch-action: pan-y; 
         }
+
 
         .nav-btn { position: relative; padding: 22px 16px; border: none; border-radius: 14px; box-shadow: 10px 10px 20px var(--shadow-dark-day), -10px -10px 20px var(--shadow-light-day); background: var(--bg-day-element); backdrop-filter: blur(8px); font-size: 17px; font-weight: 600; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; text-align: center; user-select: none; -webkit-tap-highlight-color: transparent; }
         .nav-btn.hold { border: 2px solid var(--hold-border); transform: scale(1.02); z-index: 5; box-shadow: 8px 8px 16px rgba(174, 190, 212, 0.5), -8px -8px 16px rgba(255, 255, 255, 0.8), 0 0 0 2px rgba(91, 153, 226, 0.3); }
