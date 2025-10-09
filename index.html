@@ -29,17 +29,17 @@
             --shadow-light-night: rgba(40, 52, 79, 0.9); --shadow-dark-night: rgba(0, 0, 0, 0.3);
         }
         body { 
-            height: 100vh; /* 使用vh确保占满屏幕高度 */
+            height: 100vh; /* [修改] 使用vh确保占满屏幕高度 */
             background-color: var(--day-color1);
             background-image: linear-gradient(135deg, var(--day-color1) 0%, var(--day-color2) 100%); 
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            padding: 0; /* [核心修改] 移除所有padding，让子元素可以触及屏幕边缘 */
+            padding: 0 20px; /* [修改] 移除顶部和底部的padding */
             display: flex; flex-direction: column; align-items: center; 
             transition: background 0.5s ease; 
             touch-action: manipulation; 
-            overflow: hidden; /* 禁止body本身滚动 */
+            overflow: hidden; /* [修改] 禁止body本身滚动 */
         }
         body.dark-mode { 
             background-color: var(--night-color1);
@@ -54,15 +54,12 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
         .title-card { 
-            width: 100%; max-width: 800px; padding: 40px 20px; margin: 20px; /* [核心修改] 将左右margin设为20px来替代body的padding */
-            box-sizing: border-box; /* [新增] 确保padding和border包含在width内 */
-            border-radius: 16px; 
+            width: 100%; max-width: 800px; padding: 40px 20px; margin: 20px 0; border-radius: 16px; 
             box-shadow: 12px 12px 24px var(--shadow-dark-day), -12px -12px 24px var(--shadow-light-day); 
             background: var(--bg-day-element); backdrop-filter: blur(8px); text-align: center; 
             transition: all 0.5s ease; background-size: cover; background-position: center;
-            flex-shrink: 0; /* 防止此元素在Flex布局中被压缩 */
+            flex-shrink: 0; /* [新增] 防止此元素在Flex布局中被压缩 */
         }
-
         body.dark-mode .title-card { box-shadow: 12px 12px 24px var(--shadow-dark-night), -12px -12px 24px var(--shadow-light-night); background: var(--bg-night-element); }
         .editable-title, .editable-subtitle { opacity: 0; transition: opacity 0.5s ease; background-color: rgba(255,255,255,0.1); backdrop-filter: blur(4px); } /* FOUC Fix */
         .editable-title { font-size: 36px; font-weight: 700; color: var(--text-day); margin-bottom: 20px; cursor: pointer; padding: 6px 12px; border-radius: 8px; display: block; width: fit-content; margin: 0 auto 20px auto; user-select: none; }
@@ -74,12 +71,9 @@
         
         .category-nav-container { 
             width: 100%; max-width: 1200px; overflow-x: auto; -webkit-overflow-scrolling: touch; 
-            scrollbar-width: none; padding: 10px 20px; /* [核心修改] 增加左右padding */
-            margin-bottom: 10px;
-            box-sizing: border-box; /* [新增] 确保padding和border包含在width内 */
-            flex-shrink: 0; /* 防止此元素在Flex布局中被压缩 */
+            scrollbar-width: none; padding: 10px 0; margin-bottom: 10px;
+            flex-shrink: 0; /* [新增] 防止此元素在Flex布局中被压缩 */
         }
-
         .category-nav-container::-webkit-scrollbar { display: none; }
         .category-nav { display: flex; flex-wrap: nowrap; gap: 12px; padding: 0 20px; }
         .category-pill { flex-shrink: 0; padding: 8px 18px; border: none; border-radius: 20px; background: var(--bg-day-element); box-shadow: none; color: var(--text-day); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; opacity: 0.6; }
@@ -90,16 +84,17 @@
         body.dark-mode.theme-glass .category-pill.active { color: #fff; background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
 
         /* ===== [新增] 包裹和滚动容器的样式 (V2 - 无感边界) ===== */
-        .scrollable-nav-wrapper {
-            width: 100%;
-            flex-grow: 1; /* 让此容器占据所有剩余的垂直空间 */
-            overflow-y: auto; /* 当内容超出时，只在此容器内显示垂直滚动条 */
-            min-height: 0; /* Flex布局中的重要技巧，防止内容撑开容器 */
-            padding-bottom: 30px; /* 保留底部空间，避免按钮紧贴屏幕边缘 */
-            /* [核心修改] 使用遮罩创建无感的渐变分界线 */
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15px);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15px);
-        }
+.scrollable-nav-wrapper {
+    width: 100%;
+    flex-grow: 1; /* 让此容器占据所有剩余的垂直空间 */
+    overflow-y: auto; /* 当内容超出时，只在此容器内显示垂直滚动条 */
+    min-height: 0; /* Flex布局中的重要技巧，防止内容撑开容器 */
+    padding-bottom: 30px; /* 保留底部空间，避免按钮紧贴屏幕边缘 */
+    /* [核心修改] 使用遮罩创建无感的渐变分界线 - (已按要求移除) */
+    /* -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15px); */
+    /* mask-image: linear-gradient(to bottom, transparent 0%, black 15px); */
+}
+
         /* 美化滚动条 (可选，但推荐) */
         .scrollable-nav-wrapper::-webkit-scrollbar {
             width: 5px;
@@ -338,14 +333,7 @@
         #fileListStatus { flex-grow: 1; text-align: center; color: #a0aec0; display: flex; align-items: center; justify-content: center; min-height: 50px; } body.dark-mode #fileListStatus { color:#889; }
         .file-info { flex-grow: 1; cursor: pointer; min-width: 0; }
         .file-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 16px; }
-                .file-meta { 
-            font-size: 12px; 
-            font-weight: 300; 
-            color: #9A86A4; 
-            flex-shrink: 0; /* [新增] 防止此元素在flex布局中被过度压缩 */
-            margin-left: 10px; /* [新增] 与文件名保持一点间距 */
-            white-space: nowrap; /* [新增] 确保大小和日期不换行 */
-        }
+        .file-meta { font-size: 12px; font-weight: 300; color: #9A86A4; }
         .delete-btn { background:transparent; border:none; cursor:pointer; padding:0; flex-shrink:0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background .2s,color .2s; color:#bbb; font-size:22px; font-weight:bold; line-height:1; }
         .delete-btn:hover { background:#f0f0f0; color:#e53e3e; } body.dark-mode .delete-btn { color:#889; } body.dark-mode .delete-btn:hover { background:rgba(255,255,255,0.1); color:#fc8181; }
 
@@ -1040,20 +1028,11 @@ body.mobile-mode .home-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    /* overflow 属性已被移除，将在下方单独设置 */
-    padding: 4vh 30px; 
+    overflow: hidden; /* [修复] 禁止页面滚动 */
+    padding: 4vh 30px; /* [核心修改] 增加垂直和水平内边距，压缩内容区 */
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* [核心修复] 单独为两个页面设置滚动行为 */
-body.mobile-mode .lock-screen-page {
-    overflow: hidden; /* 保持锁屏页面禁止滚动 */
-}
-body.mobile-mode .home-screen-page {
-    overflow-y: auto; /* 仅允许主屏幕页面在内容超出时垂直滚动 */
-    overflow-x: hidden; /* 禁止水平滚动，以防干扰滑动切换 */
 }
 
 
@@ -5604,86 +5583,50 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
             fetchFilesFromGithubProject(projectHref);
         }
 
-                // [新增] 辅助函数：格式化文件大小
-                function formatFileSize(bytes) {
-                    if (bytes === 0) return '0 B';
-                    if (!bytes) return '...'; // 处理 undefined 或 null 的情况
-
-                    const k = 1024;
-                    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    
-                    // 使用 toFixed(1) 来保留一位小数
-                    const size = parseFloat((bytes / Math.pow(k, i)).toFixed(1));
-                    return `${size} ${sizes[i]}`;
-                }
-
-                // [新增] 辅助函数：通过GitHub API获取文件的最后提交日期
-                async function getFileCommitDate(filePath) {
-                    const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${encodeURIComponent(filePath)}&page=1&per_page=1`;
-                    try {
-                        const response = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
-                        if (!response.ok) return '日期未知';
-                        const commits = await response.json();
-                        if (commits && commits.length > 0) {
-                            const date = new Date(commits[0].commit.committer.date);
-                            // 格式化为 年-月-日
-                            return date.toISOString().split('T')[0];
-                        }
-                        return '日期未知';
-                    } catch (error) {
-                        console.error(`Error fetching commit date for ${filePath}:`, error);
-                        return '日期未知';
-                    }
-                }
-
                 async function fetchFilesFromGithubProject(projectHref) {
-                    const projectConfig = findButtonConfigByHref(projectHref);
+            const projectConfig = findButtonConfigByHref(projectHref);
 
-                    if (!projectConfig) {
-                        ui.fileListStatus.textContent = "请选择一个项目以查看文件";
-                        return;
-                    }
+            // 如果没有有效的项目被选中（例如，下拉框是提示信息时），则直接显示提示
+            if (!projectConfig) {
+                ui.fileListStatus.textContent = "请选择一个项目以查看文件";
+                return;
+            }
 
-                    const projectName = projectConfig.text;
-                    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `project-${Date.now()}`;
-                    const projectPath = `jellyfish_drive/${folderName}`;
-                    ui.fileListStatus.textContent = "加载中...";
-                    
-                    const { data: files, error } = await fetchFromGithub(projectPath);
-                    if (error) { 
-                        ui.fileListStatus.textContent = `加载失败: ${error}`; 
-                        return; 
-                    }
+            // 新逻辑：根据项目名称生成对应的安全文件夹路径
+            const projectName = projectConfig.text;
+            const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `project-${Date.now()}`;
+            
+            // 新逻辑：只从 'jellyfish_drive' 中读取数据
+            const projectPath = `jellyfish_drive/${folderName}`;
+            ui.fileListStatus.textContent = "加载中...";
+            
+            // fetchFromGithub 能优雅地处理 404 (文件夹不存在) 的情况
+            const { data: files, error } = await fetchFromGithub(projectPath);
+            if (error) { 
+                ui.fileListStatus.textContent = `加载失败: ${error}`; 
+                return; 
+            }
 
-                    if (!files || files.length === 0) {
-                        ui.fileListStatus.textContent = "该项目下暂无文件";
-                        return;
-                    }
+            // 如果 files 为 null (文件夹不存在) 或为空数组，都视为没有文件
+            if (!files || files.length === 0) {
+                ui.fileListStatus.textContent = "该项目下暂无文件";
+                return;
+            }
 
-                    ui.fileListStatus.style.display = "none";
-                    
-                    // [核心修改] 使用 for...of 循环来正确处理异步操作
-                    for (const file of files) {
-                        const li = document.createElement("li");
-                        
-                        // 1. 格式化文件大小
-                        const sizeText = formatFileSize(file.size); 
-                        
-                        // 2. 异步获取日期
-                        const dateText = await getFileCommitDate(file.path);
+            ui.fileListStatus.style.display = "none";
+            files.forEach(async (file) => {
+                const li = document.createElement("li");
+                const sizeText = file.size ? `${(file.size / 1024).toFixed(1)} KB` : '...';
+                li.innerHTML = `<div class="file-info"><span class="file-name">${file.name}</span><span class="file-meta" data-path="${file.path}">${sizeText}</span></div><button class="delete-btn" data-sha="${file.sha}">&times;</button>`;
 
-                        // 3. 构建新的元信息字符串
-                        const metaText = `${sizeText} • ${dateText}`;
-
-                        li.innerHTML = `<div class="file-info"><span class="file-name">${file.name}</span><span class="file-meta" data-path="${file.path}">${metaText}</span></div><button class="delete-btn" data-sha="${file.sha}">&times;</button>`;
-                        ui.fileList.appendChild(li);
-                        
-                        li.querySelector(".file-info").addEventListener("click", () => forceDownload(file.path, file.name, li));
-                        li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file.path, file.sha, li));
-                    }
-                }
-
+                ui.fileList.appendChild(li);
+                
+                if (!file.size) { getLatestCommitDate(file.path).then(date => { const metaSpan = li.querySelector('.file-meta'); if (metaSpan) metaSpan.textContent = date.split('T')[0]; }); }
+                
+                li.querySelector(".file-info").addEventListener("click", () => forceDownload(file.path, file.name, li));
+                li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file.path, file.sha, li));
+            });
+        }
 
         async function getLatestCommitDate(e){const t=`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${encodeURIComponent(e)}&page=1&per_page=1`;try{const n=await fetch(t,{headers:{"Authorization":`token ${GITHUB_CONFIG.token}`},cache:"no-cache"});if(!n.ok)return(new Date(0)).toISOString().split('T')[0];const o=await n.json();return o[0]?.commit.committer.date.split('T')[0]||(new Date(0)).toISOString().split('T')[0]}catch(n){return console.error(`Error fetching commit date for ${e}:`,n),(new Date(0)).toISOString().split('T')[0]}}async function deleteFile(e,t,n){
     const originalFileName = n.querySelector(".file-name").textContent;
