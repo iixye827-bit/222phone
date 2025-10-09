@@ -4694,15 +4694,16 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
         if (!localStorage.getItem('swipeHintShown')) { swipeHint.classList.add('show'); setTimeout(() => { swipeHint.classList.remove('show'); localStorage.setItem('swipeHintShown', 'true'); }, 4000); } 
         iframeEl.src = url; 
         iframeModal.classList.add('active'); 
-        FloatingBallManager.create();
+        // FloatingBallManager.create(); // <-- 核心修改：移除此行
     }
-    function closeIframeModal() { 
+
+     function closeIframeModal() { 
         FloatingProjectWindowManager.closeAll();
-        FloatingBallManager.destroy();
+        // FloatingBallManager.destroy(); // <-- 核心修改：移除此行
         hideReturnConfirmation(); 
         iframeModal.classList.remove('active'); 
-        // setTimeout(() => { iframeEl.src = 'about:blank'; }, 400); // <-- 已注释掉
     }
+
     function showReturnConfirmation() { returnConfirmationToast.classList.add('show'); }
     function hideReturnConfirmation() { returnConfirmationToast.classList.remove('show'); }
     document.getElementById('confirmReturnBtn').addEventListener('click', closeIframeModal);
@@ -6487,7 +6488,7 @@ const blob = b64toBlob(blobData.content, contentType);
         }
     }
 
-    window.addEventListener('load', async () => {
+ window.addEventListener('load', async () => {
         initTheme(); 
         loadGithubConfig();
         checkAppUpdate();
@@ -6495,12 +6496,17 @@ const blob = b64toBlob(blobData.content, contentType);
         setupModals();
         MemoryApp.init();
         WanderView.init();
-        FloatingBallManager.init();
+        // FloatingBallManager.init(); // <-- 核心修改：从这里移除
         setupBgImageManager();
         setupColorSync(colorModal.pickerD1, colorModal.hexD1, 'dayColor1'); 
         setupColorSync(colorModal.pickerD2, colorModal.hexD2, 'dayColor2');
         setupColorSync(colorModal.pickerN1, colorModal.hexN1, 'nightColor1'); 
         setupColorSync(colorModal.pickerN2, colorModal.hexN2, 'nightColor2');
+        // [核心新增] 将悬浮球初始化移至最后，并增加常驻逻辑
+        FloatingBallManager.init();
+        if (currentConfig.settings.jellyBall && currentConfig.settings.jellyBall.enabled) {
+            FloatingBallManager.create();
+        }
  function showIosWarning() {
             // 检查是否为 iOS 设备 (iPhone, iPad, iPod)
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
