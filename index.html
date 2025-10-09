@@ -1937,6 +1937,87 @@ body.dark-mode .simulated-phone-screen {
     width: 100%;
     height: 100%;
 }
+/* =============================================================== */
+/* ============= [新增] 锁屏组件背景选择器样式 ============= */
+/* =============================================================== */
+.widget-bg-picker-popup {
+    position: absolute; /* 相对于父级容器定位 */
+    z-index: 1; /* 确保在同一个容器内，但在其他内容之上 */
+    background: var(--bg-day-element);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    width: 220px; /* 固定宽度，保持紧凑 */
+    margin-top: 8px; /* 与上方面板的间距 */
+}
+.widget-bg-picker-popup.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+body.dark-mode .widget-bg-picker-popup {
+    background: var(--bg-night-element);
+}
+body.theme-glass .widget-bg-picker-popup {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+body.theme-glass.dark-mode .widget-bg-picker-popup {
+    background: rgba(30, 30, 30, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.widget-bg-picker-popup input[type="color"] {
+    -webkit-appearance: none;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: transparent; /* 移除默认背景，让伪元素生效 */
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.widget-bg-picker-popup input[type="color"]::-webkit-color-swatch {
+    border-radius: 6px;
+    border: 1px solid rgba(128,128,128,0.2);
+}
+
+.widget-bg-picker-popup .bg-picker-button {
+    flex-grow: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: inherit;
+    cursor: pointer;
+    background-color: rgba(0,0,0,0.05);
+    transition: background-color 0.2s;
+}
+
+.widget-bg-picker-popup .bg-picker-button:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+body.dark-mode .widget-bg-picker-popup .bg-picker-button {
+    background-color: rgba(255,255,255,0.08);
+}
+body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
+    background-color: rgba(255,255,255,0.15);
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
@@ -6441,24 +6522,84 @@ const blob = b64toBlob(blobData.content, contentType);
                 createPickerWindow('选择一个备忘录', list);
             }
 
-             function showShortcutPicker(onSelect) {
-                const list = document.createElement('div');
-                list.className = 'picker-list';
-                const allButtons = currentConfig.categories.flatMap(c => c.buttons);
-                if (allButtons.length === 0) list.textContent = '没有已添加的项目。';
-                else {
-                    const uniqueButtons = Array.from(new Map(allButtons.map(item => [item.href, item])).values());
-                    uniqueButtons.forEach(btn => {
-                        const itemEl = document.createElement('div');
-                        itemEl.className = 'picker-item';
-                        itemEl.textContent = btn.text;
-                        itemEl.onclick = () => onSelect({ content: btn.href, text: btn.text });
-                        list.appendChild(itemEl);
-                    });
-                }
-                createPickerWindow('选择一个快捷方式', list);
-            }
+           function showContentAndBackgroundPicker(type, onSelect) {
+                let listContent;
+                let pickerTitle = '';
+                let tempSelectedBg = null;
 
+                if (type === 'shortcut') {
+                    pickerTitle = '选择一个快捷方式';
+                    listContent = document.createElement('div');
+                    listContent.className = 'picker-list';
+                    const allButtons = currentConfig.categories.flatMap(c => c.buttons);
+                    if (allButtons.length === 0) {
+                        listContent.textContent = '没有已添加的项目。';
+                    } else {
+                        const uniqueButtons = Array.from(new Map(allButtons.map(item => [item.href, item])).values());
+                        uniqueButtons.forEach(btn => {
+                            const itemEl = document.createElement('div');
+                            itemEl.className = 'picker-item';
+                            itemEl.textContent = btn.text;
+                            itemEl.onclick = () => onSelect({ content: btn.href, text: btn.text, background: tempSelectedBg });
+                            listContent.appendChild(itemEl);
+                        });
+                    }
+                } else if (type === 'memo') {
+                    pickerTitle = '选择一个备忘录';
+                    listContent = document.createElement('div');
+                    listContent.className = 'picker-list';
+                    if (!memoryCache.memo.notes || memoryCache.memo.notes.length === 0) {
+                        listContent.textContent = '没有备忘录。';
+                    } else {
+                        memoryCache.memo.notes.forEach(note => {
+                            const itemEl = document.createElement('div');
+                            itemEl.className = 'picker-item';
+                            itemEl.textContent = note.title || '无标题';
+                            itemEl.onclick = () => onSelect({ content: note.id, background: tempSelectedBg });
+                            listContent.appendChild(itemEl);
+                        });
+                    }
+                }
+
+                const pickerContainer = createPickerWindow(pickerTitle, listContent);
+                const pickerWindow = pickerContainer.querySelector('.floating-project-window');
+
+                // 创建并附加背景选择器
+                const bgPicker = document.createElement('div');
+                bgPicker.className = 'widget-bg-picker-popup';
+                bgPicker.innerHTML = `
+                    <input type="color" id="widgetBgColorPicker" value="#ffffff">
+                    <button class="bg-picker-button">导入图片</button>
+                    <input type="file" accept="image/*" style="display:none;">
+                `;
+                pickerWindow.querySelector('.fpw-content').appendChild(bgPicker);
+                
+                const colorInput = bgPicker.querySelector('input[type="color"]');
+                const fileInput = bgPicker.querySelector('input[type="file"]');
+                const fileButton = bgPicker.querySelector('.bg-picker-button');
+
+                // 事件监听
+                colorInput.addEventListener('input', () => {
+                    tempSelectedBg = colorInput.value;
+                });
+                
+                fileButton.addEventListener('click', () => fileInput.click());
+
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            tempSelectedBg = event.target.result; // base64 string
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+
+                // 显示背景选择器
+                setTimeout(() => bgPicker.classList.add('show'), 50);
+            }
+            
             function showHtmlInputWindow(onSave) {
                 const contentWrapper = document.createElement('div');
                 contentWrapper.style.display = 'flex';
@@ -6483,22 +6624,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 createPickerWindow('输入HTML内容', contentWrapper);
             }
 
-
-            function showMemoPicker(onSelect) {
-                const list = document.createElement('div');
-                list.className = 'picker-list';
-                if (!memoryCache.memo.notes || memoryCache.memo.notes.length === 0) list.textContent = '没有备忘录。';
-                else {
-                    memoryCache.memo.notes.forEach(note => {
-                        const itemEl = document.createElement('div');
-                        itemEl.className = 'picker-item';
-                        itemEl.textContent = note.title || '无标题';
-                        itemEl.onclick = () => onSelect(note.id);
-                        list.appendChild(itemEl);
-                    });
-                }
-                createPickerWindow('选择一个备忘录', list);
-            }
 
 
             async function saveWidgetConfig(cellIndex, widgetData) {
@@ -6964,30 +7089,28 @@ const blob = b64toBlob(blobData.content, contentType);
                     const cellIndex = parseInt(dragTargetCell.dataset.cellIndex, 10);
                     const newWidget = { id: Date.now(), ...draggedWidgetInfo };
 
-                    const onSelectContent = (data) => {
-                        if (typeof data === 'object' && data !== null) {
-                            newWidget.content = data.content; 
-                            newWidget.text = data.text;
-                        } else {
-                            newWidget.content = data;
-                        }
+         const onSelectContent = (data) => {
+                        // data is now an object: { content, text?, background? }
+                        newWidget.content = data.content;
+                        if (data.text) newWidget.text = data.text;
+                        if (data.background) newWidget.background = data.background;
+                        
                         saveWidgetConfig(cellIndex, newWidget);
                     };
 
-                    if (newWidget.type === 'memo' || newWidget.type === 'image') {
+                    if (newWidget.type === 'memo' || newWidget.type === 'image' || newWidget.type === 'shortcut') {
                         const { success } = await ensureMemoryDataIsLoaded();
                         if (success) {
-                            if (newWidget.type === 'memo') {
-                                showMemoPicker(onSelectContent);
-                            } else {
-                                showAlbumPicker(photoData => onSelectContent(photoData.path));
+                            if (newWidget.type === 'memo' || newWidget.type === 'shortcut') {
+                                showContentAndBackgroundPicker(newWidget.type, onSelectContent);
+                            } else { // type === 'image'
+                                showAlbumPicker(photoData => onSelectContent({ content: photoData.path }));
                             }
                         }
-                    } else if (newWidget.type === 'shortcut') {
-                        showShortcutPicker(onSelectContent);
                     } else if (newWidget.type === 'html') {
-                        showHtmlInputWindow(onSelectContent);
+                        showHtmlInputWindow(htmlContent => onSelectContent({ content: htmlContent }));
                     }
+
                 }
                 if (ghostEl) ghostEl.remove();
                 ghostEl = null; draggedWidgetInfo = null; dragTargetCell = null;
@@ -7103,15 +7226,13 @@ const blob = b64toBlob(blobData.content, contentType);
             if (!grid) return;
             grid.innerHTML = '';
 
-            // 1. 获取网格容器的精确尺寸和间距
             const gridRect = grid.getBoundingClientRect();
-            const gap = 15; // [核心修改] 将间距从 12px 增加到 15px
+            const gap = 15;
             const totalWidth = gridRect.width;
             const totalHeight = gridRect.height;
 
             if (totalWidth <= 0 || totalHeight <= 0) return;
 
-            // 2. 计算单个网格单元的精确像素尺寸
             const cellWidth = (totalWidth - (3 * gap)) / 4;
             const cellHeight = (totalHeight - (7 * gap)) / 8;
 
@@ -7123,82 +7244,69 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 if (!widgetConfig) return;
 
-                // 3. 计算组件的起始行列（0-indexed）
                 const startRow_0based = Math.floor(startIndex / 4);
                 const startCol_0based = startIndex % 4;
                 const [cols, rows] = widgetConfig.size.split('x').map(Number);
                 
-                // 4. 计算组件的绝对位置 (top, left) 和尺寸 (width, height)
                 const top = startRow_0based * (cellHeight + gap);
                 const left = startCol_0based * (cellWidth + gap);
                 const width = (cols * cellWidth) + ((cols - 1) * gap);
                 const height = (rows * cellHeight) + ((rows - 1) * gap);
 
-                // 5. 创建容器并应用绝对定位样式
                 const componentContainer = document.createElement('div');
                 componentContainer.style.position = 'absolute';
-                Object.assign(componentContainer.style, {
-                    top: `${top}px`,
-                    left: `${left}px`,
-                    width: `${width}px`,
-                    height: `${height}px`
-                });
+                Object.assign(componentContainer.style, { top: `${top}px`, left: `${left}px`, width: `${width}px`, height: `${height}px` });
 
-                if (widgetConfig.type === 'html') {
-                    componentContainer.classList.add('html-widget-container');
-                }
+                if (widgetConfig.type === 'html') componentContainer.classList.add('html-widget-container');
                 
                 const widgetEl = document.createElement('div');
                 widgetEl.className = 'widget';
 
-                // [核心修改] 根据小组件的宽高比, 决定是圆形还是胶囊形
                 if (widgetConfig.shape === 'circle') {
-                    const [cols, rows] = widgetConfig.size.split('x').map(Number);
-                    if (cols === rows) {
-                        widgetEl.classList.add('widget-shape-circle'); // 正方形 -> 正圆形
-                    } else {
-                        widgetEl.classList.add('widget-shape-capsule'); // 长方形 -> 胶囊形
-                    }
+                    widgetEl.classList.add(cols === rows ? 'widget-shape-circle' : 'widget-shape-capsule');
                 } else {
                     widgetEl.classList.add('widget-shape-square');
                 }
 
+                // ============ [新功能实现] 应用背景样式 ============
+                if (widgetConfig.background) {
+                    if (widgetConfig.background.startsWith('data:image')) {
+                        widgetEl.style.backgroundImage = `url(${widgetConfig.background})`;
+                        widgetEl.style.backgroundSize = 'cover';
+                        widgetEl.style.backgroundPosition = 'center';
+                        // 针对快捷按钮，如果背景是图片，则隐藏文字
+                        if (widgetConfig.type === 'shortcut') {
+                           widgetEl.style.color = 'transparent'; // 隐藏文字
+                           widgetEl.style.textIndent = '9999px'; // 确保文字被移出可视区域
+                           widgetEl.style.overflow = 'hidden';
+                        }
+                    } else { // 假定是颜色
+                        widgetEl.style.backgroundColor = widgetConfig.background;
+                        widgetEl.style.backgroundImage = 'none'; // 清除可能存在的图片背景
+                    }
+                }
+                // ===============================================
 
                 switch (widgetConfig.type) {
                     case 'image':
                         widgetEl.classList.add('widget-image');
                         const img = document.createElement('img');
                         img.alt = 'Image Widget';
-                        getSecureFileUrl(widgetConfig.content).then(url => {
-                            if (url) img.src = url;
-                        });
+                        getSecureFileUrl(widgetConfig.content).then(url => { if (url) img.src = url; });
                         widgetEl.appendChild(img);
                         break;
                     case 'memo':
                         const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
                         widgetEl.classList.add('widget-memo');
-
                         if (memo) {
                             if (widgetConfig.size === '1x1') {
-                                // 1x1 尺寸：只显示居中的图标，可以正常应用圆形/方形样式
                                 widgetEl.innerHTML = '&#9993;';
                                 widgetEl.style.fontSize = '2em';
                             } else {
-                                // [核心修复] 大于1x1时，强制使用方形以获得最佳内容显示效果
                                 widgetEl.classList.remove('widget-shape-circle', 'widget-shape-capsule');
                                 widgetEl.classList.add('widget-shape-square');
-
-                                // 大于 1x1 的尺寸：显示标题和内容
-                                widgetEl.innerHTML = `
-                                    <div class="widget-memo-title">${memo.title || '无标题'}</div>
-                                    <div class="widget-memo-content">${memo.content || '无内容'}</div>
-                                `;
-                                // 调整 flex 布局以支持垂直排列
-                                widgetEl.style.flexDirection = 'column';
-                                widgetEl.style.alignItems = 'flex-start';
-                                widgetEl.style.justifyContent = 'flex-start';
-                                widgetEl.style.padding = '12px';
-                                widgetEl.style.textAlign = 'left';
+                                widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div> <div class="widget-memo-content">${memo.content || '无内容'}</div>`;
+                                Object.assign(widgetEl.style, { flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '12px', textAlign: 'left' });
                             }
                             widgetEl.style.cursor = 'pointer';
                             widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
@@ -7206,8 +7314,6 @@ const blob = b64toBlob(blobData.content, contentType);
                             widgetEl.textContent = '备忘录未找到';
                         }
                         break;
-
-
                     case 'shortcut':
                         const buttonConfig = findButtonConfigByHref(widgetConfig.content);
                         widgetEl.classList.add('widget-shortcut');
@@ -7215,16 +7321,17 @@ const blob = b64toBlob(blobData.content, contentType);
                         widgetEl.dataset.href = widgetConfig.content;
                         widgetEl.addEventListener('click', function (e) {
                             e.stopPropagation();
-                            if (buttonConfig && buttonConfig.openExternally) {
-                                window.open(this.dataset.href, '_blank', 'noopener,noreferrer');
+                            const href = this.dataset.href;
+                            const config = findButtonConfigByHref(href);
+                            if (config && config.openExternally) {
+                                window.open(href, '_blank', 'noopener,noreferrer');
                             } else {
-                                openIframeModal(this.dataset.href);
+                                openIframeModal(href);
                             }
                         });
                         break;
                     case 'html':
-                        widgetEl.style.padding = '0';
-                        widgetEl.style.overflow = 'hidden';
+                        Object.assign(widgetEl.style, { padding: '0', overflow: 'hidden' });
                         const iframe = document.createElement('iframe');
                         iframe.className = 'widget-html-iframe';
                         iframe.srcdoc = widgetConfig.content || '<p style="color: inherit; opacity: 0.6;">未提供HTML内容</p>';
@@ -7237,7 +7344,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 grid.appendChild(componentContainer);
             });
         }
-
 
 
 
