@@ -962,7 +962,7 @@ body.dragging-active {
 /* =============================================================== */
 
 /* =============================================================== */
-/* ============== [修正] 手机模式专属样式 V4 (滚动修复) ========= */
+/* ============== [修正] 手机模式专属样式 V3 ================= */
 /* =============================================================== */
 
 /* 默认状态下，滑动容器是完全不存在的 */
@@ -991,7 +991,7 @@ body.mobile-mode .main-wrapper {
 /* 3. 原始的主页元素在手机模式下需要被隐藏，以避免冲突 */
 body.mobile-mode > .title-card,
 body.mobile-mode > .category-nav-container,
-body.mobile-mode > .scrollable-nav-wrapper { /* [修改] 目标改为新的滚动包裹容器 */
+body.mobile-mode > .nav-container {
     display: none !important;
 }
 
@@ -1007,7 +1007,7 @@ body.mobile-mode .page-slider.show-home-screen {
     transform: translateX(-50%); /* 滑动到主屏幕 */
 }
 
-/* 默认隐藏右下角按钮，并添加过渡动画 */
+/* [修改] 默认隐藏右下角按钮，并添加过渡动画 */
 body.mobile-mode .fab-container {
     opacity: 0;
     transform: scale(0.8);
@@ -1015,61 +1015,47 @@ body.mobile-mode .fab-container {
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* 当 body 具有 .mobile-home-screen-active 类时，显示按钮 */
+/* [修改] 当 body 具有 .mobile-home-screen-active 类时，显示按钮 */
 body.mobile-mode.mobile-home-screen-active .fab-container {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
 }
 
-body.mobile-mode .lock-screen-page {
-    width: 50%;
-    height: 100%;
-    flex-shrink: 0;
-    overflow: hidden;
-    padding: 2vh 30px; /* 调整padding */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* [核心修改] home-screen-page 的样式调整 */
+body.mobile-mode .lock-screen-page,
 body.mobile-mode .home-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    overflow: hidden; /* 页面本身不滚动 */
-    padding: 2vh 0 0 0; /* 只保留顶部padding，移除左右和底部 */
+    overflow: hidden; /* 确保页面本身不滚动 */
+    padding: 4vh 30px; /* 保留内边距 */
     display: flex;
     flex-direction: column;
-    align-items: center;
-}
-/* 主屏幕内的标题卡和分类栏需要左右padding */
-.home-screen-page > .title-card,
-.home-screen-page > .category-nav-container {
-    padding-left: 20px;
-    padding-right: 20px;
+    /* align-items: center;  <-- [核心修改] 移除此行 */
 }
 
-
+.lock-screen-page {
+    padding-top: 2vh;
+    padding-bottom: 2vh;
+    overflow: hidden; /* 确保页面本身不滚动 */
+}
 .lockscreen-grid {
     width: 100%;
     max-width: 500px;
     flex-grow: 1;
-    position: relative;
+    position: relative; /* [核心修改] 改为相对定位，作为绝对定位组件的容器 */
     min-height: 0;
-    --widget-gap: 15px;
+    --widget-gap: 15px; /* [新增] 定义间距变量 */
 }
 
 
-/* 主屏幕内元素的过渡动画 */
+
 .home-screen-page .title-card,
 .home-screen-page .category-nav-container,
-.home-screen-page .scrollable-nav-wrapper { /* [修改] 目标改为新的滚动包裹容器 */
+.home-screen-page .nav-container {
     transition: transform 0.4s ease-out, opacity 0.3s ease-out;
 }
 
-/* 主屏幕未显示时元素的隐藏状态 */
 body.mobile-mode .page-slider:not(.show-home-screen) .home-screen-page > * {
     transform: translateX(100px);
     opacity: 0;
@@ -1077,7 +1063,6 @@ body.mobile-mode .page-slider:not(.show-home-screen) .home-screen-page > * {
 /* =============================================================== */
 /* ========================= [修正结束] ========================== */
 /* =============================================================== */
-
 
 /* =============================================================== */
 /* ============= [重构] 锁屏组件及设置相关样式 V2 ============ */
@@ -7733,14 +7718,7 @@ const blob = b64toBlob(blobData.content, contentType);
             async function applyMode(enable) {
                 const homeScreenPage = document.getElementById('homeScreenPage');
                 const mainWrapper = document.getElementById('mainWrapper');
-                // [核心修改] 将移动目标从 navContainer 改为它的父级滚动包裹层 scrollable-nav-wrapper
-                const elementsToMove = [
-                    document.getElementById('pageOverlay'), 
-                    document.getElementById('titleCard'), 
-                    document.getElementById('categoryNavContainer'), 
-                    document.querySelector('.scrollable-nav-wrapper') // 改动点
-                ].filter(Boolean);
-
+                const elementsToMove = [document.getElementById('pageOverlay'), document.getElementById('titleCard'), document.getElementById('categoryNavContainer'), document.getElementById('navContainer')].filter(Boolean);
                 isEnabled = enable;
                 document.body.classList.toggle('mobile-mode', enable);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
@@ -7759,7 +7737,6 @@ const blob = b64toBlob(blobData.content, contentType);
                     renderLockscreenWidgets();
                     attachSwipeListeners();
                 } else {
-                     // [核心修改] 将元素移回 body 时，要插在 mainWrapper 的前面
                     elementsToMove.forEach(el => document.body.insertBefore(el, mainWrapper));
                     detachSwipeListeners();
                     ui.slider.style.transition = 'none';
@@ -7772,7 +7749,6 @@ const blob = b64toBlob(blobData.content, contentType);
                 currentConfig.settings.mobileMode.enabled = enable;
                 saveGlobalConfig('Toggle mobile mode');
             }
-
 
 
             function handleTouchStart(e) {
@@ -7788,8 +7764,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (!isSwiping || !isEnabled) return;
                 e.preventDefault();
                 const diffX = e.touches[0].clientX - startX;
-                // [优化] 使用单个页面的实际宽度作为限制，更精确
-                const pageWidth = document.getElementById('lockScreenPage').offsetWidth;
+                const pageWidth = ui.slider.offsetWidth / 2;
                 const limitedTranslate = Math.max(-pageWidth, Math.min(0, currentTranslate + diffX));
                 ui.slider.style.transform = `translateX(${limitedTranslate}px)`;
             }
@@ -7798,8 +7773,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (!isSwiping || !isEnabled) return;
                 isSwiping = false;
                 const diffX = e.changedTouches[0].clientX - startX;
-                 // [优化] 阈值也基于页面宽度，而不是整个屏幕宽度
-                const threshold = document.getElementById('lockScreenPage').offsetWidth / 4;
+                const threshold = window.innerWidth / 4;
                 if (Math.abs(diffX) > threshold) {
                     if (diffX < 0 && currentPage === 0) currentPage = 1; else if (diffX > 0 && currentPage === 1) currentPage = 0;
                 }
