@@ -2018,41 +2018,51 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+/* =============================================================== */
+/* =================== [V2 BUG修复] 弹窗层级修正 =================== */
+/* =============================================================== */
+#jelly-css-help-modal.modal-overlay {
+    z-index: 1003; /* 确保高于悬浮球设置弹窗(1002) */
+}
+/* =============================================================== */
+/* ========================= [修复结束] ========================== */
+/* =============================================================== */
 
     </style>
 
     <style id="custom-jelly-ball-styles"></style>
 </head>
 <body>
-    <!-- [新增] 手机模式滑动容器 -->
+    <!-- 手机模式滑动容器 -->
     <div class="main-wrapper" id="mainWrapper">
         <div class="page-slider" id="pageSlider">
-                        <!-- [新增] 锁屏页面 -->
+            <!-- 锁屏页面 -->
             <div class="lock-screen-page" id="lockScreenPage">
-                <!-- [修改] 添加8格布局容器 -->
                 <div class="lockscreen-grid" id="lockscreenGrid">
-                    <!-- 这个容器现在将由 JavaScript 动态填充 -->
+                    <!-- JS 动态填充 -->
                 </div>
             </div>
-            <!-- [新增] 主屏幕页面 (包裹原有内容) -->
+            <!-- 主屏幕页面 (JS会将下面的内容移入此div) -->
             <div class="home-screen-page" id="homeScreenPage">
-                <div class="page-overlay" id="pageOverlay"></div>
-                <div class="title-card" id="titleCard">
-                    <h1 class="editable-title" id="title">JellyfishCenter</h1>
-                    <div class="editable-subtitle" id="subtitle">长按🌞打开工具栏 | By淡季水母</div>
-                </div>
-                
-                <div class="category-nav-container" id="categoryNavContainer">
-                    <div class="category-nav" id="categoryNav"></div>
-                </div>
-            
-                <div class="nav-container" id="navContainer">
-                    <p id="loading-status" style="text-align: center; color: #889;">正在从云端加载配置...</p>
-                </div>
+                <!-- JS 动态填充 -->
             </div>
         </div>
     </div>
-    <!-- [新增结束] -->
+
+    <!-- [核心修复] 将主页内容移出 mobile-wrapper，作为 body 的直接子元素 -->
+    <div class="page-overlay" id="pageOverlay"></div>
+    <div class="title-card" id="titleCard">
+        <h1 class="editable-title" id="title">JellyfishCenter</h1>
+        <div class="editable-subtitle" id="subtitle">长按🌞打开工具栏 | By淡季水母</div>
+    </div>
+    
+    <div class="category-nav-container" id="categoryNavContainer">
+        <div class="category-nav" id="categoryNav"></div>
+    </div>
+
+    <div class="nav-container" id="navContainer">
+        <p id="loading-status" style="text-align: center; color: #889;">正在从云端加载配置...</p>
+    </div>
 
     <!-- 注意：悬浮按钮和模态框需要放在滑动容器之外，以保证它们在所有页面上都能正常显示和交互 -->
     <div class="fab-container" id="fabContainer">
@@ -6542,7 +6552,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 createPickerWindow('选择一个备忘录', list);
             }
 
-           function showContentAndBackgroundPicker(type, onSelect) {
+             function showContentAndBackgroundPicker(type, onSelect) {
                 let listContent;
                 let pickerTitle = '';
                 let tempSelectedBg = null;
@@ -6601,6 +6611,9 @@ const blob = b64toBlob(blobData.content, contentType);
                 // 事件监听
                 colorInput.addEventListener('input', () => {
                     tempSelectedBg = colorInput.value;
+                    // [新增] 选择颜色时，重置图片选择按钮和文件输入
+                    fileButton.textContent = '导入图片';
+                    fileInput.value = ''; 
                 });
                 
                 fileButton.addEventListener('click', () => fileInput.click());
@@ -6611,6 +6624,9 @@ const blob = b64toBlob(blobData.content, contentType);
                         const reader = new FileReader();
                         reader.onload = (event) => {
                             tempSelectedBg = event.target.result; // base64 string
+                             // [新增] 选择图片后，更新按钮文本并重置颜色选择
+                            fileButton.textContent = '已选择图片';
+                            colorInput.value = '#ffffff';
                         };
                         reader.readAsDataURL(file);
                     }
@@ -6619,6 +6635,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 // 显示背景选择器
                 setTimeout(() => bgPicker.classList.add('show'), 50);
             }
+
             
             function showHtmlInputWindow(onSave) {
                 const contentWrapper = document.createElement('div');
