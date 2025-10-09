@@ -1022,16 +1022,28 @@ body.mobile-mode.mobile-home-screen-active .fab-container {
     pointer-events: auto;
 }
 
-body.mobile-mode .lock-screen-page,
+body.mobile-mode .lock-screen-page {
+    width: 50%;
+    height: 100%;
+    flex-shrink: 0;
+    overflow: hidden; /* 保持锁屏页禁止滚动 */
+    padding: 4vh 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 body.mobile-mode .home-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    overflow: hidden; /* 确保页面本身不滚动 */
-    padding: 4vh 30px; /* 保留内边距 */
+    overflow-y: auto;   /* [核心修改] 允许主屏幕垂直滚动 */
+    overflow-x: hidden; /* [核心修改] 禁止主屏幕水平滚动，防止影响滑动效果 */
+    padding: 4vh 30px 8vh 30px; /* [优化] 增加底部内边距，防止内容紧贴屏幕底部 */
     display: flex;
     flex-direction: column;
-    /* align-items: center;  <-- [核心修改] 移除此行 */
+    align-items: center;
+    -webkit-overflow-scrolling: touch; /* [优化] 为iOS设备提供流畅的滚动体验 */
 }
 
 .lock-screen-page {
