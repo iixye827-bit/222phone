@@ -106,12 +106,11 @@
 
 
         .nav-container { 
-            width: 100%; max-width: 1200px; margin: 10px auto; /* [核心恢复] 恢复垂直margin，并保持水平居中 */
+            width: 100%; max-width: 1200px; margin: 0 auto; /* [修改] 移除垂直margin，改为水平居中 */
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 25px; padding: 20px; /* [核心恢复] 恢复原来的padding */
+            gap: 25px; padding: 10px 20px; /* [修改] 调整内边距 */
             position: relative; z-index: 10; touch-action: pan-y; 
         }
-
 
         .nav-btn { position: relative; padding: 22px 16px; border: none; border-radius: 14px; box-shadow: 10px 10px 20px var(--shadow-dark-day), -10px -10px 20px var(--shadow-light-day); background: var(--bg-day-element); backdrop-filter: blur(8px); font-size: 17px; font-weight: 600; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; text-align: center; user-select: none; -webkit-tap-highlight-color: transparent; }
         .nav-btn.hold { border: 2px solid var(--hold-border); transform: scale(1.02); z-index: 5; box-shadow: 8px 8px 16px rgba(174, 190, 212, 0.5), -8px -8px 16px rgba(255, 255, 255, 0.8), 0 0 0 2px rgba(91, 153, 226, 0.3); }
@@ -963,7 +962,7 @@ body.dragging-active {
 /* =============================================================== */
 
 /* =============================================================== */
-/* ============== [修正] 手机模式专属样式 V3 ================= */
+/* ============== [修正] 手机模式专属样式 V4 (滚动修复) ========= */
 /* =============================================================== */
 
 /* 默认状态下，滑动容器是完全不存在的 */
@@ -992,7 +991,7 @@ body.mobile-mode .main-wrapper {
 /* 3. 原始的主页元素在手机模式下需要被隐藏，以避免冲突 */
 body.mobile-mode > .title-card,
 body.mobile-mode > .category-nav-container,
-body.mobile-mode > .nav-container {
+body.mobile-mode > .scrollable-nav-wrapper { /* [修改] 目标改为新的滚动包裹容器 */
     display: none !important;
 }
 
@@ -1008,7 +1007,7 @@ body.mobile-mode .page-slider.show-home-screen {
     transform: translateX(-50%); /* 滑动到主屏幕 */
 }
 
-/* [修改] 默认隐藏右下角按钮，并添加过渡动画 */
+/* 默认隐藏右下角按钮，并添加过渡动画 */
 body.mobile-mode .fab-container {
     opacity: 0;
     transform: scale(0.8);
@@ -1016,50 +1015,61 @@ body.mobile-mode .fab-container {
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* [修改] 当 body 具有 .mobile-home-screen-active 类时，显示按钮 */
+/* 当 body 具有 .mobile-home-screen-active 类时，显示按钮 */
 body.mobile-mode.mobile-home-screen-active .fab-container {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
 }
 
-body.mobile-mode .lock-screen-page,
-body.mobile-mode .home-screen-page {
+body.mobile-mode .lock-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    overflow: hidden; /* [修复] 禁止页面滚动 */
-    padding: 4vh 30px; /* [核心修改] 增加垂直和水平内边距，压缩内容区 */
+    overflow: hidden;
+    padding: 2vh 30px; /* 调整padding */
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-
-
-
-.lock-screen-page {
-    padding-top: 2vh;
-    padding-bottom: 2vh;
-    overflow: hidden; /* 确保页面本身不滚动 */
+/* [核心修改] home-screen-page 的样式调整 */
+body.mobile-mode .home-screen-page {
+    width: 50%;
+    height: 100%;
+    flex-shrink: 0;
+    overflow: hidden; /* 页面本身不滚动 */
+    padding: 2vh 0 0 0; /* 只保留顶部padding，移除左右和底部 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
+/* 主屏幕内的标题卡和分类栏需要左右padding */
+.home-screen-page > .title-card,
+.home-screen-page > .category-nav-container {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+
 .lockscreen-grid {
     width: 100%;
     max-width: 500px;
     flex-grow: 1;
-    position: relative; /* [核心修改] 改为相对定位，作为绝对定位组件的容器 */
+    position: relative;
     min-height: 0;
-    --widget-gap: 15px; /* [新增] 定义间距变量 */
+    --widget-gap: 15px;
 }
 
 
-
+/* 主屏幕内元素的过渡动画 */
 .home-screen-page .title-card,
 .home-screen-page .category-nav-container,
-.home-screen-page .nav-container {
+.home-screen-page .scrollable-nav-wrapper { /* [修改] 目标改为新的滚动包裹容器 */
     transition: transform 0.4s ease-out, opacity 0.3s ease-out;
 }
 
+/* 主屏幕未显示时元素的隐藏状态 */
 body.mobile-mode .page-slider:not(.show-home-screen) .home-screen-page > * {
     transform: translateX(100px);
     opacity: 0;
@@ -1067,6 +1077,7 @@ body.mobile-mode .page-slider:not(.show-home-screen) .home-screen-page > * {
 /* =============================================================== */
 /* ========================= [修正结束] ========================== */
 /* =============================================================== */
+
 
 /* =============================================================== */
 /* ============= [重构] 锁屏组件及设置相关样式 V2 ============ */
@@ -7722,7 +7733,14 @@ const blob = b64toBlob(blobData.content, contentType);
             async function applyMode(enable) {
                 const homeScreenPage = document.getElementById('homeScreenPage');
                 const mainWrapper = document.getElementById('mainWrapper');
-                const elementsToMove = [document.getElementById('pageOverlay'), document.getElementById('titleCard'), document.getElementById('categoryNavContainer'), document.getElementById('navContainer')].filter(Boolean);
+                // [核心修改] 将移动目标从 navContainer 改为它的父级滚动包裹层 scrollable-nav-wrapper
+                const elementsToMove = [
+                    document.getElementById('pageOverlay'), 
+                    document.getElementById('titleCard'), 
+                    document.getElementById('categoryNavContainer'), 
+                    document.querySelector('.scrollable-nav-wrapper') // 改动点
+                ].filter(Boolean);
+
                 isEnabled = enable;
                 document.body.classList.toggle('mobile-mode', enable);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
@@ -7741,6 +7759,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     renderLockscreenWidgets();
                     attachSwipeListeners();
                 } else {
+                     // [核心修改] 将元素移回 body 时，要插在 mainWrapper 的前面
                     elementsToMove.forEach(el => document.body.insertBefore(el, mainWrapper));
                     detachSwipeListeners();
                     ui.slider.style.transition = 'none';
@@ -7753,6 +7772,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 currentConfig.settings.mobileMode.enabled = enable;
                 saveGlobalConfig('Toggle mobile mode');
             }
+
 
 
             function handleTouchStart(e) {
@@ -7768,7 +7788,8 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (!isSwiping || !isEnabled) return;
                 e.preventDefault();
                 const diffX = e.touches[0].clientX - startX;
-                const pageWidth = ui.slider.offsetWidth / 2;
+                // [优化] 使用单个页面的实际宽度作为限制，更精确
+                const pageWidth = document.getElementById('lockScreenPage').offsetWidth;
                 const limitedTranslate = Math.max(-pageWidth, Math.min(0, currentTranslate + diffX));
                 ui.slider.style.transform = `translateX(${limitedTranslate}px)`;
             }
@@ -7777,7 +7798,8 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (!isSwiping || !isEnabled) return;
                 isSwiping = false;
                 const diffX = e.changedTouches[0].clientX - startX;
-                const threshold = window.innerWidth / 4;
+                 // [优化] 阈值也基于页面宽度，而不是整个屏幕宽度
+                const threshold = document.getElementById('lockScreenPage').offsetWidth / 4;
                 if (Math.abs(diffX) > threshold) {
                     if (diffX < 0 && currentPage === 0) currentPage = 1; else if (diffX > 0 && currentPage === 1) currentPage = 0;
                 }
