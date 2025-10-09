@@ -2207,6 +2207,42 @@ body.dark-mode .code-block-copy-btn:hover {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] 悬浮球设置预览区样式 ================= */
+/* =============================================================== */
+#jelly-css-preview-container {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-day-element);
+    border-radius: 12px;
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+    position: relative;
+    overflow: hidden; /* 隐藏超出边界的辉光效果 */
+    transform-style: preserve-3d; /* 提升渲染层级 */
+}
+body.dark-mode #jelly-css-preview-container {
+    background: var(--bg-night-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+
+/* 关键：重置预览球的位置，使其在容器内居中 */
+#jelly-css-preview-container .jelly-ball-wrapper {
+    position: relative;
+    transform: scale(0.9); /* 稍微缩小以适应容器 */
+    pointer-events: none; /* 确保预览球不可交互 */
+}
+
+/* [V2 BUG修复] 确保在主题设置弹窗关闭后，帮助弹窗依然可见 */
+#jelly-css-help-modal.modal-overlay {
+    z-index: 1003;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
@@ -3502,22 +3538,19 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
             }
             const settings = currentConfig.settings.jellyBall;
             
-            // 动态创建悬浮球设置窗口
+              // 动态创建悬浮球设置窗口
             function openJellyBallSettingsWindow() {
                 const modalId = 'jelly-ball-settings-modal';
-                // [修复] 移除防止重复创建的判断，因为关闭时元素会被彻底销毁，需要能够重新创建
-                // if (document.getElementById(modalId)) return;
-
+                
                 const modalOverlay = document.createElement('div');
                 modalOverlay.id = modalId;
-
                 modalOverlay.className = 'modal-overlay show';
-                modalOverlay.style.zIndex = '1002'; // 比主题设置高一级
+                modalOverlay.style.zIndex = '1002'; 
 
                 const modalContent = document.createElement('div');
                 modalContent.className = 'modal-content';
-                modalContent.style.maxWidth = '400px';
-
+                
+                // [核心修改] 更新 innerHTML 结构以包含预览区域
                 modalContent.innerHTML = `
                     <div class="modal-header">
                         <div class="modal-title-group"><span>悬浮球设置</span></div>
@@ -3537,11 +3570,19 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                                 <span>自定义CSS (云同步)</span>
                                 <button id="show-jelly-css-help" style="background:none; border:none; font-size: 20px; cursor:pointer; padding:0; line-height: 1;" title="CSS提示词向导">💡</button>
                             </label>
-                            <div style="display: flex; gap: 10px; width:100%; align-items: flex-start;">
-                                <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="4" placeholder=".jelly-ball-wrapper { ... }"></textarea>
-                                <div id="jellyCssPreview" style="..."><div id="jellyCssPreviewBall" style="...">🪼</div></div>
+                            <div style="display: flex; gap: 15px; width:100%; align-items: center;">
+                                <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="5" placeholder=".jelly-ball-wrapper { ... }" style="flex: 1;"></textarea>
+                                <div id="jelly-css-preview-container">
+                                    <style id="jelly-preview-style"></style>
+                                    <div class="jelly-ball-wrapper">
+                                        <div class="jelly-ball-glow"></div>
+                                        <div id="floating-jellyfish-ball">
+                                            <span>🪼</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <button id="applyJellyBallCssBtn" class="modal-button" style="width: 100%;">应用样式</button>
+                            <button id="applyJellyBallCssBtn" class="modal-button" style="width: 100%;">应用并保存样式</button>
                         </div>
                     </div>
                 `;
@@ -3555,6 +3596,10 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 const checkboxContainer = modalContent.querySelector('#jelly-function-checkboxes');
                 const cssTextarea = modalContent.querySelector('#jellyBallCssTextarea');
                 const applyCssBtn = modalContent.querySelector('#applyJellyBallCssBtn');
+                
+                // [核心新增] 获取预览区域的元素
+                const previewContainer = modalContent.querySelector('#jelly-css-preview-container');
+                const previewStyleTag = modalContent.querySelector('#jelly-preview-style');
 
                 // 关闭逻辑
                 const closeModal = () => { modalOverlay.classList.remove('show'); modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true }); };
@@ -3568,12 +3613,27 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                     const isChecked = settings.functions?.[func.id] !== false;
                     checkboxContainer.innerHTML += `
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                           <label for="jelly_func_${func.id}" style="cursor:pointer;...">${func.icon} ${func.title}</label>
+                           <label for="jelly_func_${func.id}" style="cursor:pointer;">${func.icon} ${func.title}</label>
                            <label class="toggle-switch"><input type="checkbox" id="jelly_func_${func.id}" data-function-id="${func.id}" ${isChecked ? 'checked' : ''}><span class="slider"></span></label>
                         </div>`;
                 });
                 cssTextarea.value = settings.customCSS || '';
+                
+                // [核心新增] 实时预览函数
+                function updatePreview() {
+                    let cssText = cssTextarea.value;
+                    // 为了让样式只作用于预览区，我们给所有选择器加上父容器ID前缀
+                    let scopedCss = cssText.replace(/(^|\})([^{}]+)\{/g, (match, p1, p2) => {
+                        const selectors = p2.split(',').map(s => `#jelly-css-preview-container ${s.trim()}`).join(', ');
+                        return `${p1} ${selectors} {`;
+                    });
+                    previewStyleTag.innerHTML = scopedCss;
+                }
 
+                // [核心新增] 初始化一次预览并绑定输入事件
+                updatePreview();
+                cssTextarea.addEventListener('input', updatePreview);
+                
                 // 绑定事件监听
                 swipeBackToggle.addEventListener('change', () => { settings.swipeBack = swipeBackToggle.checked; saveGlobalConfig('Update Jellyfish Ball settings'); });
                 checkboxContainer.addEventListener('change', (e) => {
@@ -3585,17 +3645,20 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                         saveGlobalConfig('Update Jellyfish Ball settings');
                     }
                 });
+                
                 applyCssBtn.addEventListener('click', () => {
                    settings.customCSS = cssTextarea.value;
                    customStyleTag.innerHTML = settings.customCSS;
                    if(ball) { _destroy(); _create(); } 
                    saveGlobalConfig('Update Jellyfish Ball CSS');
-                   alert('自定义样式已应用并同步至云端！');
+                   showTopToast('自定义样式已应用并同步至云端！', 2000);
                 });
+                
                 modalContent.querySelector('#show-jelly-css-help').addEventListener('click', () => {
                     document.getElementById('jelly-css-help-modal').classList.add('show');
                 });
             }
+
 
             // 主开关的UI和逻辑控制
             const updateUIVisibility = () => {
