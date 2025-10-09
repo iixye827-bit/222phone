@@ -5682,7 +5682,7 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                         pre.textContent = selectedText;
                         const copyBtn = document.createElement('button');
                         copyBtn.className = 'code-block-copy-btn';
-                        copyBtn.contentEditable = 'false'; // 核心修复点
+                        copyBtn.contentEditable = 'false'; // [V2 修复] 将按钮设置为不可编辑
                         copyBtn.textContent = '❏';
                         copyBtn.title = '复制';
                         codeBlock.appendChild(copyBtn);
@@ -5690,7 +5690,7 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                         range.deleteContents();
                         const fragment = document.createDocumentFragment();
                         fragment.appendChild(codeBlock);
-                        fragment.appendChild(document.createTextNode('\u200B'));
+                        fragment.appendChild(document.createTextNode('\u200B')); // 零宽度空格，用于放置光标
                         range.insertNode(fragment);
                         range.setStartAfter(codeBlock.nextSibling);
                         range.collapse(true);
@@ -5714,58 +5714,28 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                     } else {
                         document.execCommand(command, false, null);
                     }
-                    setTimeout(updateToolbarState, 0); // 延迟更新以获取最新状态
+                    setTimeout(updateToolbarState, 0);
                 });
 
                 editor.addEventListener('keyup', updateToolbarState);
                 editor.addEventListener('mouseup', updateToolbarState);
-                 // 编辑器内部的交互事件（待办清单完成/代码块复制）
-                editor.addEventListener('click', (e) => {
-                    const li = e.target.closest('li');
-                    const copyBtn = e.target.closest('.code-block-copy-btn');
 
-                    if (li) {
-                        li.classList.toggle('completed');
-                    } else if (copyBtn) {
-                        const codeBlock = copyBtn.closest('.memo-code-block');
-                        const textToCopy = codeBlock.querySelector('pre')?.textContent || '';
-                        
-                        // 核心修复点：添加剪贴板 API 兼容性处理
-                        if (navigator.clipboard && window.isSecureContext) {
-                            navigator.clipboard.writeText(textToCopy).then(() => {
-                                const originalText = copyBtn.textContent;
-                                copyBtn.textContent = '✓';
-                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
-                            }).catch(err => {
-                                console.error('Copy failed:', err);
-                                showTopToast('复制失败', 2000);
-                            });
-                        } else {
-                            // Fallback for insecure contexts (like file://)
-                            const textArea = document.createElement("textarea");
-                            textArea.value = textToCopy;
-                            textArea.style.position = "fixed";
-                            textArea.style.left = "-9999px";
-                            document.body.appendChild(textArea);
-                            textArea.focus();
-                            textArea.select();
-                            try {
-                                document.execCommand('copy');
-                                const originalText = copyBtn.textContent;
-                                copyBtn.textContent = '✓';
-                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
-                            } catch (err) {
-                                console.error('Fallback copy failed', err);
-                                showTopToast('复制失败', 2000);
+                // [V2 新增] 监听输入事件，用于自动清理空的代码块
+                editor.addEventListener('input', () => {
+                   // 使用 setTimeout 延迟执行，确保在 DOM 更新后进行检查
+                   setTimeout(() => {
+                        const codeBlocks = editor.querySelectorAll('.memo-code-block pre');
+                        codeBlocks.forEach(pre => {
+                            // 如果 pre 标签内没有文本内容（注意 trim() 以处理空白字符）
+                            if (pre.textContent.trim() === '') {
+                                const parentBlock = pre.closest('.memo-code-block');
+                                if (parentBlock) {
+                                    parentBlock.remove(); // 移除整个代码块
+                                }
                             }
-                            document.body.removeChild(textArea);
-                        }
-                    }
-                     // 点击编辑器任何地方都更新一下工具栏状态
-                    updateToolbarState();
+                        });
+                   }, 0);
                 });
-
-
 
                 // 编辑器内部的交互事件（待办清单完成/代码块复制）
                 editor.addEventListener('click', (e) => {
@@ -5778,18 +5748,36 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                         const codeBlock = copyBtn.closest('.memo-code-block');
                         const textToCopy = codeBlock.querySelector('pre')?.textContent || '';
                         
-                        navigator.clipboard.writeText(textToCopy).then(() => {
-                            const originalText = copyBtn.textContent;
-                            copyBtn.textContent = '✓';
-                            setTimeout(() => {
-                                copyBtn.textContent = originalText;
-                            }, 1500);
-                        }).catch(err => {
-                            console.error('Copy failed:', err);
-                            showTopToast('复制失败', 2000);
-                        });
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(textToCopy).then(() => {
+                                const originalText = copyBtn.textContent;
+                                copyBtn.textContent = '✓';
+                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+                            }).catch(err => {
+                                showTopToast('复制失败', 2000);
+                            });
+                        } else {
+                            // 兼容非安全环境的降级方案
+                            const textArea = document.createElement("textarea");
+                            textArea.value = textToCopy;
+                            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try {
+                                document.execCommand('copy');
+                                const originalText = copyBtn.textContent;
+                                copyBtn.textContent = '✓';
+                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+                            } catch (err) {
+                                showTopToast('复制失败', 2000);
+                            }
+                            document.body.removeChild(textArea);
+                        }
                     }
+                    updateToolbarState();
                 });
+
 
 
                 ui.folderModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
