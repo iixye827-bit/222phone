@@ -112,17 +112,12 @@
 
 
         .nav-container { 
-            width: 100%; 
-            max-width: 1200px; /* 保持内容区域的最大宽度 */
-            margin: 0 auto; /* 关键：让整个nav-container在滚动区域内水平居中 */
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            width: 100%; max-width: 1200px; margin: 0 auto; /* 保持水平居中 */
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
             gap: 25px; 
-            padding: 20px; /* 恢复原有的padding，确保按钮网格内部有呼吸空间 */
-            box-sizing: border-box; /* 确保padding计算在内 */
-            position: relative; 
-            z-index: 10; 
-            touch-action: pan-y; 
+            padding: 10px 40px; /* [核心修改] 增加左右内边距，让按钮网格变窄 */
+            box-sizing: border-box; /* [新增] 确保 padding 计算在内 */
+            position: relative; z-index: 10; touch-action: pan-y; 
         }
 
 
