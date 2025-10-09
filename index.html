@@ -112,13 +112,18 @@
 
 
         .nav-container { 
-            max-width: 1200px; margin: 0 auto;
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-            gap: 25px; padding: 10px 20px; 
-            position: relative; z-index: 10;
-            /* [核心修改] 移除此行，解决移动端滚动冲突 */
+            width: 100%; 
+            max-width: 1200px; /* 保持内容区域的最大宽度 */
+            margin: 0 auto; /* 关键：让整个nav-container在滚动区域内水平居中 */
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+            gap: 25px; 
+            padding: 20px; /* 恢复原有的padding，确保按钮网格内部有呼吸空间 */
+            box-sizing: border-box; /* 确保padding计算在内 */
+            position: relative; 
+            z-index: 10; 
+            touch-action: pan-y; 
         }
-
 
 
         .nav-btn { position: relative; padding: 22px 16px; border: none; border-radius: 14px; box-shadow: 10px 10px 20px var(--shadow-dark-day), -10px -10px 20px var(--shadow-light-day); background: var(--bg-day-element); backdrop-filter: blur(8px); font-size: 17px; font-weight: 600; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; text-align: center; user-select: none; -webkit-tap-highlight-color: transparent; }
