@@ -6669,25 +6669,32 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
                 currentConfig.lockscreenWidgets[cellIndex].unshift(widgetData); 
                 await saveGlobalConfig(`Add widget to cell ${cellIndex}`);
+                
+                // 立即反馈到真实锁屏和设置模拟器
                 renderLockscreenWidgets();
-                closeAnyOpenWindow();
                 const settingsWindow = document.getElementById('lockscreen-settings-modal');
                 if (settingsWindow) {
                     const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid);
+                    renderSettingsGrid(grid); // 核心修改：立即重新渲染模拟器
                 }
+                
+                closeAnyOpenWindow();
             }
+
 
             async function deleteWidgetFromCell(cellIndex) {
                 delete currentConfig.lockscreenWidgets[cellIndex];
                 await saveGlobalConfig(`Delete widget from cell ${cellIndex}`);
+                
+                // 立即反馈到真实锁屏和设置模拟器
                 renderLockscreenWidgets();
                 const settingsWindow = document.getElementById('lockscreen-settings-modal');
                 if (settingsWindow) {
                     const grid = settingsWindow.querySelector('.settings-grid');
-                    renderSettingsGrid(grid);
+                    renderSettingsGrid(grid); // 核心修改：立即重新渲染模拟器
                 }
             }
+
 
             function showAlbumPicker(onSelectCallback) {
                 const list = document.createElement('div');
