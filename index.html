@@ -1040,11 +1040,20 @@ body.mobile-mode .home-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    overflow: hidden; /* [修复] 禁止页面滚动 */
-    padding: 4vh 30px; /* [核心修改] 增加垂直和水平内边距，压缩内容区 */
+    /* overflow 属性已被移除，将在下方单独设置 */
+    padding: 4vh 30px; 
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+/* [核心修复] 单独为两个页面设置滚动行为 */
+body.mobile-mode .lock-screen-page {
+    overflow: hidden; /* 保持锁屏页面禁止滚动 */
+}
+body.mobile-mode .home-screen-page {
+    overflow-y: auto; /* 仅允许主屏幕页面在内容超出时垂直滚动 */
+    overflow-x: hidden; /* 禁止水平滚动，以防干扰滑动切换 */
 }
 
 
