@@ -3538,7 +3538,7 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
             }
             const settings = currentConfig.settings.jellyBall;
             
-              // 动态创建悬浮球设置窗口
+            // 动态创建悬浮球设置窗口
             function openJellyBallSettingsWindow() {
                 const modalId = 'jelly-ball-settings-modal';
                 
@@ -3550,7 +3550,6 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 const modalContent = document.createElement('div');
                 modalContent.className = 'modal-content';
                 
-                // [核心修改] 更新 innerHTML 结构以包含预览区域
                 modalContent.innerHTML = `
                     <div class="modal-header">
                         <div class="modal-title-group"><span>悬浮球设置</span></div>
@@ -3571,9 +3570,9 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                                 <button id="show-jelly-css-help" style="background:none; border:none; font-size: 20px; cursor:pointer; padding:0; line-height: 1;" title="CSS提示词向导">💡</button>
                             </label>
                             <div style="display: flex; gap: 15px; width:100%; align-items: center;">
-                                <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="5" placeholder=".jelly-ball-wrapper { ... }" style="flex: 1;"></textarea>
+                                <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="5" placeholder="清空此处可恢复默认样式" style="flex: 1;"></textarea>
                                 <div id="jelly-css-preview-container">
-                                    <style id="jelly-preview-style"></style>
+                                    <!-- 核心修改：移除 style 标签，让默认样式在 JS 中定义 -->
                                     <div class="jelly-ball-wrapper">
                                         <div class="jelly-ball-glow"></div>
                                         <div id="floating-jellyfish-ball">
@@ -3590,23 +3589,19 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 modalOverlay.appendChild(modalContent);
                 document.body.appendChild(modalOverlay);
 
-                // 在新窗口内部绑定事件和初始化状态
                 const closeBtn = modalContent.querySelector('.close-btn');
                 const swipeBackToggle = modalContent.querySelector('#jellySwipeBackToggle');
                 const checkboxContainer = modalContent.querySelector('#jelly-function-checkboxes');
                 const cssTextarea = modalContent.querySelector('#jellyBallCssTextarea');
                 const applyCssBtn = modalContent.querySelector('#applyJellyBallCssBtn');
                 
-                // [核心新增] 获取预览区域的元素
-                const previewContainer = modalContent.querySelector('#jelly-css-preview-container');
-                const previewStyleTag = modalContent.querySelector('#jelly-preview-style');
+                // [核心修改] 预览区不再需要自己的 style 标签，直接操作元素 style
+                const previewWrapper = modalContent.querySelector('#jelly-css-preview-container .jelly-ball-wrapper');
 
-                // 关闭逻辑
                 const closeModal = () => { modalOverlay.classList.remove('show'); modalOverlay.addEventListener('transitionend', () => modalOverlay.remove(), { once: true }); };
                 closeBtn.onclick = closeModal;
                 modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeModal(); };
 
-                // 初始化控件状态
                 swipeBackToggle.checked = settings.swipeBack !== false;
                 checkboxContainer.innerHTML = '';
                 ALL_FUNCTIONS.forEach(func => {
@@ -3619,22 +3614,75 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 });
                 cssTextarea.value = settings.customCSS || '';
                 
-                // [核心新增] 实时预览函数
+                // [核心修改] 新的实时预览函数
                 function updatePreview() {
-                    let cssText = cssTextarea.value;
-                    // 为了让样式只作用于预览区，我们给所有选择器加上父容器ID前缀
-                    let scopedCss = cssText.replace(/(^|\})([^{}]+)\{/g, (match, p1, p2) => {
-                        const selectors = p2.split(',').map(s => `#jelly-css-preview-container ${s.trim()}`).join(', ');
-                        return `${p1} ${selectors} {`;
-                    });
-                    previewStyleTag.innerHTML = scopedCss;
+                    const cssText = cssTextarea.value.trim();
+                    const previewBall = previewWrapper.querySelector('#floating-jellyfish-ball');
+                    const previewGlow = previewWrapper.querySelector('.jelly-ball-glow');
+
+                    // 1. 定义一个稳定的、隔离的默认样式
+                    const defaultStyles = `
+                        .jelly-ball-wrapper {
+                            position: relative;
+                            width: 42px; height: 42px;
+                            display: flex; align-items: center; justify-content: center;
+                            transform: scale(0.9); pointer-events: none;
+                        }
+                        .jelly-ball-glow {
+                            position: absolute; width: 100%; height: 100%;
+                            border-radius: 50%;
+                            animation: jelly-glow 2.5s infinite ease-in-out;
+                        }
+                        #floating-jellyfish-ball {
+                            position: relative; width: 100%; height: 100%;
+                            background: rgba(255, 255, 255, 0.6);
+                            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+                            border-radius: 50%;
+                            display: flex; align-items: center; justify-content: center;
+                            font-size: 22px; user-select: none;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                            border: 1px solid rgba(255, 255, 255, 0.5);
+                        }
+                        body.dark-mode #floating-jellyfish-ball {
+                             background: rgba(30, 30, 30, 0.6);
+                             border-color: rgba(255, 255, 255, 0.15);
+                        }
+                    `;
+                    
+                    // 2. 将默认样式注入到一个动态创建的 style 标签中
+                    let styleTag = previewWrapper.querySelector('.preview-default-styles');
+                    if (!styleTag) {
+                        styleTag = document.createElement('style');
+                        styleTag.className = 'preview-default-styles';
+                        // 作用域隔离
+                        styleTag.innerHTML = defaultStyles.replace(/([^{}]+)\{/g, (match, selector) => `#jelly-css-preview-container ${selector.trim()} {`);
+                        previewWrapper.prepend(styleTag);
+                    }
+                    
+                    // 3. 将用户的自定义 CSS 作为内联样式应用，这样它总能覆盖默认样式
+                    let customStyleTag = previewWrapper.querySelector('.preview-custom-styles');
+                    if (!customStyleTag) {
+                        customStyleTag = document.createElement('style');
+                        customStyleTag.className = 'preview-custom-styles';
+                        previewWrapper.appendChild(customStyleTag);
+                    }
+                    
+                    if (cssText) {
+                        // 作用域隔离
+                        const scopedCss = cssText.replace(/(^|\})([^{}]+)\{/g, (match, p1, p2) => {
+                            const selectors = p2.split(',').map(s => `#jelly-css-preview-container ${s.trim()}`).join(', ');
+                            return `${p1} ${selectors} {`;
+                        });
+                        customStyleTag.innerHTML = scopedCss;
+                    } else {
+                        // 如果用户清空了文本框，我们就清空自定义样式，让默认样式生效
+                        customStyleTag.innerHTML = '';
+                    }
                 }
 
-                // [核心新增] 初始化一次预览并绑定输入事件
                 updatePreview();
                 cssTextarea.addEventListener('input', updatePreview);
                 
-                // 绑定事件监听
                 swipeBackToggle.addEventListener('change', () => { settings.swipeBack = swipeBackToggle.checked; saveGlobalConfig('Update Jellyfish Ball settings'); });
                 checkboxContainer.addEventListener('change', (e) => {
                     const checkbox = e.target;
@@ -3658,6 +3706,7 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                     document.getElementById('jelly-css-help-modal').classList.add('show');
                 });
             }
+
 
 
             // 主开关的UI和逻辑控制
