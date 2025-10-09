@@ -3225,10 +3225,12 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
             // 动态创建悬浮球设置窗口
             function openJellyBallSettingsWindow() {
                 const modalId = 'jelly-ball-settings-modal';
-                if (document.getElementById(modalId)) return; // 防止重复创建
+                // [修复] 移除防止重复创建的判断，因为关闭时元素会被彻底销毁，需要能够重新创建
+                // if (document.getElementById(modalId)) return;
 
                 const modalOverlay = document.createElement('div');
                 modalOverlay.id = modalId;
+
                 modalOverlay.className = 'modal-overlay show';
                 modalOverlay.style.zIndex = '1002'; // 比主题设置高一级
 
@@ -6635,9 +6637,11 @@ const blob = b64toBlob(blobData.content, contentType);
             
             function openLockscreenSettingsWindow() {
                 const modalId = 'lockscreen-settings-modal';
-                if (document.getElementById(modalId)) return;
+                // [修复] 移除防止重复创建的判断，因为关闭时元素会被彻底销毁，需要能够重新创建
+                // if (document.getElementById(modalId)) return;
                 const LoadingIndicator = (() => {
                     let overlay = null;
+
                     let abortController = null;
 
                     function show(message, onCancel) {
