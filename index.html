@@ -89,14 +89,14 @@
         body.theme-glass .category-pill.active { background: rgba(255, 255, 255, 0.4); border-color: rgba(255, 255, 255, 0.6); opacity: 1; transform: scale(1.05); color: #000; }
         body.dark-mode.theme-glass .category-pill.active { color: #fff; background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
 
-         /* ===== [新增] 包裹和滚动容器的样式 (V3 - 最终修正版) ===== */
+        /* ===== [新增] 包裹和滚动容器的样式 (V2 - 无感边界) ===== */
         .scrollable-nav-wrapper {
-            width: 100%; /* [核心修正] 强制容器撑满宽度，修复移动端无法滚动的问题 */
+            width: 100%;
             flex-grow: 1; /* 让此容器占据所有剩余的垂直空间 */
             overflow-y: auto; /* 当内容超出时，只在此容器内显示垂直滚动条 */
             min-height: 0; /* Flex布局中的重要技巧，防止内容撑开容器 */
             padding-bottom: 30px; /* 保留底部空间，避免按钮紧贴屏幕边缘 */
-            /* 使用遮罩创建无感的渐变分界线 */
+            /* [核心修改] 使用遮罩创建无感的渐变分界线 */
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15px);
             mask-image: linear-gradient(to bottom, transparent 0%, black 15px);
         }
@@ -112,11 +112,13 @@
 
 
         .nav-container { 
-            max-width: 1200px; margin: 0 auto; /* [核心修改] 移除 width: 100%，让它自然居中 */
+            max-width: 1200px; margin: 0 auto;
             display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
             gap: 25px; padding: 10px 20px; 
-            position: relative; z-index: 10; touch-action: pan-y; 
+            position: relative; z-index: 10;
+            /* [核心修改] 移除此行，解决移动端滚动冲突 */
         }
+
 
 
         .nav-btn { position: relative; padding: 22px 16px; border: none; border-radius: 14px; box-shadow: 10px 10px 20px var(--shadow-dark-day), -10px -10px 20px var(--shadow-light-day); background: var(--bg-day-element); backdrop-filter: blur(8px); font-size: 17px; font-weight: 600; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; text-align: center; user-select: none; -webkit-tap-highlight-color: transparent; }
