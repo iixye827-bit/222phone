@@ -2028,6 +2028,108 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
 /* ========================= [修复结束] ========================== */
 /* =============================================================== */
 
+/* =============================================================== */
+/* ============= [新增] 备忘录编辑器 v2.0 样式 ============= */
+/* =============================================================== */
+#memoryModal #note-editor-view {
+    padding-bottom: 0; /* 为工具栏留出空间 */
+}
+#memoryModal .editor-content {
+    padding-bottom: 10px;
+}
+#memoryModal #note-content-editor {
+    flex-grow: 1;
+    resize: none;
+    line-height: 1.7;
+    font-size: 16px;
+    padding: 10px;
+    -webkit-user-select: text; /* 允许在iOS上选择文本 */
+    user-select: text;
+    overflow-y: auto; /* 允许内容区域滚动 */
+}
+#memoryModal #note-content-editor:focus {
+    outline: none;
+}
+#memoryModal #note-content-editor ul {
+    list-style: none;
+    padding-left: 0;
+}
+#memoryModal #note-content-editor li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+/* 自定义待办清单圆点 */
+#memoryModal #note-content-editor li::before {
+    content: '○';
+    font-size: 1.2em;
+    margin-right: 10px;
+    cursor: pointer;
+    color: #889;
+    font-weight: bold;
+    display: inline-block;
+    line-height: 1.5; /* 对齐文本 */
+}
+#memoryModal #note-content-editor li.completed::before {
+    content: '●';
+    color: var(--hold-border);
+}
+#memoryModal #note-content-editor li.completed .todo-text {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+.memo-toolbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 15px;
+    background: var(--bg-day-element);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+    border-top: 1px solid rgba(0,0,0,0.08);
+}
+body.dark-mode .memo-toolbar {
+    background: var(--bg-night-element);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    border-color: rgba(255,255,255,0.1);
+}
+.toolbar-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.2s;
+    padding: 5px;
+}
+.toolbar-btn:hover {
+    opacity: 1;
+}
+.toolbar-btn:active {
+    transform: scale(0.9);
+}
+.toolbar-btn.strikethrough {
+    text-decoration: line-through;
+}
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background-color: rgba(128,128,128,0.3);
+}
+.toolbar-btn-code-copy {
+    margin-left: auto; /* 靠右对齐 */
+    font-size: 16px;
+    font-weight: normal;
+    background-color: rgba(128,128,128,0.1);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
     </style>
 
     <style id="custom-jelly-ball-styles"></style>
@@ -2507,7 +2609,16 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
                         </div>
                         <div class="editor-content">
                             <input type="text" id="note-title-input" placeholder="标题">
-                            <textarea id="note-content-textarea" placeholder="在这里输入内容..."></textarea>
+                            <div id="note-content-editor" contenteditable="true" placeholder="在这里输入内容..."></div>
+                        </div>
+                        <div class="memo-toolbar">
+                            <button class="toolbar-btn" data-command="todo" title="待办清单">✓</button>
+                            <div class="toolbar-separator"></div>
+                            <button class="toolbar-btn" data-command="bold" title="加粗">B</button>
+                            <button class="toolbar-btn" data-command="italic" title="斜体" style="font-style: italic;">I</button>
+                            <button class="toolbar-btn" data-command="underline" title="下划线" style="text-decoration: underline;">U</button>
+                            <button class="toolbar-btn strikethrough" data-command="strikeThrough" title="删除线">S</button>
+                            <button class="toolbar-btn toolbar-btn-code-copy" data-command="copyCode" title="复制为纯文本">复制</button>
                         </div>
                     </div>
                 </div>
@@ -4909,23 +5020,31 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 }
             },
             'back-to-album-folders': () => { showView('album-folder-view', 'album-section'); state.currentAlbumId = null; },
-            'add-note': () => { state.currentNoteId = null; document.getElementById('note-title-input').value = ''; document.getElementById('note-content-textarea').value = ''; document.querySelector('[data-action="delete-note"]').style.display = 'none';
- showView('note-editor-view', 'memo-section'); },
-            'open-note': (target) => {
+            'add-note': () => {
+                state.currentNoteId = null;
+                document.getElementById('note-title-input').value = '';
+                document.getElementById('note-content-editor').innerHTML = ''; // 修正点：清空 contenteditable div
+                document.querySelector('[data-action="delete-note"]').style.display = 'none';
+                showView('note-editor-view', 'memo-section');
+            },
+
+
+             'open-note': (target) => {
                 const noteId = parseInt(target.closest('[data-note-id]').dataset.noteId, 10);
                 const note = memoryCache.memo.notes.find(n => n.id === noteId);
                 if (note) {
                     state.currentNoteId = note.id;
                     document.getElementById('note-title-input').value = note.title;
-                    document.getElementById('note-content-textarea').value = note.content;
+                    // 使用 innerHTML 设置内容
+                    document.getElementById('note-content-editor').innerHTML = note.content; 
                     document.querySelector('[data-action="delete-note"]').style.display = 'inline-block';
-
                     showView('note-editor-view', 'memo-section');
                 }
             },
             'save-note': () => {
                 const title = document.getElementById('note-title-input').value.trim();
-                const content = document.getElementById('note-content-textarea').value.trim();
+                // 从 contenteditable div 获取 innerHTML
+                const content = document.getElementById('note-content-editor').innerHTML;
                 const now = Date.now();
                 if (state.currentNoteId) {
                     const note = memoryCache.memo.notes.find(n => n.id === state.currentNoteId);
@@ -4941,6 +5060,7 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 renderNotes();
                 scheduleSave();
             },
+
             'cancel-note': () => {
                 showView('notes-view', 'memo-section');
             },
@@ -5490,9 +5610,12 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                 ui.uploadBtn.addEventListener("click", uploadFile);
             },
             getAlbumItems: () => memoryCache ? memoryCache.album.items : [],
+            scheduleSave // 新增这一行
         };
+
     })();
     // ===== [END] MEMORY APP LOGIC =====
+
 
     // ===== [START] WANDER VIEW 4.0 LOGIC (Architecture) =====
     const WanderView = (() => {
@@ -6409,23 +6532,45 @@ const blob = b64toBlob(blobData.content, contentType);
                     case 'memo':
                         const memo = memoryCache.memo.notes.find(n => n.id === widgetConfig.content);
                         widgetEl.classList.add('widget-memo');
+
+                        // 统一设置基础样式
+                         Object.assign(widgetEl.style, { 
+                            flexDirection: 'column', 
+                            alignItems: 'flex-start', 
+                            justifyContent: 'flex-start', 
+                            padding: '10px', 
+                            textAlign: 'left',
+                            fontSize: '12px'  // 为内容设置一个基础字号
+                        });
+
                         if (memo) {
-                            if (widgetConfig.size === '1x1') {
-                                widgetEl.innerHTML = '&#9993;';
-                                widgetEl.style.fontSize = '24px';
-                                widgetEl.style.lineHeight = '1';
-                                widgetEl.style.display = 'flex';
-                                widgetEl.style.alignItems = 'center';
-                                widgetEl.style.justifyContent = 'center';
-                            } else {
-                                widgetEl.innerHTML = `<div class="widget-memo-title">${memo.title || '无标题'}</div>`;
-                            }
-                            widgetEl.style.cursor = 'pointer';
-                            widgetEl.onclick = () => showMemoPopup(widgetConfig.content);
+                            // 标题
+                            const titleEl = document.createElement('div');
+                            titleEl.className = 'widget-memo-title';
+                            titleEl.textContent = memo.title || '无标题';
+                            titleEl.style.cssText = 'font-size: 1.1em; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px;';
+                            widgetEl.appendChild(titleEl);
+
+                            // 内容
+                            const contentContainer = document.createElement('div');
+                            contentContainer.className = 'widget-memo-content';
+                            contentContainer.innerHTML = memo.content;
+                            contentContainer.style.cssText = 'width: 100%; overflow: hidden; font-size: 0.9em; line-height: 1.5;';
+                            
+                            // 关键：为待办事项添加交互所需的数据
+                            contentContainer.querySelectorAll('li').forEach((li, index) => {
+                                li.dataset.noteId = memo.id;
+                                li.dataset.lineIndex = index;
+                                li.style.cursor = 'pointer'; // 提示可点击
+                            });
+
+                            widgetEl.appendChild(contentContainer);
+
                         } else {
                             widgetEl.textContent = '备忘录未找到';
                         }
                         break;
+
                     case 'shortcut':
                         const buttonConfig = findButtonConfigByHref(widgetConfig.content);
                         widgetEl.classList.add('widget-shortcut');
@@ -7397,6 +7542,37 @@ const blob = b64toBlob(blobData.content, contentType);
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
     });
+            // [新增] 锁屏组件交互事件监听
+            document.getElementById('lockscreenGrid').addEventListener('click', (e) => {
+                const li = e.target.closest('li[data-note-id]');
+                if (!li) return;
+
+                const noteId = parseInt(li.dataset.noteId, 10);
+                const lineIndex = parseInt(li.dataset.lineIndex, 10);
+
+                const note = memoryCache.memo.notes.find(n => n.id === noteId);
+                if (!note) return;
+                
+                // 解析 note.content 为一个临时的DOM结构
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = note.content;
+
+                const targetLi = tempDiv.querySelectorAll('li')[lineIndex];
+                if (targetLi) {
+                    // 切换完成状态
+                    targetLi.classList.toggle('completed');
+
+                    // 将修改后的 HTML 写回数据模型
+                    note.content = tempDiv.innerHTML;
+
+                    // 立即重新渲染锁屏以提供即时反馈
+                    renderLockscreenWidgets();
+
+                    // 安排云同步
+                    MemoryApp.scheduleSave(); // 复用 MemoryApp 的保存逻辑
+                }
+            });
+
 
     </script>
 </body>
