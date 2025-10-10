@@ -54,22 +54,14 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
         .title-card { 
-            width: calc(100% - 40px); /* [修改] 计算宽度以确保总有边距 */
-            max-width: 800px; 
-            padding: 40px 20px; 
-            margin: 20px auto; /* [修改] 使用auto实现水平居中 */
-            box-sizing: border-box;
+            width: 100%; max-width: 800px; padding: 40px 20px; margin: 20px; /* [核心修改] 将左右margin设为20px来替代body的padding */
+            box-sizing: border-box; /* [新增] 确保padding和border包含在width内 */
             border-radius: 16px; 
             box-shadow: 12px 12px 24px var(--shadow-dark-day), -12px -12px 24px var(--shadow-light-day); 
-            background: var(--bg-day-element); 
-            backdrop-filter: blur(8px); 
-            text-align: center; 
-            transition: all 0.5s ease; 
-            background-size: cover; 
-            background-position: center;
+            background: var(--bg-day-element); backdrop-filter: blur(8px); text-align: center; 
+            transition: all 0.5s ease; background-size: cover; background-position: center;
             flex-shrink: 0; /* 防止此元素在Flex布局中被压缩 */
         }
-
 
         body.dark-mode .title-card { box-shadow: 12px 12px 24px var(--shadow-dark-night), -12px -12px 24px var(--shadow-light-night); background: var(--bg-night-element); }
         .editable-title, .editable-subtitle { opacity: 0; transition: opacity 0.5s ease; background-color: rgba(255,255,255,0.1); backdrop-filter: blur(4px); } /* FOUC Fix */
@@ -1048,13 +1040,44 @@ body.mobile-mode .home-screen-page {
     width: 50%;
     height: 100%;
     flex-shrink: 0;
-    overflow: hidden; /* [修复] 禁止页面滚动 */
-    padding: 4vh 30px; /* [核心修改] 增加垂直和水平内边距，压缩内容区 */
+    overflow: hidden; /* 页面本身不滚动，这是正确的 */
+    padding: 4vh 0 2vh 0; /* 修改：移除左右内边距，给底部留一点空间 */
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* align-items: center; /* 移除此行，以允许子元素占满宽度 */
 }
 
+/* ===== [新增] 手机模式下，主屏幕内部元素的布局控制 ===== */
+
+/* 手机模式下，标题卡片的自适应宽度和间距 (新版本) */
+body.mobile-mode .home-screen-page > .title-card {
+    width: 90%;          /* 关键：设定一个相对于父容器的固定百分比宽度 */
+    max-width: 450px;      /* 可选：在非常宽的屏幕上（如平板）限制最大宽度 */
+    margin-left: auto;   /* 关键：让浏览器自动计算左边距 */
+    margin-right: auto;  /* 关键：让浏览器自动计算右边距 */
+    flex-shrink: 0;      
+}
+
+/* 如果分类导航也需要修改，可以采用类似的方法 */
+body.mobile-mode .home-screen-page > .category-nav-container {
+    flex-shrink: 0;
+    /* 保持原样或根据需要调整，目前分类导航占满宽度左右滑动是比较常见的体验 */
+    width: 100%; 
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+
+/* 2. 可滚动元素 (按钮区域) 填满所有剩余空间并开启内部滚动 */
+body.mobile-mode .home-screen-page > .scrollable-nav-wrapper {
+    flex-grow: 1;         /* 关键：占据所有剩余的垂直空间 */
+    overflow-y: auto;     /* 关键：当内容超出时，只在这个容器内显示垂直滚动条 */
+    min-height: 0;        /* 关键：Flex布局中的重要技巧，防止内容撑开容器 */
+    width: 100%;          /* 确保占满容器宽度 */
+    padding-left: 10px;   /* 将水平内边距应用到子元素上 */
+    padding-right: 10px;
+    padding-bottom: 80px; /* 为底部留出额外空间，避免按钮紧贴屏幕边缘 */
+}
 
 
 
@@ -2332,7 +2355,7 @@ body.dark-mode #jelly-css-preview-container {
         <div class="editable-subtitle" id="subtitle">长按🌞打开工具栏 | By淡季水母</div>
     </div>
     
-    <!-- [修改] 将分类导航和按钮网格都放入可滚动的包裹容器中 -->
+    <!-- [新增] 可滚动的包裹容器 (结构调整) -->
     <div class="scrollable-nav-wrapper">
         <div class="category-nav-container" id="categoryNavContainer">
             <div class="category-nav" id="categoryNav"></div>
@@ -7778,7 +7801,7 @@ const blob = b64toBlob(blobData.content, contentType);
             async function applyMode(enable) {
                 const homeScreenPage = document.getElementById('homeScreenPage');
                 const mainWrapper = document.getElementById('mainWrapper');
-                const elementsToMove = [document.getElementById('pageOverlay'), document.getElementById('titleCard'), document.getElementById('categoryNavContainer'), document.getElementById('navContainer')].filter(Boolean);
+                const elementsToMove = [document.getElementById('pageOverlay'), document.getElementById('titleCard'), document.getElementById('categoryNavContainer'), document.querySelector('.scrollable-nav-wrapper')].filter(Boolean);
                 isEnabled = enable;
                 document.body.classList.toggle('mobile-mode', enable);
                 ui.settingsEntry.style.display = enable ? 'block' : 'none';
@@ -7812,6 +7835,23 @@ const blob = b64toBlob(blobData.content, contentType);
 
 
             function handleTouchStart(e) {
+                // --- [V2 优化] 同时处理垂直和水平滚动区域的事件冲突 ---
+
+                // 1. 检查垂直滚动的按钮区域
+                const vScrollContainer = document.querySelector('.home-screen-page .scrollable-nav-wrapper');
+                if (vScrollContainer && vScrollContainer.contains(e.target) && vScrollContainer.scrollHeight > vScrollContainer.clientHeight) {
+                    isSwiping = false; // 判定为垂直滚动意图，阻止页面切换
+                    return;
+                }
+
+                // 2. 检查水平滚动的分类区域
+                const hScrollContainer = document.querySelector('.home-screen-page .category-nav-container');
+                if (hScrollContainer && hScrollContainer.contains(e.target) && hScrollContainer.scrollWidth > hScrollContainer.clientWidth) {
+                    isSwiping = false; // 判定为水平滚动意图，阻止页面切换
+                    return;
+                }
+                
+                // 如果触摸点不在任何可滚动区域内，则执行页面切换逻辑
                 if (!isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder')) return;
                 ui.slider.style.transition = 'none';
                 startX = e.touches[0].clientX;
@@ -7822,6 +7862,7 @@ const blob = b64toBlob(blobData.content, contentType);
 
             function handleTouchMove(e) {
                 if (!isSwiping || !isEnabled) return;
+                // 只有当确定是左右滑动时，才阻止默认的上下滚动行为
                 e.preventDefault();
                 const diffX = e.touches[0].clientX - startX;
                 const pageWidth = ui.slider.offsetWidth / 2;
