@@ -4468,7 +4468,32 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
         btn.disabled = true;
 
         try {
-            btn.textContent = '获取云端配置...';
+            btn.textContent = '正在验证连接...';
+
+            // 1. 新增的验证性请求 (Pre-flight Check)
+            const validationUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
+            let validationResponse;
+            try {
+                validationResponse = await fetch(validationUrl, {
+                    headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` },
+                    cache: 'no-cache'
+                });
+            } catch (networkError) {
+                // 捕获 fetch 本身的网络错误
+                throw new Error('NetworkError');
+            }
+
+            // 2. 分析响应，提供精准错误信息
+            if (!validationResponse.ok) {
+                // 根据状态码抛出特定错误
+                if (validationResponse.status === 401) throw new Error('401 Unauthorized');
+                if (validationResponse.status === 403) throw new Error('403 Forbidden');
+                if (validationResponse.status === 404) throw new Error('404 Not Found');
+                throw new Error(`HTTP Error ${validationResponse.status}`);
+            }
+
+            // --- 如果验证通过，才继续执行原有的同步逻辑 ---
+            btn.textContent = '验证成功，正在同步...';
             let fetchedConfig = await fetchConfigFromGithub();
             
             const defaultConfig = getDefaultConfig();
@@ -4483,19 +4508,20 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                  if (wasMigrated) btn.textContent = '迁移旧版配置...';
 
                  const mergedConfig = mergeDeep({}, defaultConfig, fetchedConfig);
+                 // 核心逻辑不变
                  if (JSON.stringify(mergedConfig) !== JSON.stringify(fetchedConfig) || wasMigrated) {
                      currentConfig = mergedConfig;
                      needsSave = true;
                  }
             } else {
-                 btn.textContent = '创建新配置...';
+                 btn.textContent = '云端无配置，正在创建...';
                  currentConfig = defaultConfig;
-                 configSha = null;
+                 configSha = null; // 确保是创建新文件
                  needsSave = true;
             }
             
             if (needsSave) {
-                 btn.textContent = '正在保存...';
+                 btn.textContent = '正在保存至云端...';
                  await saveGlobalConfig(wasMigrated ? 'Manual sync: Migrated legacy config' : 'Manual sync and repair');
                  btn.textContent = '同步完成，即将刷新';
                  alert("同步与修复完成！页面将刷新以应用最新配置。");
@@ -4505,15 +4531,30 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
                  alert("配置已是最新，无需修复。");
             }
         } catch (e) {
+            // 3. 捕获上面抛出的特定错误，并显示给用户
+            let userMessage = `手动同步失败: ${e.message}`;
+            if (e.message.includes('401 Unauthorized')) {
+                userMessage = "认证失败 (401): 您的Personal Access Token无效、已过期或被撤销。请重新生成并更新。";
+            } else if (e.message.includes('403 Forbidden')) {
+                userMessage = "权限不足 (403): 您的Token有效，但缺少对仓库的访问权限。请确保已勾选 `repo` 作用域。";
+            } else if (e.message.includes('404 Not Found')) {
+                userMessage = "仓库未找到 (404): 请检查您的仓库地址 '用户名/仓库名' 是否填写正确。";
+            } else if (e.message.includes('NetworkError')) {
+                userMessage = "网络连接失败: 无法连接到GitHub API。请检查您的网络设置、代理或VPN。";
+            }
+            
             btn.textContent = '同步失败';
-            alert(`手动同步失败: ${e.message}`);
+            alert(userMessage);
+
         } finally {
+            // 无论成功失败，3秒后恢复按钮状态
             setTimeout(() => {
                 btn.disabled = false;
                 btn.textContent = originalText;
             }, 3000);
         }
     });
+
 
     async function loadInitialData() { 
         navContainer.innerHTML = '<p id="loading-status" style="text-align: center; color: #889;">正在从云端加载配置...</p>'; 
