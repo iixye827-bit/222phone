@@ -1472,6 +1472,7 @@ body.dark-mode .widget-shortcut:active {
     top: 50%;
     transform: translate(-50%, -50%);
 }
+
 .picker-list {
     max-height: 300px;
     overflow-y: auto;
@@ -7104,6 +7105,16 @@ const blob = b64toBlob(blobData.content, contentType);
             function closeAnyOpenWindow() {
                 if (currentPickerWindow) {
                     const windowContainerToClose = currentPickerWindow;
+
+                    // [核心修复] 在移除主窗口前，先检查并移除其关联的“兄弟”窗口
+                    const siblingId = windowContainerToClose.dataset.siblingId;
+                    if (siblingId) {
+                        const siblingElement = document.getElementById(siblingId);
+                        if (siblingElement && siblingElement.parentNode) {
+                            siblingElement.remove();
+                        }
+                    }
+
                     const innerWindow = windowContainerToClose.querySelector('.floating-project-window');
                     if (innerWindow) {
                         innerWindow.classList.remove('visible');
@@ -7113,12 +7124,13 @@ const blob = b64toBlob(blobData.content, contentType);
                             }
                         }, { once: true });
                     } else {
-                        windowContainerToClose.remove();
+                        if (windowContainerToClose.parentNode) {
+                           windowContainerToClose.remove();
+                        }
                     }
                     currentPickerWindow = null;
                 }
             }
-
 
             function createPickerWindow(title, content) {
                 closeAnyOpenWindow();
@@ -7133,12 +7145,29 @@ const blob = b64toBlob(blobData.content, contentType);
                     <div class="fpw-content" style="padding: 15px;"></div>
                 `;
                 winEl.querySelector('.fpw-content').appendChild(content);
-                winEl.querySelector('.fpw-close').addEventListener('click', () => container.remove());
+
+                // [核心修正] 在这里添加联动关闭逻辑
+                winEl.querySelector('.fpw-close').addEventListener('click', () => {
+                    // 移除主窗口
+                    if (container && container.parentNode) {
+                        container.remove();
+                    }
+                    // 查找并移除与之关联的背景选择器窗口
+                    const siblingId = container.dataset.siblingId;
+                    if (siblingId) {
+                        const siblingElement = document.getElementById(siblingId);
+                        if (siblingElement && siblingElement.parentNode) {
+                            siblingElement.remove();
+                        }
+                    }
+                });
+
                 container.appendChild(winEl);
                 document.getElementById('floating-projects-container').appendChild(container);
                 currentPickerWindow = container;
                 return container;
             }
+
 
             function showImagePicker(onSelect) {
                 const grid = document.createElement('div');
@@ -7181,6 +7210,12 @@ const blob = b64toBlob(blobData.content, contentType);
                 let pickerTitle = '';
                 let tempSelectedBg = null;
 
+                let bgPickerContainer = null;
+                
+                const closeBothPickers = () => {
+                    closeAnyOpenWindow(); 
+                };
+
                 if (type === 'shortcut') {
                     pickerTitle = '选择一个快捷方式';
                     listContent = document.createElement('div');
@@ -7217,8 +7252,24 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 const pickerContainer = createPickerWindow(pickerTitle, listContent);
                 const pickerWindow = pickerContainer.querySelector('.floating-project-window');
+                
+                pickerWindow.querySelector('.fpw-close').addEventListener('click', closeBothPickers);
 
                 // 创建并附加背景选择器
+                bgPickerContainer = document.createElement('div');
+                
+                // [核心修正：建立关联]
+                const siblingId = 'widget-bg-picker-container-' + Date.now();
+                bgPickerContainer.id = siblingId;
+                pickerContainer.dataset.siblingId = siblingId; // 将背景选择器的ID存到主窗口上
+
+                bgPickerContainer.style.cssText = `
+                    position: fixed;
+                    z-index: 2024; 
+                    pointer-events: none; 
+                    width: auto;
+                `;
+
                 const bgPicker = document.createElement('div');
                 bgPicker.className = 'widget-bg-picker-popup';
                 bgPicker.innerHTML = `
@@ -7226,16 +7277,23 @@ const blob = b64toBlob(blobData.content, contentType);
                     <button class="bg-picker-button">导入图片</button>
                     <input type="file" accept="image/*" style="display:none;">
                 `;
-                pickerWindow.querySelector('.fpw-content').appendChild(bgPicker);
+                bgPickerContainer.appendChild(bgPicker);
+                document.body.appendChild(bgPickerContainer);
                 
+                requestAnimationFrame(() => {
+                    const mainRect = pickerWindow.getBoundingClientRect();
+                    const bgPickerRect = bgPicker.getBoundingClientRect();
+                    
+                    bgPickerContainer.style.top = `${mainRect.bottom}px`;
+                    bgPickerContainer.style.left = `${mainRect.left + (mainRect.width / 2) - (bgPickerRect.width / 2)}px`;
+                });
+
                 const colorInput = bgPicker.querySelector('input[type="color"]');
                 const fileInput = bgPicker.querySelector('input[type="file"]');
                 const fileButton = bgPicker.querySelector('.bg-picker-button');
 
-                // 事件监听
                 colorInput.addEventListener('input', () => {
                     tempSelectedBg = colorInput.value;
-                    // [新增] 选择颜色时，重置图片选择按钮和文件输入
                     fileButton.textContent = '导入图片';
                     fileInput.value = ''; 
                 });
@@ -7247,20 +7305,18 @@ const blob = b64toBlob(blobData.content, contentType);
                     if (file) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
-                            tempSelectedBg = event.target.result; // base64 string
-                             // [新增] 选择图片后，更新按钮文本并重置颜色选择
+                            tempSelectedBg = event.target.result; 
                             fileButton.textContent = '已选择图片';
                             colorInput.value = '#ffffff';
                         };
                         reader.readAsDataURL(file);
                     }
                 });
-
-                // 显示背景选择器
                 setTimeout(() => bgPicker.classList.add('show'), 50);
             }
 
-            
+
+
             function showHtmlInputWindow(onSave) {
                 const contentWrapper = document.createElement('div');
                 contentWrapper.style.display = 'flex';
