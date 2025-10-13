@@ -654,6 +654,22 @@
              background: rgba(200, 200, 200, 0.25);
              border-color: rgba(255, 255, 255, 0.15);
         }
+        /* [新增] 样式化十六进制颜色输入框 */
+        .color-input-wrapper .hex-display.modal-input {
+            box-shadow: none !important;
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            flex-grow: 1;
+            width: auto;
+            /* 核心修改：移除左右内边距，使其紧贴颜色选择器 */
+            padding-left: 0;
+            padding-right: 5px; /* 保留一点右边距，防止文字贴边 */
+            margin-left: 5px;   /* 增加一个小的左外边距，作为新的间距 */
+        }
+
+        /* ===== [END] FROSTED GLASS THEME ===== */
+
         /* ===== [END] FROSTED GLASS THEME ===== */
 
         /* ===== [START] FLOATING JELLYFISH BALL STYLES (MODIFIED) ===== */
@@ -2669,7 +2685,12 @@ body.theme-glass.dark-mode .memo-toolbar {
                     </div>
                 </div>
                 <div id="pneumorphism-settings">
-                    <div class="color-picker-grid"><div class="color-picker-group"><label>日间模式 - 左上</label><div class="color-input-wrapper"><input type="color" id="dayColor1Picker"><span class="hex-display" id="dayColor1Hex"></span></div></div><div class="color-picker-group"><label>日间模式 - 右下</label><div class="color-input-wrapper"><input type="color" id="dayColor2Picker"><span class="hex-display" id="dayColor2Hex"></span></div></div><div class="color-picker-group"><label>夜间模式 - 左上</label><div class="color-input-wrapper"><input type="color" id="nightColor1Picker"><span class="hex-display" id="nightColor1Hex"></span></div></div><div class="color-picker-group"><label>夜间模式 - 右下</label><div class="color-input-wrapper"><input type="color" id="nightColor2Picker"><span class="hex-display" id="nightColor2Hex"></span></div></div></div>
+                    <div class="color-picker-grid">
+                        <div class="color-picker-group"><label>日间模式 - 左上</label><div class="color-input-wrapper"><input type="color" id="dayColor1Picker"><input type="text" class="modal-input hex-display" id="dayColor1HexInput" maxlength="7"></div></div>
+                        <div class="color-picker-group"><label>日间模式 - 右下</label><div class="color-input-wrapper"><input type="color" id="dayColor2Picker"><input type="text" class="modal-input hex-display" id="dayColor2HexInput" maxlength="7"></div></div>
+                        <div class="color-picker-group"><label>夜间模式 - 左上</label><div class="color-input-wrapper"><input type="color" id="nightColor1Picker"><input type="text" class="modal-input hex-display" id="nightColor1HexInput" maxlength="7"></div></div>
+                        <div class="color-picker-group"><label>夜间模式 - 右下</label><div class="color-input-wrapper"><input type="color" id="nightColor2Picker"><input type="text" class="modal-input hex-display" id="nightColor2HexInput" maxlength="7"></div></div>
+                    </div>
                     <div class="preview-container"><div class="preview-box" id="dayPreview" data-label="Day"></div><div class="preview-box" id="nightPreview" data-label="Night"></div></div>
                     <div class="preset-manager"><div class="preset-row"><input type="text" id="presetNameInput" class="modal-input" placeholder="为当前配色命名"><button id="savePresetBtn" class="modal-button save">保存</button><button id="updatePresetBtn" class="modal-button">更新</button></div><div class="preset-row"><select id="presetSelector" class="modal-select"></select><button id="deletePresetBtn" class="modal-button delete">删除</button></div></div>
                     <div class="toggle-section"><span>每次启动时随机应用预设</span><label class="toggle-switch"><input type="checkbox" id="randomPaletteToggle"><span class="slider"></span></label></div>
@@ -3150,7 +3171,29 @@ body.theme-glass.dark-mode .memo-toolbar {
     let currentCategory = '全部';
     let photoObserver;
 
-const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按🌞打开工具栏 | By淡季水母', categories: [{ name: '全部', buttons: [] }], settings: { paginationEnabled: true, jellyBall: { enabled: false, swipeBack: true, functions: {}, customCSS: '' } }, themePresets: [], lockscreenWidgets: {} });
+const getDefaultConfig = () => ({
+        title: 'JellyfishCenter',
+        subtitle: '长按🌞打开工具栏 | By淡季水母',
+        categories: [{ name: '全部', buttons: [] }],
+        settings: {
+            paginationEnabled: true,
+            jellyBall: { enabled: false, swipeBack: true, functions: {}, customCSS: '' }
+        },
+        // 核心修改：直接在默认配置中加入“原生主题”预设
+        themePresets: [
+            {
+                name: "原生主题",
+                colors: {
+                    dayColor1: "#f5f7fa",
+                    dayColor2: "#e4eaf5",
+                    nightColor1: "#1f2a40",
+                    nightColor2: "#16213e"
+                }
+            }
+        ],
+        lockscreenWidgets: {}
+    });
+
     let currentConfig = getDefaultConfig();
 
     
@@ -4388,11 +4431,78 @@ const getDefaultConfig = () => ({ title: 'JellyfishCenter', subtitle: '长按�
         radio.addEventListener('change', (e) => setThemeStyle(e.target.value));
     });
 
-    const colorModal = { pickerD1: document.getElementById('dayColor1Picker'), hexD1: document.getElementById('dayColor1Hex'), pickerD2: document.getElementById('dayColor2Picker'), hexD2: document.getElementById('dayColor2Hex'), pickerN1: document.getElementById('nightColor1Picker'), hexN1: document.getElementById('nightColor1Hex'), pickerN2: document.getElementById('nightColor2Picker'), hexN2: document.getElementById('nightColor2Hex'), presetName: document.getElementById('presetNameInput'), presetSelector: document.getElementById('presetSelector'), saveBtn: document.getElementById('savePresetBtn'), updateBtn: document.getElementById('updatePresetBtn'), deleteBtn: document.getElementById('deletePresetBtn'), randomToggle: document.getElementById('randomPaletteToggle'), dayPreview: document.getElementById('dayPreview'), nightPreview: document.getElementById('nightPreview') };
-    const root = document.documentElement; function applyColors(colors, saveToLocal = true) { Object.entries(colors).forEach(([key, value]) => { const cssVar = `--${key.replace('Color', '-color')}`; root.style.setProperty(cssVar, value); if (saveToLocal) localStorage.setItem(key, value); }); updateColorUI(colors); applyAllBackgrounds(); WanderView.updateTheme(); }
-    function updateColorUI(colors) { colorModal.pickerD1.value = colors.dayColor1; colorModal.hexD1.textContent = colors.dayColor1; colorModal.pickerD2.value = colors.dayColor2; colorModal.hexD2.textContent = colors.dayColor2; colorModal.pickerN1.value = colors.nightColor1; colorModal.hexN1.textContent = colors.nightColor1; colorModal.pickerN2.value = colors.nightColor2; colorModal.hexN2.textContent = colors.nightColor2; colorModal.dayPreview.style.background = `linear-gradient(135deg, ${colors.dayColor2}, ${colors.dayColor1})`; colorModal.nightPreview.style.background = `linear-gradient(135deg, ${colors.nightColor2}, ${colors.nightColor1})`; }
-    function getCurrentColors(fromLocalStorage = true) { const source = fromLocalStorage ? localStorage : { getItem: (key) => getComputedStyle(root).getPropertyValue(`--${key.replace('Color', '-color')}`).trim() }; return { dayColor1: source.getItem('dayColor1') || '#f5f7fa', dayColor2: source.getItem('dayColor2') || '#e4eaf5', nightColor1: source.getItem('nightColor1') || '#1f2a40', nightColor2: source.getItem('nightColor2') || '#16213e', }; }
-    function setupColorSync(picker, hexDisplay, key) { picker.addEventListener('input', () => { hexDisplay.textContent = picker.value; applyColors({ ...getCurrentColors(), [key]: picker.value }); }); }
+    const colorModal = { 
+        pickerD1: document.getElementById('dayColor1Picker'), hexD1: document.getElementById('dayColor1HexInput'),
+        pickerD2: document.getElementById('dayColor2Picker'), hexD2: document.getElementById('dayColor2HexInput'),
+        pickerN1: document.getElementById('nightColor1Picker'), hexN1: document.getElementById('nightColor1HexInput'),
+        pickerN2: document.getElementById('nightColor2Picker'), hexN2: document.getElementById('nightColor2HexInput'),
+        presetName: document.getElementById('presetNameInput'), presetSelector: document.getElementById('presetSelector'), 
+        saveBtn: document.getElementById('savePresetBtn'), updateBtn: document.getElementById('updatePresetBtn'),
+        deleteBtn: document.getElementById('deletePresetBtn'), randomToggle: document.getElementById('randomPaletteToggle'),
+        dayPreview: document.getElementById('dayPreview'), nightPreview: document.getElementById('nightPreview') 
+    };
+    const root = document.documentElement;
+    function applyColors(colors, saveToLocal = true) { 
+        Object.entries(colors).forEach(([key, value]) => { 
+            const cssVar = `--${key.replace('Color', '-color')}`; 
+            root.style.setProperty(cssVar, value); 
+            if (saveToLocal) localStorage.setItem(key, value); 
+        }); 
+        updateColorUI(colors); 
+        applyAllBackgrounds(); 
+        WanderView.updateTheme(); 
+    }
+    function updateColorUI(colors) { 
+        colorModal.pickerD1.value = colors.dayColor1; colorModal.hexD1.value = colors.dayColor1;
+        colorModal.pickerD2.value = colors.dayColor2; colorModal.hexD2.value = colors.dayColor2;
+        colorModal.pickerN1.value = colors.nightColor1; colorModal.hexN1.value = colors.nightColor1;
+        colorModal.pickerN2.value = colors.nightColor2; colorModal.hexN2.value = colors.nightColor2;
+        colorModal.dayPreview.style.background = `linear-gradient(135deg, ${colors.dayColor2}, ${colors.dayColor1})`; 
+        colorModal.nightPreview.style.background = `linear-gradient(135deg, ${colors.nightColor2}, ${colors.nightColor1})`; 
+    }
+    function getCurrentColors(fromLocalStorage = true) { 
+        const source = fromLocalStorage ? localStorage : { getItem: (key) => getComputedStyle(root).getPropertyValue(`--${key.replace('Color', '-color')}`).trim() }; 
+        return { 
+            dayColor1: source.getItem('dayColor1') || '#f5f7fa', 
+            dayColor2: source.getItem('dayColor2') || '#e4eaf5', 
+            nightColor1: source.getItem('nightColor1') || '#1f2a40', 
+            nightColor2: source.getItem('nightColor2') || '#16213e', 
+        }; 
+    }
+    function setupColorSync(picker, hexInput, key) { 
+        picker.addEventListener('input', () => { 
+            hexInput.value = picker.value; 
+            applyColors({ ...getCurrentColors(), [key]: picker.value }); 
+        }); 
+    }
+    // [新增] 函数，用于同步十六进制输入框的更改
+    function setupHexInputSync(hexInput, colorPicker, key) {
+        const handleHexInput = () => {
+            let value = hexInput.value.trim();
+            if (!value.startsWith('#')) {
+                value = '#' + value;
+            }
+            // 正则表达式验证十六进制颜色码 (例如 #FFF, #ff00CC)
+            const isValidHex = /^#([0-9a-f]{3}){1,2}$/i.test(value);
+            if (isValidHex) {
+                colorPicker.value = value;
+                applyColors({ ...getCurrentColors(false), [key]: value });
+            } else {
+                // 如果输入无效，则将输入框的值恢复为当前有效的颜色
+                hexInput.value = colorPicker.value;
+            }
+        };
+        // 当输入框失去焦点时触发
+        hexInput.addEventListener('change', handleHexInput);
+        // 当在输入框内按下回车键时触发
+        hexInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                handleHexInput();
+                hexInput.blur(); // 触发后让输入框失焦
+            }
+        });
+    }
+
     function loadColorState() { populatePresetDropdown(); const randomPaletteEnabled = localStorage.getItem('randomPaletteEnabled') === 'true'; colorModal.randomToggle.checked = randomPaletteEnabled; if (randomPaletteEnabled && currentConfig.themePresets && currentConfig.themePresets.length > 0) { const randomPreset = currentConfig.themePresets[Math.floor(Math.random() * currentConfig.themePresets.length)]; applyColors(randomPreset.colors, false); } else { applyColors(getCurrentColors()); } }
     function populatePresetDropdown() { colorModal.presetSelector.innerHTML = '<option value="">选择一个预设...</option>'; (currentConfig.themePresets || []).forEach((p, i) => { const opt = document.createElement('option'); opt.value = i; opt.textContent = p.name; colorModal.presetSelector.appendChild(opt); }); }
     colorModal.saveBtn.addEventListener('click', () => { const name = colorModal.presetName.value.trim(); if (!name) return alert('请输入预设名称'); if ((currentConfig.themePresets || []).some(p => p.name === name)) return alert('预设名称已存在'); if (!currentConfig.themePresets) currentConfig.themePresets = []; currentConfig.themePresets.push({ name, colors: getCurrentColors(false) }); saveGlobalConfig(`Save theme preset: ${name}`); populatePresetDropdown(); colorModal.presetSelector.value = currentConfig.themePresets.length - 1; colorModal.presetName.value = ''; });
@@ -6800,6 +6910,12 @@ const blob = b64toBlob(blobData.content, contentType);
         setupColorSync(colorModal.pickerD2, colorModal.hexD2, 'dayColor2');
         setupColorSync(colorModal.pickerN1, colorModal.hexN1, 'nightColor1'); 
         setupColorSync(colorModal.pickerN2, colorModal.hexN2, 'nightColor2');
+        // [新增] 为十六进制输入框绑定同步事件
+        setupHexInputSync(colorModal.hexD1, colorModal.pickerD1, 'dayColor1');
+        setupHexInputSync(colorModal.hexD2, colorModal.pickerD2, 'dayColor2');
+        setupHexInputSync(colorModal.hexN1, colorModal.pickerN1, 'nightColor1');
+        setupHexInputSync(colorModal.hexN2, colorModal.pickerN2, 'nightColor2');
+
         // [核心新增] 将悬浮球初始化移至最后，并增加常驻逻辑
         FloatingBallManager.init();
         if (currentConfig.settings.jellyBall && currentConfig.settings.jellyBall.enabled) {
