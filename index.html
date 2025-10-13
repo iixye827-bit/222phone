@@ -2270,11 +2270,18 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 10px 15px;
+    padding: 10px 25px; /* 优化：增加左右内边距，让工具按钮与边缘保持距离 */
     background: var(--bg-day-element);
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
     border-top: 1px solid rgba(0,0,0,0.08);
+
+    /* --- 核心修改 --- */
+    width: calc(100% + 20px); /* 让宽度等于父容器宽度 + 两侧各10px的内边距 */
+    margin: 0 -10px -10px -10px; /* 上右下左外边距，抵消父容器所有方向的内边距 */
+    border-radius: 0 0 16px 16px; /* 美化：让工具栏的下圆角匹配弹窗的圆角 */
+    box-sizing: border-box; /* 确保 padding 包含在 width 计算内 */
 }
+
 body.dark-mode .memo-toolbar {
     background: var(--bg-night-element);
     box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
