@@ -654,21 +654,47 @@
              background: rgba(200, 200, 200, 0.25);
              border-color: rgba(255, 255, 255, 0.15);
         }
-        /* [新增] 样式化十六进制颜色输入框 */
+        /* [V3 最终修正] 强制修正颜色选择器布局，杜绝溢出 */
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            /* 使用一个非常小的间距 */
+            gap: 6px;
+            /* 容器的内边距也相应减小 */
+            padding: 5px 8px;
+        }
+
+        /* 为颜色选择器本身设置固定尺寸，且不允许收缩 */
+        .color-input-wrapper input[type="color"] {
+            width: 40px; /* 固定宽度 */
+            height: 28px; /* 固定高度 */
+            flex-shrink: 0; /* 核心：禁止此元素收缩 */
+            border: none;
+            padding: 0;
+            background: none;
+        }
+
+        /* 为十六进制输入框设置弹性增长和强制收缩能力 */
         .color-input-wrapper .hex-display.modal-input {
+            flex: 1; /* 核心：占据所有剩余空间 (flex-grow: 1, flex-shrink: 1) */
+            min-width: 0; /* 核心：允许元素无限收缩，从根本上解决溢出问题 */
+            
+            /* 重置所有可能导致问题的样式 */
             box-shadow: none !important;
             background: transparent !important;
             border: none !important;
             outline: none !important;
-            flex-grow: 1;
-            width: auto;
-            /* 核心修改：移除左右内边距，使其紧贴颜色选择器 */
-            padding-left: 0;
-            padding-right: 5px; /* 保留一点右边距，防止文字贴边 */
-            margin-left: 5px;   /* 增加一个小的左外边距，作为新的间距 */
+            padding: 0;
+            margin: 0;
+            width: auto; /* 宽度由flex系统决定 */
+
+            /* 确保文本颜色在不同模式下正确显示 */
+            color: var(--text-day); 
         }
 
-        /* ===== [END] FROSTED GLASS THEME ===== */
+        body.dark-mode .color-input-wrapper .hex-display.modal-input {
+            color: var(--text-night);
+        }
 
         /* ===== [END] FROSTED GLASS THEME ===== */
 
