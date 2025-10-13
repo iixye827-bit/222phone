@@ -165,7 +165,33 @@
         .color-input-wrapper { display: flex; align-items: center; border-radius: 10px; padding: 5px; background:var(--bg-day-element); box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day); } body.dark-mode .color-input-wrapper { background:var(--bg-night-element); box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night); }
         input[type="color"] { width: 36px; height: 30px; border: none; background: transparent; cursor: pointer; -webkit-appearance: none; padding: 0; flex-shrink: 0; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; } input[type="color"]::-webkit-color-swatch { border-radius: 6px; border: none; }
-        .hex-display { flex-grow: 1; text-align: right; padding: 0 10px; font-family: monospace; font-size: 16px; color: #889; }
+               .hex-display { 
+            flex-grow: 0; /* 核心修改：禁止输入框拉伸 */
+            flex-shrink: 0; /* 禁止输入框收缩 */
+            width: 4.5em; /* 核心修改：设置一个刚好容纳7个字符的宽度 (em单位相对于字体大小) */
+            text-align: center; /* 文本居中更美观 */
+            padding: 0; /* 移除内部左右边距 */
+            font-family: monospace; 
+            font-size: 16px; 
+            color: #889;
+             /* 覆盖 .modal-input 带来的额外内边距 */
+            padding-left: 5px !important;
+            padding-right: 5px !important;
+        }
+        .color-input-wrapper { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; /* 新增：在颜色面板和输入框之间设置一个固定的8px间距 */
+            border-radius: 10px; 
+            padding: 5px 8px; /* 优化：稍微减少容器的左右内边距 */
+            background:var(--bg-day-element); 
+            box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day); 
+        } 
+        body.dark-mode .color-input-wrapper { 
+            background:var(--bg-night-element); 
+            box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night); 
+        }
+
         .preview-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } .preview-box { height: 40px; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .preview-box::before { content: attr(data-label); } #dayPreview { border: 2px solid var(--bg-day-element); color: var(--text-day); } body.dark-mode #dayPreview { border-color: rgba(255,255,255,0.1); }
         #nightPreview { border: 2px solid var(--bg-night-element); color: var(--text-night); } body.dark-mode #nightPreview { border-color: rgba(255,255,255,0.2); }
@@ -674,29 +700,39 @@
             background: none;
         }
 
-        /* 为十六进制输入框设置弹性增长和强制收缩能力 */
+        /* 为十六进制输入框设置一个固定的、紧凑的尺寸 */
         .color-input-wrapper .hex-display.modal-input {
-            flex: 1; /* 核心：占据所有剩余空间 (flex-grow: 1, flex-shrink: 1) */
-            min-width: 0; /* 核心：允许元素无限收缩，从根本上解决溢出问题 */
-            
+            flex: 0 0 auto; /* 核心：禁止增长和收缩，宽度由width属性决定 */
+            width: 85px; /* 核心：设置一个足以容纳7个字符和少量边距的固定宽度 */
+
             /* 重置所有可能导致问题的样式 */
             box-shadow: none !important;
             background: transparent !important;
             border: none !important;
             outline: none !important;
-            padding: 0;
+            padding: 0 5px; /* 给予文字左右5px的呼吸空间 */
             margin: 0;
-            width: auto; /* 宽度由flex系统决定 */
+            text-align: center; /* 文本居中 */
 
             /* 确保文本颜色在不同模式下正确显示 */
-            color: var(--text-day); 
+            color: var(--text-day);
         }
+
 
         body.dark-mode .color-input-wrapper .hex-display.modal-input {
             color: var(--text-night);
         }
 
         /* ===== [END] FROSTED GLASS THEME ===== */
+        /* [新增] 为“已确认”的十六进制代码添加变淡的样式 */
+        .hex-display.modal-input.confirmed-color {
+            color: #a0aec0; /* 一个比默认文字更淡的灰色 */
+            opacity: 0.8; /* 稍微降低不透明度 */
+            transition: color 0.3s ease, opacity 0.3s ease; /* 添加平滑过渡效果 */
+        }
+        body.dark-mode .hex-display.modal-input.confirmed-color {
+            color: #718096; /* 夜间模式下对应的淡灰色 */
+        }
 
         /* ===== [START] FLOATING JELLYFISH BALL STYLES (MODIFIED) ===== */
         .jelly-ball-wrapper { /* MODIFICATION: New wrapper for custom CSS support */
@@ -4501,33 +4537,46 @@ const getDefaultConfig = () => ({
             applyColors({ ...getCurrentColors(), [key]: picker.value }); 
         }); 
     }
-    // [新增] 函数，用于同步十六进制输入框的更改
+    // [V2 优化] 函数，用于同步十六进制输入框的更改，并增加UX交互
     function setupHexInputSync(hexInput, colorPicker, key) {
+        // 核心处理函数：验证、应用颜色并设置“已确认”样式
         const handleHexInput = () => {
             let value = hexInput.value.trim();
             if (!value.startsWith('#')) {
                 value = '#' + value;
             }
-            // 正则表达式验证十六进制颜色码 (例如 #FFF, #ff00CC)
             const isValidHex = /^#([0-9a-f]{3}){1,2}$/i.test(value);
             if (isValidHex) {
                 colorPicker.value = value;
                 applyColors({ ...getCurrentColors(false), [key]: value });
             } else {
-                // 如果输入无效，则将输入框的值恢复为当前有效的颜色
                 hexInput.value = colorPicker.value;
             }
+            // 无论输入是否有效，完成操作后都将文字变淡
+            hexInput.classList.add('confirmed-color');
         };
-        // 当输入框失去焦点时触发
-        hexInput.addEventListener('change', handleHexInput);
-        // 当在输入框内按下回车键时触发
+
+        // 1. 当输入框获得焦点时：移除变淡样式 + 全选文字
+        hexInput.addEventListener('focus', function() {
+            this.classList.remove('confirmed-color');
+            this.select();
+        });
+
+        // 2. 当输入框失去焦点时：触发核心处理函数
+        hexInput.addEventListener('blur', handleHexInput);
+
+        // 3. 当按下回车键时：触发核心处理函数并让输入框失去焦点
         hexInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') {
                 handleHexInput();
-                hexInput.blur(); // 触发后让输入框失焦
+                hexInput.blur();
             }
         });
+        
+        // 4. 初始加载时，为所有输入框添加“已确认”样式
+        hexInput.classList.add('confirmed-color');
     }
+
 
     function loadColorState() { populatePresetDropdown(); const randomPaletteEnabled = localStorage.getItem('randomPaletteEnabled') === 'true'; colorModal.randomToggle.checked = randomPaletteEnabled; if (randomPaletteEnabled && currentConfig.themePresets && currentConfig.themePresets.length > 0) { const randomPreset = currentConfig.themePresets[Math.floor(Math.random() * currentConfig.themePresets.length)]; applyColors(randomPreset.colors, false); } else { applyColors(getCurrentColors()); } }
     function populatePresetDropdown() { colorModal.presetSelector.innerHTML = '<option value="">选择一个预设...</option>'; (currentConfig.themePresets || []).forEach((p, i) => { const opt = document.createElement('option'); opt.value = i; opt.textContent = p.name; colorModal.presetSelector.appendChild(opt); }); }
