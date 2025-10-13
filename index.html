@@ -2444,7 +2444,132 @@ body.theme-glass.dark-mode .memo-toolbar {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 
+/* =============================================================== */
+/* ================= [新增] 手机收藏馆专属样式 ================== */
+/* =============================================================== */
+#phoneCollectionModal .modal-content {
+    max-width: 800px;
+    height: calc(100vh - 40px);
+    padding: 0;
+    overflow: hidden;
+}
+#phoneCollectionModal .list-container {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    align-content: flex-start;
+    height: 100%;
+    overflow-y: auto;
+}
+.phone-partition-item {
+    aspect-ratio: 1 / 1.1;
+    position: relative;
+    padding: 15px;
+    border-radius: 14px;
+    box-shadow: 8px 8px 16px var(--shadow-dark-day), -8px -8px 16px var(--shadow-light-day);
+    background: var(--bg-day-element);
+    color: var(--text-day);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+}
+.phone-partition-item:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+    transform: scale(0.98);
+}
+body.dark-mode .phone-partition-item {
+    box-shadow: 8px 8px 16px var(--shadow-dark-night), -8px -8px 16px var(--shadow-light-night);
+    background: var(--bg-night-element);
+    color: var(--text-night);
+}
+body.dark-mode .phone-partition-item:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+.phone-partition-icon {
+    font-size: 3rem;
+    line-height: 1;
+}
+.phone-partition-name {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+#phone-detail-content {
+    gap: 18px;
+    padding-bottom: 30px;
+}
+.detail-info-group {
+    padding: 15px;
+    border-radius: 12px;
+    background: var(--bg-day-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+}
+body.dark-mode .detail-info-group {
+    background: var(--bg-night-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+.detail-info-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #889;
+    display: block;
+    margin-bottom: 8px;
+}
+.detail-info-value {
+    font-size: 16px;
+    word-wrap: break-word;
+}
+.detail-info-value.copyable {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    padding: 5px 8px;
+    margin: -5px -8px; 
+    border-radius: 8px;
+}
+.detail-info-value.copyable:hover {
+    background: rgba(0,0,0,0.05);
+}
+body.dark-mode .detail-info-value.copyable:hover {
+    background: rgba(255,255,255,0.08);
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ================== [新增] Giscus 主题适配样式 ================= */
+/* =============================================================== */
+#phoneCommentsModal .modal-body {
+    /* 移除内边距，让Giscus填满整个区域 */
+    padding: 0; 
+    /* 让body部分占据所有可用空间 */
+    flex-grow: 1;
+    display: flex; /* 使用flex布局，确保子元素可以填满 */
+}
+.giscus {
+    /* 让Giscus容器填满，并给一个最小高度以确保其可见 */
+    width: 100%;
+    min-height: 450px; /* ★★★ 关键修复：为Giscus容器提供一个最小高度 ★★★ */
+}
+.giscus-frame {
+    /* 让iframe背景透明，更好地融入主题 */
+    background-color: transparent !important; 
+}
+
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
     </style>
+
 
  <style id="custom-jelly-ball-styles"></style>
 
@@ -2488,12 +2613,60 @@ body.theme-glass.dark-mode .memo-toolbar {
         <div class="fab-drawer" id="fabDrawer">
             <button class="fab-drawer-item" id="helpBtn" title="使用指南">📧</button>
             <button class="fab-drawer-item" id="dataSyncBtn" title="数据同步">☁️<span id="sync-status-indicator" title="云同步状态"></span></button>
+            <!-- [新增] 手机收藏馆按钮 -->
+            <button class="fab-drawer-item" id="phoneCollectionBtn" title="手机收藏馆">💬</button>
             <button class="fab-drawer-item" id="addNavBtn" title="管理项目">📱</button>
             <button class="fab-drawer-item" id="colorBtn" title="主题设置">🎨</button>
             <button class="fab-drawer-item" id="memoryBtn" title="记忆">📷</button>
         </div>
         <button class="fab-main theme-toggle" id="themeBtn" title="切换主题">🌞</button>
     </div>
+
+    <!-- ===== [结构修改] 手机收藏馆模态框 ===== -->
+    <!-- 列表主窗口 -->
+    <div class="modal-overlay" id="phoneCollectionModal">
+        <div class="modal-content">
+            <div class="app-container">
+                <div class="page active">
+                    <div class="page-header" style="padding: 15px 15px 10px 15px;">
+                        <span class="title" style="position: static; transform: none; font-weight: 700;">手机收藏馆</span>
+                        <button class="close-btn" data-modal-id="phoneCollectionModal" style="position: absolute; right: 10px; top: 10px;">&times;</button>
+                    </div>
+                    <div id="phone-list-container" class="list-container">
+                        <!-- JS动态填充手机分区 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 详情悬浮窗 -->
+    <div class="modal-overlay" id="phoneDetailModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <div id="phone-detail-title" class="modal-title-group">手机详情</div>
+                <button class="close-btn" data-modal-id="phoneDetailModal">&times;</button>
+            </div>
+            <div class="modal-body" id="phone-detail-content">
+                <!-- JS动态填充手机信息 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- [新增] 评论区模态框 -->
+    <div class="modal-overlay" id="phoneCommentsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div id="phone-comments-title" class="modal-title-group">安利区</div>
+                <button class="close-btn" data-modal-id="phoneCommentsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Giscus 评论组件将在这里加载 -->
+                <div class="giscus"></div>
+                <!-- ⚠️ script 标签已被移除，将由 JavaScript 动态创建 -->
+            </div>
+        </div>
+    </div>
+    <!-- ===== [修改结束] ===== -->
     
     <!-- Modals -->
     <div class="modal-overlay" id="helpModal">
@@ -4476,9 +4649,16 @@ const getDefaultConfig = () => ({
         applyAllBackgrounds();
         WanderView.updateTheme();
         renderLockscreenWidgets(); // 新增：切换主题时重新渲染组件
+
+        // [新增] 联动Giscus主题
+        const giscusFrame = document.querySelector('.giscus-frame');
+        if (giscusFrame) {
+            const newTheme = PhoneCollectionManager.getGiscusTheme();
+            giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { theme: newTheme } } }, 'https://giscus.app');
+        }
     };
 
-    function setThemeStyle(styleName) {
+     function setThemeStyle(styleName) {
         const pneumorphismSettings = document.getElementById('pneumorphism-settings');
         if (styleName === 'glass') {
             document.body.classList.add('theme-glass');
@@ -4495,7 +4675,15 @@ const getDefaultConfig = () => ({
             document.getElementById('theme-style-neumorphism').checked = true;
         }
         localStorage.setItem('themeStyle', styleName);
+
+        // [新增] 联动Giscus主题
+        const giscusFrame = document.querySelector('.giscus-frame');
+        if (giscusFrame) {
+            const newTheme = PhoneCollectionManager.getGiscusTheme();
+            giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { theme: newTheme } } }, 'https://giscus.app');
+        }
     }
+
     document.querySelectorAll('input[name="theme-style"]').forEach(radio => {
         radio.addEventListener('change', (e) => setThemeStyle(e.target.value));
     });
@@ -6980,7 +7168,6 @@ const blob = b64toBlob(blobData.content, contentType);
     }
 
  window.addEventListener('load', async () => {
-        initTheme(); 
         loadGithubConfig();
         checkAppUpdate();
         await loadInitialData();
@@ -8337,6 +8524,191 @@ const blob = b64toBlob(blobData.content, contentType);
 
         // 初始化手机模式管理器
         MobileModeManager.init();
+        /* =============================================================== */
+        /* ========================= [新增结束] ========================== */
+        /* =============================================================== */
+
+        /* =============================================================== */
+        /* ================== [新增] 手机收藏馆逻辑 =================== */
+        /* =============================================================== */
+        const PhoneCollectionManager = (() => {
+            // 在这里集中管理所有手机数据，方便你后续补充
+            const phoneData = [
+                {
+                    id: 'eve-phone', // 为EVE手机设置一个唯一的英文ID
+                    name: 'EVE',
+                    icon: '🤖', // 换一个更具代表性的图标
+                    authorId: '7551854600',
+                    acquisition: '售价19.9',
+                    price: '19.9元', // 将价格单独列出
+                    status: '已停售'
+                },
+                {
+                    id: 'jrsy-phone', // 为jrsy手机设置一个唯一的英文ID
+                    name: 'jrsy小手机',
+                    icon: '🧸', // 换一个可爱的图标
+                    authorId: '6536602273',
+                    acquisition: 'QQ群: 1062470691',
+                    price: '未知', // 如果没有明确价格，可以这样写
+                    status: '群内获取'
+                },
+                // 在这里继续添加新的手机对象...
+            ];
+
+            const ui = {
+                collectionModal: document.getElementById('phoneCollectionModal'),
+                detailModal: document.getElementById('phoneDetailModal'),
+                listContainer: document.getElementById('phone-list-container'),
+                detailContainer: document.getElementById('phone-detail-content'),
+                detailTitle: document.getElementById('phone-detail-title'),
+            };
+
+            /**
+             * [新增] 核心函数：根据主页面当前状态，决定Giscus应该使用哪个主题
+             */
+            function getGiscusTheme() {
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                const isGlassTheme = document.body.classList.contains('theme-glass');
+
+                if (isGlassTheme) {
+                    // 磨砂玻璃模式下，使用带透明背景的主题
+                    return isDarkMode ? 'transparent_dark' : 'light'; // Giscus的light主题默认背景也比较适合透明
+                } else {
+                    // 全拟态模式下，使用带实体背景的主题
+                    return isDarkMode ? 'dark' : 'light';
+                }
+            }
+
+            function showGiscusComments(phoneId, phoneName) {
+                const commentsModal = document.getElementById('phoneCommentsModal');
+                const giscusContainer = commentsModal.querySelector('.giscus');
+
+                // 1. 清空容器，防止重复加载
+                giscusContainer.innerHTML = '';
+
+                // 2. 动态创建 script 标签
+                const giscusScript = document.createElement('script');
+                
+                // 3. 设置 Giscus 所需的所有属性
+                const attributes = {
+                    'src': 'https://giscus.app/client.js',
+                    'data-repo': 'Yeexein/Jellyfish-Comments',
+                    'data-repo-id': 'R_kgDOQBfb-w',
+                    'data-category': 'Announcements',
+                    'data-category-id': 'DIC_kwDOQBfb-84CwlT0',
+                    'data-mapping': 'specific', // ★ 关键优化：使用 specific 映射
+                    'data-term': `手机安利区: ${phoneName} (${phoneId})`, // ★ 关键优化：使用唯一标识
+                    'data-strict': '0',
+                    'data-reactions-enabled': '1',
+                    'data-emit-metadata': '0',
+                    'data-input-position': 'top',
+                    'data-theme': getGiscusTheme(), // 动态获取主题
+                    'data-lang': 'zh-CN',
+                    'crossorigin': 'anonymous',
+                    'async': ''
+                };
+                
+                // 4. 将属性应用到 script 元素上
+                Object.entries(attributes).forEach(([key, value]) => {
+                    giscusScript.setAttribute(key, value);
+                });
+
+                // 5. 将脚本添加到容器中，触发加载和渲染
+                giscusContainer.appendChild(giscusScript);
+                
+                // 6. 更新标题并显示模态框
+                document.getElementById('phone-comments-title').textContent = `${phoneName} - 安利区`;
+                commentsModal.classList.add('show');
+            }
+
+            function renderPhoneList() {
+                 ui.listContainer.innerHTML = '';
+                if (phoneData.length === 0) {
+                    ui.listContainer.innerHTML = '<p class="empty-list-placeholder">暂无收藏</p>';
+                    return;
+                }
+                phoneData.forEach(phone => {
+                    const item = document.createElement('div');
+                    item.className = 'phone-partition-item';
+                    item.dataset.phoneId = phone.id;
+                    item.innerHTML = `
+                        <div class="phone-partition-icon">${phone.icon}</div>
+                        <div class="phone-partition-name">${phone.name}</div>
+                    `;
+                    item.addEventListener('click', () => renderPhoneDetail(phone.id));
+                    ui.listContainer.appendChild(item);
+                });
+            }
+
+            function renderPhoneDetail(phoneId) {
+                const phone = phoneData.find(p => p.id === phoneId);
+                if (!phone) return;
+
+                ui.detailTitle.textContent = phone.name;
+                ui.detailContainer.innerHTML = `
+                    <div class="detail-info-group">
+                        <label>作者ID</label>
+                        <div class="detail-info-value copyable" id="copyAuthorId" data-id="${phone.authorId}">
+                            <span>${phone.authorId}</span>
+                            <span>❏</span>
+                        </div>
+                    </div>
+                    <div class="detail-info-group">
+                        <label>获取方式</label>
+                        <div class="detail-info-value">${phone.acquisition}</div>
+                    </div>
+                    <div class="detail-info-group">
+                        <label>价格</label>
+                        <div class="detail-info-value">${phone.price}</div>
+                    </div>
+                    <div class="detail-info-group">
+                        <label>状态</label>
+                        <div class="detail-info-value">${phone.status}</div>
+                    </div>
+                    <button id="enterCommentsBtn" class="modal-button" data-phone-id="${phone.id}" style="margin-top: 20px;">进入安利区</button>
+                `;
+                
+                ui.detailContainer.querySelector('#copyAuthorId').addEventListener('click', function() {
+                    const idToCopy = this.dataset.id;
+                    navigator.clipboard.writeText(idToCopy).then(() => {
+                        showTopToast(`已复制作者ID: ${idToCopy}`, 2000);
+                    }).catch(err => {
+                        console.error('复制失败', err);
+                        alert('复制失败，请手动复制。');
+                    });
+                });
+                
+                ui.detailContainer.querySelector('#enterCommentsBtn').addEventListener('click', function() {
+                    const phoneId = this.dataset.phoneId;
+                    const phone = phoneData.find(p => p.id === phoneId);
+                    if(phone) {
+                        ui.detailModal.classList.remove('show');
+                        setTimeout(() => {
+                            showGiscusComments(phone.id, phone.name);
+                        }, 200);
+                    }
+                });
+
+                ui.detailModal.classList.add('show');
+            }
+
+            return {
+                init() {
+                    document.getElementById('phoneCollectionBtn').addEventListener('click', () => {
+                        renderPhoneList();
+                        ui.collectionModal.classList.add('show');
+                        toggleFabMenu(false);
+                    });
+                },
+                // [新增] 暴露 getGiscusTheme 方法，以便全局调用
+                getGiscusTheme: getGiscusTheme
+            };
+        })();
+
+
+
+        // 初始化手机收藏馆
+        PhoneCollectionManager.init();
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
