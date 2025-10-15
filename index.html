@@ -2474,19 +2474,17 @@ body.theme-glass.dark-mode .memo-toolbar {
 }
 #phoneCollectionModal .page-header-container {
     flex-shrink: 0; 
-    position: relative; /* ★ 新增：为渐变遮罩提供定位上下文 */
-    z-index: 10; /* ★ 新增：确保头部在内容之上 */
 }
 
-/* ★★★ 核心修复点 ★★★ */
+/* 核心修改：列表容器改为 Flex 布局以实现泡泡效果 */
 #phoneCollectionModal .list-container {
-    padding: 60px 20px; /* 关键：大大增加上下内边距，为错落效果提供足够空间 */
+    padding: 35px 20px; /* 进一步增加上下内边距，为错落效果留出空间 */
     display: flex; 
     flex-wrap: wrap; 
     justify-content: center; 
     align-items: center; 
     gap: 25px; 
-    align-content: flex-start; /* 关键：确保内容从容器顶部开始排列，而不是居中 */
+    align-content: center; /* 让多行内容在容器里整体居中 */
     flex-grow: 1; 
     overflow-y: auto; 
     min-height: 0;
@@ -2499,12 +2497,12 @@ body.theme-glass.dark-mode .memo-toolbar {
     flex-shrink: 0; 
     position: relative;
     padding: 8px;
-    border-radius: 50%; 
+    border-radius: 50%; /* 关键：变为圆形 */
     box-shadow: 6px 6px 12px var(--shadow-dark-day), -6px -6px 12px var(--shadow-light-day);
     background: var(--bg-day-element);
     color: var(--text-day);
     cursor: pointer;
-    transition: box-shadow 0.3s ease, transform 0.2s ease; 
+    transition: box-shadow 0.3s ease, transform 0.2s ease; /* 重加 transform 过渡，用于点击反馈 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2517,18 +2515,19 @@ body.theme-glass.dark-mode .memo-toolbar {
     animation: float-bubble 6s ease-in-out infinite;
 }
 
-/* 错落有致的布局效果 (保持不变) */
+/* ★ 新增：错落有致的布局效果 ★ */
 .phone-partition-item:nth-child(odd) {
-    transform: translateY(-20px); 
+    transform: translateY(-20px); /* 奇数泡泡向上移动 */
 }
 .phone-partition-item:nth-child(even) {
-    transform: translateY(20px); 
+    transform: translateY(20px); /* 偶数泡泡向下移动 */
 }
+
 
 .phone-partition-item:active {
     box-shadow: inset 3px 3px 6px var(--shadow-dark-day), inset -3px -3px 6px var(--shadow-light-day);
     animation-play-state: paused; 
-    transform: scale(0.97) !important; 
+    transform: scale(0.97) !important; /* 强制应用缩小效果，同时覆盖错落位移 */
 }
 body.dark-mode .phone-partition-item {
     box-shadow: 6px 6px 12px var(--shadow-dark-night), -6px -6px 12px var(--shadow-light-night);
@@ -2548,7 +2547,7 @@ body.dark-mode .phone-partition-item:active {
     padding: 0 5px; 
 }
 
-/* 修复磨砂玻璃主题下的圆角问题 (保持不变) */
+/* ★ 新增：修复磨砂玻璃主题下的圆角问题 ★ */
 body.theme-glass .phone-partition-item {
     border-radius: 50%;
 }
