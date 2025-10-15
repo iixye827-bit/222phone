@@ -2600,6 +2600,51 @@ body.dark-mode .detail-info-value.copyable:hover {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 
+/* =============================================================== */
+/* ================= [新增] 手机收藏馆按钮样式 ================= */
+/* =============================================================== */
+#showNoticeBell {
+    display: none; /* 保持默认隐藏，由 JS 控制显示 */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px; /* 缩小字体 */
+    font-weight: bold;
+    color: #b0b0b0; /* 使用更柔和的灰色 */
+    padding: 0 5px; /* 调整内边距 */
+    line-height: 1;
+    vertical-align: middle; /* 确保与标题垂直对齐 */
+    transition: color 0.2s ease;
+}
+#showNoticeBell:hover {
+    color: var(--hold-border); /* 悬停时使用主题高亮色 */
+}
+body.dark-mode #showNoticeBell {
+    color: #666; /* 夜间模式下更暗的灰色 */
+}
+/* =============================================================== */
+/* =============== [新增] 手机收藏馆移动端适配 =============== */
+/* =============================================================== */
+@media (max-width: 600px) {
+    #phoneCollectionModal .list-container {
+        padding: 25px 15px; /* 减小左右内边距 */
+        gap: 15px; /* 减小泡泡间距 */
+    }
+    .phone-partition-item {
+        width: 85px; /* 减小泡泡尺寸 */
+        height: 85px;
+    }
+    .phone-partition-item .phone-partition-name {
+        font-size: 0.8rem; /* 略微减小字体 */
+    }
+    /* 减小错落效果的幅度 */
+    .phone-partition-item:nth-child(odd) {
+        transform: translateY(-15px);
+    }
+    .phone-partition-item:nth-child(even) {
+        transform: translateY(15px);
+    }
+}
 
 /* =============================================================== */
 /* ================== [新增] Giscus 主题适配样式 ================= */
@@ -2757,7 +2802,7 @@ body.dark-mode .code-block-copy-btn:hover {
                     <div class="modal-header" style="padding: 12px 15px;"> <!-- ★ 修改点：增加了内边距 -->
                         <div class="modal-title-group" style="gap: 8px; align-items: center;">
                             <span>手机收藏馆</span>
-                            <button id="showNoticeBell" style="display: none; background: transparent; border: none; font-size: 22px; cursor: pointer; padding: 5px; line-height: 1;" title="查看社区须知">🔔</button>
+<button id="showNoticeBell" title="查看社区须知">ⓘ</button>
                         </div>
                         <button class="close-btn" data-modal-id="phoneCollectionModal">&times;</button>
                     </div>
