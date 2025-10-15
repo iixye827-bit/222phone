@@ -2739,6 +2739,59 @@ body.dark-mode .code-block-copy-btn:hover {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] Giscus 反馈数据展示样式 ============= */
+/* =============================================================== */
+.giscus-feedback-container {
+    margin-top: 20px;
+    padding: 12px 15px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.03);
+    min-height: 48px; /* 给加载状态一个固定高度 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #889;
+    transition: background 0.3s;
+}
+body.dark-mode .giscus-feedback-container {
+    background: rgba(255,255,255,0.04);
+}
+.giscus-feedback-container.loaded {
+    justify-content: space-between; /* 加载成功后两端对齐 */
+}
+.giscus-reactions, .giscus-comments {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.reaction-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-day-element);
+    padding: 3px 8px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 4px var(--shadow-dark-day), -2px -2px 4px var(--shadow-light-day);
+    font-size: 13px;
+    font-weight: 500;
+}
+body.dark-mode .reaction-item {
+    background: var(--bg-night-element);
+    box-shadow: 2px 2px 4px var(--shadow-dark-night), -2px -2px 4px var(--shadow-light-night);
+}
+.giscus-comments a {
+    text-decoration: none;
+    color: var(--hold-border);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.giscus-comments a:hover {
+    text-decoration: underline;
+}
 
     </style>
 
@@ -8845,6 +8898,94 @@ const blob = b64toBlob(blobData.content, contentType);
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
+        // ★★★ 新增：通过 GitHub GraphQL API 获取 Giscus 统计数据的函数
+        async function fetchGiscusStats(phoneId, phoneName) {
+            // 检查 GitHub 配置是否完整
+            if (!GITHUB_CONFIG.owner || !GITHUB_CONFIG.repo || !GITHUB_CONFIG.token) {
+                console.warn("GitHub config is incomplete. Cannot fetch Giscus stats.");
+                return null;
+            }
+            // 从仓库全名中解析出 owner 和 name
+            const [owner, repo] = GITHUB_CONFIG.repo.split('/');
+            // Giscus 讨论区的固定 ID，从你的 HTML 配置中获取
+            const categoryId = "DIC_kwDOQBfb-84CwlT0";
+            // Giscus 用来唯一标识帖子的标题
+            const discussionTitle = `手机安利区: ${phoneName} (${phoneId})`;
+
+            // 构造 GraphQL 查询语句
+            const query = `
+                query DiscussionStats($repoOwner: String!, $repoName: String!, $categoryId: ID!, $discussionTitle: String!) {
+                  repository(owner: $repoOwner, name: $repoName) {
+                    discussions(categoryId: $categoryId, first: 1, filterBy: {discussionTitle: $discussionTitle}) {
+                      nodes {
+                        comments {
+                          totalCount
+                        }
+                        reactions {
+                          totalCount
+                        }
+                        reactionGroups {
+                          content
+                          users {
+                            totalCount
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+            `;
+
+            try {
+                const response = await fetch('https://api.github.com/graphql', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `bearer ${GITHUB_CONFIG.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query,
+                        variables: {
+                            repoOwner: GITHUB_CONFIG.owner,
+                            repoName: repo,
+                            categoryId,
+                            discussionTitle
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`GitHub API Error: ${response.status}`);
+                }
+
+                const json = await response.json();
+                const discussion = json.data?.repository?.discussions?.nodes[0];
+                
+                if (!discussion) {
+                    return { reactions: [], comments: 0 }; // 讨论还未创建
+                }
+
+                // Giscus 支持的表情和顺序
+                const reactionOrder = ['THUMBS_UP', 'THUMBS_DOWN', 'LAUGH', 'HOORAY', 'CONFUSED', 'HEART', 'ROCKET', 'EYES'];
+                const emojiMap = { 'THUMBS_UP': '👍', 'THUMBS_DOWN': '👎', 'LAUGH': '😄', 'HOORAY': '🎉', 'CONFUSED': '😕', 'HEART': '❤️', 'ROCKET': '🚀', 'EYES': '👀' };
+
+                const reactions = reactionOrder.map(content => {
+                    const group = discussion.reactionGroups.find(g => g.content === content);
+                    return {
+                        emoji: emojiMap[content],
+                        count: group ? group.users.totalCount : 0
+                    };
+                }).filter(r => r.count > 0); // 只保留有计数的表情
+
+                return {
+                    reactions,
+                    comments: discussion.comments.totalCount
+                };
+            } catch (error) {
+                console.error('Failed to fetch Giscus stats:', error);
+                return null;
+            }
+        }
 
         /* =============================================================== */
         /* ================== [新增] 手机收藏馆逻辑 =================== */
@@ -8878,7 +9019,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 },
                 {
                     id: 'fruit-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '果喵机',          // 【必填】手机的显示名称
+                    name: '果咩机',          // 【必填】手机的显示名称
                     authorId: '26962794223',       // 【必填】作者的小红书或QQ号
                     acquisition: '小红书进群',   // 【必填】如何获取，如：QQ群号、链接等
                     price: '无偿',            // 【必填】如：免费、19.9元、未知
@@ -8939,6 +9080,54 @@ const blob = b64toBlob(blobData.content, contentType);
                     acquisition: '小红书购买',   // 【必填】如何获取，如：QQ群号、链接等
                     price: '9.9元',            // 【必填】如：免费、19.9元、未知
                     status: '已停售'         // 【必填】如：在售、已停售、群内获取
+                },
+{
+                    id: 'mujian-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: '幕间小手机',          // 【必填】手机的显示名称
+                    authorId: '9240783072',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '2.0内测中'         // 【必填】如：在售、已停售、群内获取
+                },
+{
+                    id: 'tuk-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: 'EPhone-兔K',          // 【必填】手机的显示名称
+                    authorId: 'glacier1024',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '开放'         // 【必填】如：在售、已停售、群内获取
+                },
+                {
+                    id: 'maomaoning-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: 'EPhone-猫猫宁',          // 【必填】手机的显示名称
+                    authorId: '94903121580',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '开放'         // 【必填】如：在售、已停售、群内获取
+                },
+                {
+                    id: 'yique-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: 'EPhone-以雀',          // 【必填】手机的显示名称
+                    authorId: '571856738',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '开放'         // 【必填】如：在售、已停售、群内获取
+                },
+ {
+                    id: 'threethreezero-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: 'EPhone-330',          // 【必填】手机的显示名称
+                    authorId: '（没找到）',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '开放'         // 【必填】如：在售、已停售、群内获取
+                },
+ {
+                    id: 'jcy-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: 'EPhone-JCY',          // 【必填】手机的显示名称
+                    authorId: '（没找到）',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '开放'         // 【必填】如：在售、已停售、群内获取
                 },
                 // 在这里继续添加新的手机对象...
             ];
@@ -9071,30 +9260,28 @@ const blob = b64toBlob(blobData.content, contentType);
 
                 ui.detailTitle.textContent = phone.name;
                 
-                // 更新置顶按钮状态
+                // 更新置顶按钮状态 (逻辑不变)
                 const pinnedIds = getPinnedPhones();
                 const isPinned = pinnedIds.includes(phoneId);
                 ui.pinBtn.textContent = '★';
                 ui.pinBtn.style.color = isPinned ? '#ffc107' : '#ccc';
                 ui.pinBtn.title = isPinned ? '取消置顶' : '置顶';
 
-                // 为置顶按钮绑定点击事件
                 ui.pinBtn.onclick = () => {
                     let currentPinned = getPinnedPhones();
                     if (currentPinned.includes(phoneId)) {
-                        // 取消置顶
                         currentPinned = currentPinned.filter(id => id !== phoneId);
                         ui.pinBtn.style.color = '#ccc';
                         ui.pinBtn.title = '置顶';
                     } else {
-                        // 添加置顶
-                        currentPinned.unshift(phoneId); // 加到最前面
+                        currentPinned.unshift(phoneId);
                         ui.pinBtn.style.color = '#ffc107';
                         ui.pinBtn.title = '取消置顶';
                     }
                     savePinnedPhones(currentPinned);
                 };
 
+                // ★ 修改：在HTML模板中加入反馈数据的占位符 ★
                 ui.detailContainer.innerHTML = `
                     <div class="detail-info-group">
                         <label>作者ID</label>
@@ -9115,50 +9302,70 @@ const blob = b64toBlob(blobData.content, contentType);
                         <label>状态</label>
                         <div class="detail-info-value">${phone.status}</div>
                     </div>
-                    <button id="enterCommentsBtn" class="modal-button" data-phone-id="${phone.id}" style="margin-top: 20px;">进入安利区</button>
+                    <button id="enterCommentsBtn" class="modal-button" data-phone-id="${phone.id}" style="margin-top: 10px;">进入安利区</button>
+                    
+                    <!-- ★ 新增的反馈数据容器 ★ -->
+                    <div id="giscusFeedback" class="giscus-feedback-container">
+                        正在加载社区反馈...
+                    </div>
                 `;
                 
+                // 绑定常规事件 (逻辑不变)
                 ui.detailContainer.querySelector('#copyAuthorId').addEventListener('click', function() {
-                    const idToCopy = this.dataset.id;
-                    navigator.clipboard.writeText(idToCopy).then(() => {
-                        showTopToast(`已复制作者ID: ${idToCopy}`, 2000);
-                    }).catch(err => {
-                        console.error('复制失败', err);
-                        alert('复制失败，请手动复制。');
-                    });
+                    navigator.clipboard.writeText(this.dataset.id).then(() => showTopToast(`已复制作者ID: ${this.dataset.id}`, 2000));
                 });
                 
                 ui.detailContainer.querySelector('#enterCommentsBtn').addEventListener('click', function() {
-                    const phoneId = this.dataset.phoneId;
-                    const phone = phoneData.find(p => p.id === phoneId);
+                    const phone = phoneData.find(p => p.id === this.dataset.phoneId);
                     if(!phone) return;
-
                     const hasSeenNotice = localStorage.getItem('communityNoticeSeen') === 'true';
-                    
                     if (hasSeenNotice) {
-                        // 如果已经看过，直接打开评论区
                         ui.detailModal.classList.remove('show');
                         setTimeout(() => showGiscusComments(phone.id, phone.name), 200);
                     } else {
-                        // 否则，显示社区须知弹窗
                         const noticeModal = document.getElementById('communityNoticeModal');
                         noticeModal.classList.add('show');
-
-                        // 为确认按钮绑定一次性事件
                         const confirmBtn = document.getElementById('confirmNoticeBtn');
-                        const newConfirmBtn = confirmBtn.cloneNode(true); // 移除旧监听器
+                        const newConfirmBtn = confirmBtn.cloneNode(true);
                         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
                         newConfirmBtn.addEventListener('click', () => {
-                            // 检查“不再提醒”复选框状态
                             if (document.getElementById('dontRemindCheckbox').checked) {
                                 localStorage.setItem('communityNoticeSeen', 'true');
-                                document.getElementById('showNoticeBell').style.display = 'block'; // 显示铃铛
+                                document.getElementById('showNoticeBell').style.display = 'block';
                             }
-                            noticeModal.classList.remove('show'); // 关闭须知弹窗
-                            ui.detailModal.classList.remove('show'); // 关闭详情弹窗
-                            setTimeout(() => showGiscusComments(phone.id, phone.name), 200); // 打开评论区
+                            noticeModal.classList.remove('show');
+                            ui.detailModal.classList.remove('show');
+                            setTimeout(() => showGiscusComments(phone.id, phone.name), 200);
                         });
+                    }
+                });
+
+                // ★ 新增：异步获取并渲染 Giscus 统计数据 ★
+                const feedbackContainer = document.getElementById('giscusFeedback');
+                fetchGiscusStats(phone.id, phone.name).then(stats => {
+                    if (stats) {
+                        if (stats.reactions.length === 0 && stats.comments === 0) {
+                            feedbackContainer.textContent = '暂无社区反馈，快来第一个安利吧！';
+                        } else {
+                            const reactionsHTML = stats.reactions.map(r => `
+                                <div class="reaction-item">${r.emoji} ${r.count}</div>
+                            `).join('');
+                            
+                            feedbackContainer.innerHTML = `
+                                <div class="giscus-reactions">${reactionsHTML}</div>
+                                <div class="giscus-comments">
+                                    <a href="#" id="commentsLink">💬 ${stats.comments} 条评论</a>
+                                </div>
+                            `;
+                            // 让评论数也成为一个可以点击进入安利区的按钮
+                            feedbackContainer.querySelector('#commentsLink').addEventListener('click', (e) => {
+                                e.preventDefault();
+                                ui.detailContainer.querySelector('#enterCommentsBtn').click();
+                            });
+                            feedbackContainer.classList.add('loaded');
+                        }
+                    } else {
+                        feedbackContainer.textContent = '无法加载社区反馈';
                     }
                 });
 
