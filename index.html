@@ -332,10 +332,10 @@
         #memoryModal .editor-btn{padding:10px 18px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;color:var(--hold-border);background:var(--bg-day-element);box-shadow:4px 4px 8px var(--shadow-dark-day),-4px -4px 8px var(--shadow-light-day);transition:all .2s ease}body.dark-mode #memoryModal .editor-btn{color:var(--hold-border);background:var(--bg-night-element);box-shadow:4px 4px 8px var(--shadow-dark-night),-4px -4px 8px var(--shadow-light-night)}
         #memoryModal .editor-btn:active{box-shadow:inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day)}body.dark-mode #memoryModal .editor-btn:active{box-shadow:inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night)}
         #memoryModal #delete-note-btn{color:#f56565}
-        #memoryModal .editor-content{flex-grow:1;display:flex;flex-direction:column;gap:10px;padding:10px 5px}
+        #memoryModal .editor-content{flex-grow:1;display:flex;flex-direction:column;gap:10px;padding:10px 5px; overflow-y: auto; min-height: 0;}
         #memoryModal #note-title-input,#memoryModal #note-content-textarea{width:100%;border:none;background:transparent;color:inherit;font-size:18px;padding:10px}
         #memoryModal #note-title-input{font-size:24px;font-weight:bold;flex-shrink:0}
-        #memoryModal #note-content-textarea{flex-grow:1;resize:none;line-height:1.6}
+       #memoryModal #note-content-textarea{resize:none;line-height:1.6}
         #memoryModal #note-title-input:focus,#memoryModal #note-content-textarea:focus{outline:none}
         #memoryFolderModal .modal-content, #memoryPhotoDetailsModal .modal-content { max-width: 400px; }
         #memoryPhotoDetailsModal #upload-thumbnail { max-width: 100px; max-height: 100px; border-radius: 8px; margin: 10px auto; object-fit: cover; }
@@ -2213,15 +2213,16 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     padding-bottom: 10px;
 }
 #memoryModal #note-content-editor {
-    flex-grow: 1;
+    /* [修改] 移除 flex-grow，让其高度由内容决定，由父容器 .editor-content 滚动 */
     resize: none;
     line-height: 1.7;
     font-size: 16px;
     padding: 10px;
     -webkit-user-select: text; /* 允许在iOS上选择文本 */
     user-select: text;
-    overflow-y: auto; /* [修改] 允许内容区域滚动 */
+    /* [修改] 移除此处的滚动，交由父容器处理 */
 }
+
 
 #memoryModal #note-content-editor:focus {
     outline: none;
@@ -4451,7 +4452,7 @@ const getDefaultConfig = () => ({
     }
 
 
-    async function saveToGithub(path, content, commitMessage, sha = null) {
+    async function saveToGithub(path, content, commitMessage, sha = null) { // sha is now effectively a fallback
         if (!checkConfig(true)) {
             updateSyncStatus('error', '配置不完整，无法同步。');
             return { sha: null, error: "配置不完整" };
@@ -4460,24 +4461,25 @@ const getDefaultConfig = () => ({
         const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
         const body = { message: commitMessage, content: content, branch: 'main' };
 
-        // ============ [核心修复逻辑] ============
-        // 如果调用时没有提供 sha，主动去服务器查询一次
-        if (!sha) {
-            try {
-                const { data: remoteFileData } = await fetchFromGithub(path);
-                // 如果文件在服务器上已存在，就使用它的 sha
-                if (remoteFileData && remoteFileData.sha) {
-                    console.warn(`Local sha for "${path}" was missing. Fetched remote sha to prevent 422 error.`);
-                    sha = remoteFileData.sha;
-                }
-            } catch (e) {
-                // 如果查询失败，可能是网络问题，按原流程继续尝试，让错误处理接管
-                console.error(`Pre-save check for "${path}" failed`, e);
+        // ============ [核心修复逻辑 V2] ============
+        // 在每次写入前，都主动获取最新的 sha，从根本上解决冲突问题
+        try {
+            const { data: remoteFileData, response: fetchResponse } = await fetchFromGithub(path);
+            // 如果文件存在(响应不是404)，就使用它的 sha
+            if (fetchResponse && fetchResponse.status !== 404 && remoteFileData && remoteFileData.sha) {
+                console.log(`Fetched latest sha for "${path}" before saving.`);
+                body.sha = remoteFileData.sha;
+            } else {
+                // 如果文件不存在 (404)，则不提供 sha，这是创建新文件的正确行为
+                console.log(`File "${path}" not found on remote. Proceeding with creation.`);
             }
+        } catch (e) {
+            // 如果在获取 sha 的过程中出错，则中止保存操作
+            const userMessage = await handleApiError(`准备写入 ${path} 时`, e);
+            updateSyncStatus('error', userMessage);
+            return { sha: null, error: userMessage };
         }
-        // =====================================
-
-        if (sha) { body.sha = sha; }
+        // =========================================
 
         try {
             const response = await fetch(url, {
@@ -4489,9 +4491,9 @@ const getDefaultConfig = () => ({
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                // 422 错误现在也应被更友好的冲突信息捕获
+                // 专门处理仍然可能发生的、极小概率的竞争条件
                 if (response.status === 409 || response.status === 422 || (errorData.message && errorData.message.includes("sha "))) {
-                    const conflictMessage = `同步冲突：云端数据已被更新。请刷新页面或使用“手动同步与修复”功能后再试。`;
+                    const conflictMessage = `同步冲突：在您保存的瞬间，云端数据被另一处修改。请稍后重试。`;
                     updateSyncStatus('error', conflictMessage);
                     return { sha: null, error: conflictMessage };
                 }
@@ -4500,14 +4502,20 @@ const getDefaultConfig = () => ({
 
             const data = await response.json();
             updateSyncStatus('synced', '同步成功！');
-            return { sha: data.content.sha, error: null };
+            
+            // [重要] 返回新的 sha，以便全局变量可以更新
+            const newSha = data.content.sha;
+            if (path === 'config.json') configSha = newSha;
+            if (path === 'memory/data.json') MemoryApp.updateSha(newSha); // 需要在MemoryApp中添加一个更新sha的函数
+            
+            return { sha: newSha, error: null };
+            
         } catch (error) {
             const userMessage = await handleApiError(`写入 ${path}`, error);
             updateSyncStatus('error', userMessage);
             return { sha: null, error: userMessage };
         }
     }
-
 
     
     async function uploadFileViaGitData({ file, path, commitMessage, onProgress }) {
@@ -5744,16 +5752,17 @@ const getDefaultConfig = () => ({
                 isSaving = true;
                 updateStatus('保存中...');
                 const content = utf8_to_b64(JSON.stringify(memoryCache, null, 2));
-                const result = await saveToGithub(MEMORY_DATA_PATH, content, 'Update memory data', memoryDataSha);
-                if (result.sha) { 
-                    memoryDataSha = result.sha; 
-                    updateStatus('已同步'); 
-                } else { 
+                // 注意：这里不再传递 memoryDataSha，让 saveToGithub 自己去获取最新的
+                const result = await saveToGithub(MEMORY_DATA_PATH, content, 'Update memory data'); 
+                
+                // saveToGithub 内部现在会处理 sha 的更新，这里主要是处理UI状态
+                if (!result.sha) { 
                     updateStatus('保存失败', true, result.error); 
                 }
                 isSaving = false;
             }, 1500);
         }
+
         
         function showPage(pageId) { ui.appContainer.querySelectorAll(':scope > .page').forEach(p => p.classList.remove('active')); ui.appContainer.querySelector(`#${pageId}`).classList.add('active'); }
         function showView(viewId, sectionId) { const section = ui.appContainer.querySelector(`#${sectionId}`); section.querySelectorAll(':scope > .page').forEach(p => p.classList.remove('active')); section.querySelector(`#${viewId}`).classList.add('active'); showPage(sectionId); }
@@ -6769,7 +6778,11 @@ const getDefaultConfig = () => ({
                 ui.uploadBtn.addEventListener("click", uploadFile);
             },
             getAlbumItems: () => memoryCache ? memoryCache.album.items : [],
-            scheduleSave // 新增这一行
+            scheduleSave,
+            // [新增] 供外部调用的 sha 更新函数
+            updateSha: (newSha) => {
+                memoryDataSha = newSha;
+            }
         };
 
     })();
