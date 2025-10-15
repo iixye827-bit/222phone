@@ -2793,9 +2793,8 @@ body.dark-mode .reaction-item {
     text-decoration: underline;
 }
 /* =============================================================== */
-/* ============= [新增] 后台保活功能专属样式 v2 ================ */
+/* ============= [新增] 后台保活功能专属样式 v3 ================ */
 /* =============================================================== */
-/* [V2 修正] 改用 filter: drop-shadow 实现更精准的辉光效果 */
 @keyframes icon-glow-blue {
   0% {
     filter: drop-shadow(0 0 4px var(--hold-border, rgba(91, 153, 226, 0.7)));
@@ -2808,28 +2807,16 @@ body.dark-mode .reaction-item {
   }
 }
 
-.jelly-menu-btn.keep-alive-active {
+/* [V3 修正] 辉光效果应用到主悬浮球的包裹层上 */
+.jelly-ball-wrapper.keep-alive-wrapper-active > #floating-jellyfish-ball {
     animation: icon-glow-blue 2.5s ease-in-out infinite;
 }
 
-/* [新增] 后台保活运行时长计时器样式 */
-#keepAliveTimerDisplay {
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-family: monospace;
-    z-index: 2000;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-#keepAliveTimerDisplay.show {
-    opacity: 1;
+/* [V3 修正] 菜单按钮只改变颜色来指示状态，不再播放动画 */
+.jelly-menu-btn.keep-alive-active {
+    color: var(--hold-border, #5B99E2);
+    /* 也可以加一点缩放效果来强调 */
+    transform: var(--transform-end) scale(1.1); 
 }
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
@@ -3722,12 +3709,14 @@ body.dark-mode .reaction-item {
     const CURRENT_APP_VERSION = '3.7.0';
     let GITHUB_CONFIG = {}, configSha = null, isManagementMode = false, isEditingButton = false, editingButtonData = null;
     
-    // [V2 修正] 后台保活功能的状态变量
-    let isKeepAliveActive = false;
-    let keepAliveAudio = null;
-    let isAudioContextUnlocked = false; // [新增] 用于标记iOS音频上下文是否已解锁
-    let keepAliveTimerId = null;        // [新增] 用于存储计时器的ID
-    let keepAliveSeconds = 0;           // [新增] 计时器秒数
+// [V3 修正] 后台保活功能的状态变量
+let isKeepAliveActive = false;
+let keepAliveAudio = null;
+let isAudioContextUnlocked = false;
+let keepAliveTimerId = null;
+let keepAliveSeconds = 0;
+let originalDocumentTitle = document.title; // [新增] 存储原始页面标题
+
 
     const navContainer = document.getElementById('navContainer'), pageOverlay = document.getElementById('pageOverlay');
 
@@ -4149,9 +4138,19 @@ const getDefaultConfig = () => ({
         
         function _onDragEnd(e) {
             clearTimeout(longPressTimer);
-            if (isLongPressActive) { if (activeMenuBtn) { _onMenuClick(activeMenuBtn); } _closeMenu(); } 
-            else if (!isDragging) { /* Short click, do nothing for now */ } 
-            else { _snapToEdge(); }
+            
+            // [V3 修正] 区分长按、短按和拖拽结束
+            if (isLongPressActive) { 
+                // 长按结束，执行菜单按钮功能
+                if (activeMenuBtn) { _onMenuClick(activeMenuBtn); } 
+                _closeMenu(); 
+            } else if (!isDragging) { 
+                // 这是一个短按 (Tap)
+                toggleKeepAlive(); // 直接调用后台保活切换
+            } else { 
+                // 拖拽结束，贴边
+                _snapToEdge(); 
+            }
             
             ball.classList.remove('dragging');
             wrapper.classList.remove('dragging');
@@ -4165,6 +4164,7 @@ const getDefaultConfig = () => ({
             document.removeEventListener('mouseup', _onDragEnd);
             document.removeEventListener('touchend', _onDragEnd);
         }
+
         
         function _snapToEdge() { const rect=wrapper.getBoundingClientRect(); const isRight=rect.left+rect.width/2>window.innerWidth/2; wrapper.style.left=`${isRight?window.innerWidth-rect.width:0}px`; localStorage.setItem('jellyBallPosition',JSON.stringify({x:wrapper.offsetLeft,y:wrapper.offsetTop})); }
         function _resetIdleTimer() { clearTimeout(idleTimer); wrapper.classList.remove('idle','snap-left','snap-right'); idleTimer=setTimeout(()=>{const rect=wrapper.getBoundingClientRect(); wrapper.classList.add((rect.left+rect.width/2)>window.innerWidth/2?'snap-right':'snap-left','idle'); _closeMenu(); },3000); }
@@ -4518,17 +4518,11 @@ const getDefaultConfig = () => ({
     // ===== [END] FLOATING JELLYFISH BALL LOGIC =====
 
     // ===============================================================
-    // ================ [V2 修正] 后台保活功能核心逻辑 ================
+    // ================ [V3 修正] 后台保活功能核心逻辑 ================
     // ===============================================================
     
-    /**
-     * [V2 新增] 解锁音频上下文，专门用于解决iOS的播放限制。
-     * 此函数应该在用户首次与页面交互时被调用一次。
-     */
     function unlockAudioContext() {
         if (isAudioContextUnlocked || !keepAliveAudio) return;
-        
-        // 尝试播放然后立即暂停，这个过程用户无感知
         const playPromise = keepAliveAudio.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
@@ -4536,17 +4530,13 @@ const getDefaultConfig = () => ({
                 isAudioContextUnlocked = true;
                 console.log('Audio context unlocked for background playback.');
             }).catch(error => {
-                // 即便解锁失败，也不打扰用户，因为后续的真实播放还会尝试
                 console.warn('Audio context unlock failed silently:', error);
             });
         } else {
-             isAudioContextUnlocked = true; // 在不支持Promise的旧浏览器中，假定已解锁
+             isAudioContextUnlocked = true;
         }
     }
     
-    /**
-     * [V2 修正] 创建音频播放器，现在此函数也会被“音频解锁”功能提前调用。
-     */
     function createKeepAliveAudio() {
         if (keepAliveAudio) return;
         keepAliveAudio = new Audio();
@@ -4557,9 +4547,6 @@ const getDefaultConfig = () => ({
         document.body.appendChild(keepAliveAudio);
     }
 
-    /**
-     * [V2 修正] 格式化秒数为 HH:MM:SS 格式
-     */
     function formatTime(seconds) {
         const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
         const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -4568,48 +4555,58 @@ const getDefaultConfig = () => ({
     }
 
     /**
-     * [V2 修正] 切换后台保活的状态，包含计时器和更强的错误处理。
+     * [V3 修正] 以适配短按交互、页面标题计时器和主球辉光。
      */
     function toggleKeepAlive() {
-        const keepAliveBtn = document.querySelector('.jelly-menu-btn[data-action-id="keep_alive"]');
-        const timerDisplay = document.getElementById('keepAliveTimerDisplay');
+        const wrapper = document.querySelector('.jelly-ball-wrapper');
+        const keepAliveMenuBtn = document.querySelector('.jelly-menu-btn[data-action-id="keep_alive"]');
 
         if (isKeepAliveActive) {
             // --- 关闭后台保活 ---
             if (keepAliveAudio) keepAliveAudio.pause();
-            if (keepAliveBtn) keepAliveBtn.classList.remove('keep-alive-active');
+            if (wrapper) wrapper.classList.remove('keep-alive-wrapper-active');
+            if (keepAliveMenuBtn) keepAliveMenuBtn.classList.remove('keep-alive-active');
             
-            clearInterval(keepAliveTimerId); // 停止计时器
-            timerDisplay.classList.remove('show'); // 隐藏计时器
+            clearInterval(keepAliveTimerId);
+            document.title = originalDocumentTitle; // 恢复原始标题
             
             isKeepAliveActive = false;
             showTopToast('后台保活已关闭', 2000);
         } else {
             // --- 开启后台保活 ---
-            // 注意：此时音频上下文应该已经被解锁了
+            if (!isAudioContextUnlocked) {
+                 // 如果音频尚未解锁，先尝试解锁
+                unlockAudioContext();
+            }
+
             const playPromise = keepAliveAudio.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
-                    if (keepAliveBtn) keepAliveBtn.classList.add('keep-alive-active');
+                    if (wrapper) wrapper.classList.add('keep-alive-wrapper-active');
+                    if (keepAliveMenuBtn) keepAliveMenuBtn.classList.add('keep-alive-active');
                     isKeepAliveActive = true;
                     showTopToast('后台保活已开启');
-
-                    // 启动计时器
+                    
+                    originalDocumentTitle = document.title;
                     keepAliveSeconds = 0;
-                    timerDisplay.textContent = '后台保活: 00:00:00';
-                    timerDisplay.classList.add('show');
+                    document.title = `📻 00:00:00 | ${originalDocumentTitle}`;
+
                     keepAliveTimerId = setInterval(() => {
                         keepAliveSeconds++;
-                        timerDisplay.textContent = `后台保活: ${formatTime(keepAliveSeconds)}`;
+                        document.title = `📻 ${formatTime(keepAliveSeconds)} | ${originalDocumentTitle}`;
                     }, 1000);
 
                 }).catch(error => {
                     console.error("后台保活音频播放失败:", error);
-                    // 提供更明确的提示
-                    alert("无法启动后台保活功能。如果您是首次使用或长时间未操作页面，请先在页面上任意点击一下，然后再试。");
-                    // 确保状态正确
+                    // 针对iOS的最终提示
+                    if (/NotAllowedError/.test(error.name)) {
+                         alert("无法启动后台保活功能。\n\n[iOS用户] 请确保您的设备未处于“静音模式”或“低电量模式”，这可能会阻止音频播放。请尝试在页面上再次点击后重试。");
+                    } else {
+                         alert("无法启动后台保活功能，可能是浏览器限制所致。");
+                    }
                     isKeepAliveActive = false;
-                    if (keepAliveBtn) keepAliveBtn.classList.remove('keep-alive-active');
+                    if (wrapper) wrapper.classList.remove('keep-alive-wrapper-active');
+                    if (keepAliveMenuBtn) keepAliveMenuBtn.classList.remove('keep-alive-active');
                 });
             }
         }
@@ -4617,6 +4614,7 @@ const getDefaultConfig = () => ({
     // ===============================================================
     // ========================= [新增结束] ==========================
     // ===============================================================
+
 
 
     const utf8_to_b64 = (str) => btoa(unescape(encodeURIComponent(str)));
@@ -9633,7 +9631,6 @@ const blob = b64toBlob(blobData.content, contentType);
             </div>
         </div>
     </div>
-    <!-- [新增] 后台保活运行时长显示元素 -->
-    <div id="keepAliveTimerDisplay"></div>
+
 </body>
 </html>
