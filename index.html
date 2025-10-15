@@ -2792,35 +2792,77 @@ body.dark-mode .reaction-item {
 .giscus-comments a:hover {
     text-decoration: underline;
 }
-/* =============================================================== */
-/* ============= [新增] 后台保活功能专属样式 v3 ================ */
-/* =============================================================== */
-@keyframes icon-glow-blue {
-  0% {
-    filter: drop-shadow(0 0 4px var(--hold-border, rgba(91, 153, 226, 0.7)));
-  }
-  50% {
-    filter: drop-shadow(0 0 14px var(--hold-border, rgba(91, 153, 226, 1)));
-  }
-  100% {
-    filter: drop-shadow(0 0 4px var(--hold-border, rgba(91, 153, 226, 0.7)));
-  }
+
+/* [新增] 相册自定义背景样式 */
+#memoryModal .album-item.has-custom-bg {
+    color: white; /* 强制文字颜色为白色以保证可见性 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px; /* 调整内边距，让文字居中 */
 }
 
-/* [V3 修正] 辉光效果应用到主悬浮球的包裹层上 */
-.jelly-ball-wrapper.keep-alive-wrapper-active > #floating-jellyfish-ball {
-    animation: icon-glow-blue 2.5s ease-in-out infinite;
+#memoryModal .album-item.has-custom-bg .folder-name {
+    /* 为文字添加边缘阴影，增强在各种背景下的可读性 */
+    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8), 0px 0px 8px rgba(0, 0, 0, 0.6);
+    font-size: 1.1em;
+    text-align: center;
 }
 
-/* [V3 修正] 菜单按钮只改变颜色来指示状态，不再播放动画 */
-.jelly-menu-btn.keep-alive-active {
-    color: var(--hold-border, #5B99E2);
-    /* 也可以加一点缩放效果来强调 */
-    transform: var(--transform-end) scale(1.1); 
+/* 当有自定义背景时，隐藏图标，并重置信息样式 */
+#memoryModal .album-item.has-custom-bg .folder-icon,
+#memoryModal .album-item.has-custom-bg .manage-checkbox {
+    display: none;
 }
-/* =============================================================== */
-/* ========================= [新增结束] ========================== */
-/* =============================================================== */
+
+#memoryModal .album-item.has-custom-bg .album-info {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+    background-color: rgba(0,0,0,0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* ===== [新增] 相册排序拖拽把手样式 ===== */
+.album-item .sort-handle {
+    display: none; /* 默认隐藏 */
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 24px;   /* 增大图标尺寸 */
+    font-weight: bold;
+    color: #b0b0b0; /* 淡灰色 */
+    cursor: grab;
+    padding: 5px;
+    z-index: 10;
+    transition: color 0.2s, transform 0.2s;
+    -webkit-user-select: none; /* 防止拖拽时选中文字 */
+    user-select: none;
+    line-height: 1; /* 确保垂直居中 */
+}
+
+body.dark-mode .album-item .sort-handle {
+    color: #777; /* 夜间模式下稍亮的灰色 */
+}
+
+/* 管理模式下显示把手 */
+.album-item.manage-mode .sort-handle {
+    display: block;
+}
+
+.album-item .sort-handle:hover {
+    color: var(--hold-border); /* 悬停时高亮 */
+    transform: scale(1.1);
+}
+
+.album-item .sort-handle:active {
+    cursor: grabbing;
+}
 
 
     </style>
@@ -3708,19 +3750,7 @@ body.dark-mode .reaction-item {
     // [JS - V12.5.0 "Cascade Select"]
     const CURRENT_APP_VERSION = '3.7.0';
     let GITHUB_CONFIG = {}, configSha = null, isManagementMode = false, isEditingButton = false, editingButtonData = null;
-    
-// [V3 修正] 后台保活功能的状态变量
-let isKeepAliveActive = false;
-let keepAliveAudio = null;
-let isAudioContextUnlocked = false;
-let keepAliveTimerId = null;
-let keepAliveSeconds = 0;
-let originalDocumentTitle = document.title; // [新增] 存储原始页面标题
-
-
     const navContainer = document.getElementById('navContainer'), pageOverlay = document.getElementById('pageOverlay');
-
-
     const syncStatusIndicator = document.getElementById('sync-status-indicator');
     const syncErrorModal = document.getElementById('syncErrorModal');
     const iframeModal = document.getElementById('iframeModal'), iframeModalContent = iframeModal.querySelector('.iframe-modal-content'), iframeEl = document.getElementById('iframeContent'), swipeHint = document.getElementById('swipeHint'), returnConfirmationToast = document.getElementById('returnConfirmationToast');
@@ -4023,10 +4053,8 @@ const getDefaultConfig = () => ({
             { id: 'folder', icon: '📁', title: '文件夹' },
             { id: 'return', icon: '🔙', title: '返回' },
             { id: 'memo', icon: '📝', title: '备忘录' },
-            { id: 'quick_switch', icon: '🔗', title: '快速切换' },
-            { id: 'keep_alive', icon: '📻', title: '后台保活' } // [新增] 后台保活功能
+            { id: 'quick_switch', icon: '🔗', title: '快速切换' }
         ];
-
 
         function _create() {
             if (currentConfig.settings.jellyBall?.enabled !== true) return;
@@ -4138,19 +4166,9 @@ const getDefaultConfig = () => ({
         
         function _onDragEnd(e) {
             clearTimeout(longPressTimer);
-            
-            // [V3 修正] 区分长按、短按和拖拽结束
-            if (isLongPressActive) { 
-                // 长按结束，执行菜单按钮功能
-                if (activeMenuBtn) { _onMenuClick(activeMenuBtn); } 
-                _closeMenu(); 
-            } else if (!isDragging) { 
-                // 这是一个短按 (Tap)
-                toggleKeepAlive(); // 直接调用后台保活切换
-            } else { 
-                // 拖拽结束，贴边
-                _snapToEdge(); 
-            }
+            if (isLongPressActive) { if (activeMenuBtn) { _onMenuClick(activeMenuBtn); } _closeMenu(); } 
+            else if (!isDragging) { /* Short click, do nothing for now */ } 
+            else { _snapToEdge(); }
             
             ball.classList.remove('dragging');
             wrapper.classList.remove('dragging');
@@ -4164,7 +4182,6 @@ const getDefaultConfig = () => ({
             document.removeEventListener('mouseup', _onDragEnd);
             document.removeEventListener('touchend', _onDragEnd);
         }
-
         
         function _snapToEdge() { const rect=wrapper.getBoundingClientRect(); const isRight=rect.left+rect.width/2>window.innerWidth/2; wrapper.style.left=`${isRight?window.innerWidth-rect.width:0}px`; localStorage.setItem('jellyBallPosition',JSON.stringify({x:wrapper.offsetLeft,y:wrapper.offsetTop})); }
         function _resetIdleTimer() { clearTimeout(idleTimer); wrapper.classList.remove('idle','snap-left','snap-right'); idleTimer=setTimeout(()=>{const rect=wrapper.getBoundingClientRect(); wrapper.classList.add((rect.left+rect.width/2)>window.innerWidth/2?'snap-right':'snap-left','idle'); _closeMenu(); },3000); }
@@ -4190,11 +4207,9 @@ const getDefaultConfig = () => ({
                 case 'folder': openMemoryAndSwitch('cloud'); break;
                 case 'return': if (iframeModal.classList.contains('active')) { closeIframeModal(); } break;
                 case 'quick_switch': _showQuickSwitchMenu(); break;
-                case 'keep_alive': toggleKeepAlive(); break; // [新增] 处理后台保活点击事件
             }
             _closeMenu();
         }
-
 
         function _showQuickSwitchMenu() {
             let existingMenu = document.getElementById('quick-switch-menu-overlay');
@@ -4517,108 +4532,7 @@ const getDefaultConfig = () => ({
     })();
     // ===== [END] FLOATING JELLYFISH BALL LOGIC =====
 
-    // ===============================================================
-    // ================ [V3 修正] 后台保活功能核心逻辑 ================
-    // ===============================================================
-    
-    function unlockAudioContext() {
-        if (isAudioContextUnlocked || !keepAliveAudio) return;
-        const playPromise = keepAliveAudio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                keepAliveAudio.pause();
-                isAudioContextUnlocked = true;
-                console.log('Audio context unlocked for background playback.');
-            }).catch(error => {
-                console.warn('Audio context unlock failed silently:', error);
-            });
-        } else {
-             isAudioContextUnlocked = true;
-        }
-    }
-    
-    function createKeepAliveAudio() {
-        if (keepAliveAudio) return;
-        keepAliveAudio = new Audio();
-        keepAliveAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-        keepAliveAudio.loop = true;
-        keepAliveAudio.playsInline = true;
-        keepAliveAudio.volume = 0;
-        document.body.appendChild(keepAliveAudio);
-    }
-
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
-        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${h}:${m}:${s}`;
-    }
-
-    /**
-     * [V3 修正] 以适配短按交互、页面标题计时器和主球辉光。
-     */
-    function toggleKeepAlive() {
-        const wrapper = document.querySelector('.jelly-ball-wrapper');
-        const keepAliveMenuBtn = document.querySelector('.jelly-menu-btn[data-action-id="keep_alive"]');
-
-        if (isKeepAliveActive) {
-            // --- 关闭后台保活 ---
-            if (keepAliveAudio) keepAliveAudio.pause();
-            if (wrapper) wrapper.classList.remove('keep-alive-wrapper-active');
-            if (keepAliveMenuBtn) keepAliveMenuBtn.classList.remove('keep-alive-active');
-            
-            clearInterval(keepAliveTimerId);
-            document.title = originalDocumentTitle; // 恢复原始标题
-            
-            isKeepAliveActive = false;
-            showTopToast('后台保活已关闭', 2000);
-        } else {
-            // --- 开启后台保活 ---
-            if (!isAudioContextUnlocked) {
-                 // 如果音频尚未解锁，先尝试解锁
-                unlockAudioContext();
-            }
-
-            const playPromise = keepAliveAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    if (wrapper) wrapper.classList.add('keep-alive-wrapper-active');
-                    if (keepAliveMenuBtn) keepAliveMenuBtn.classList.add('keep-alive-active');
-                    isKeepAliveActive = true;
-                    showTopToast('后台保活已开启');
-                    
-                    originalDocumentTitle = document.title;
-                    keepAliveSeconds = 0;
-                    document.title = `📻 00:00:00 | ${originalDocumentTitle}`;
-
-                    keepAliveTimerId = setInterval(() => {
-                        keepAliveSeconds++;
-                        document.title = `📻 ${formatTime(keepAliveSeconds)} | ${originalDocumentTitle}`;
-                    }, 1000);
-
-                }).catch(error => {
-                    console.error("后台保活音频播放失败:", error);
-                    // 针对iOS的最终提示
-                    if (/NotAllowedError/.test(error.name)) {
-                         alert("无法启动后台保活功能。\n\n[iOS用户] 请确保您的设备未处于“静音模式”或“低电量模式”，这可能会阻止音频播放。请尝试在页面上再次点击后重试。");
-                    } else {
-                         alert("无法启动后台保活功能，可能是浏览器限制所致。");
-                    }
-                    isKeepAliveActive = false;
-                    if (wrapper) wrapper.classList.remove('keep-alive-wrapper-active');
-                    if (keepAliveMenuBtn) keepAliveMenuBtn.classList.remove('keep-alive-active');
-                });
-            }
-        }
-    }
-    // ===============================================================
-    // ========================= [新增结束] ==========================
-    // ===============================================================
-
-
-
     const utf8_to_b64 = (str) => btoa(unescape(encodeURIComponent(str)));
-
     const b64_to_utf8 = (str) => decodeURIComponent(escape(atob(str)));
 
     function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
@@ -6011,6 +5925,7 @@ const getDefaultConfig = () => ({
             viewerContext: { items: [], index: -1 },
             photoUploadQueue: [],
             isSavingPhoto: false,
+            skipAllPhotoDetails: false, // [新增] 用于标记是否跳过后续所有照片详情
         };
 
         function getInitialData() {
@@ -6038,7 +5953,7 @@ const getDefaultConfig = () => ({
                 }
         }
         
-        function scheduleSave() {
+         function scheduleSave() {
             if (isSaving) return;
             clearTimeout(saveTimeout);
             updateStatus('有未保存的更改');
@@ -6046,16 +5961,18 @@ const getDefaultConfig = () => ({
                 isSaving = true;
                 updateStatus('保存中...');
                 const content = utf8_to_b64(JSON.stringify(memoryCache, null, 2));
-                // 注意：这里不再传递 memoryDataSha，让 saveToGithub 自己去获取最新的
                 const result = await saveToGithub(MEMORY_DATA_PATH, content, 'Update memory data'); 
                 
-                // saveToGithub 内部现在会处理 sha 的更新，这里主要是处理UI状态
-                if (!result.sha) { 
+                // [修改] 增加保存成功或失败后的状态更新
+                if (result.sha) {
+                    updateStatus('已同步');
+                } else { 
                     updateStatus('保存失败', true, result.error); 
                 }
                 isSaving = false;
             }, 1500);
         }
+
 
         
         function showPage(pageId) { ui.appContainer.querySelectorAll(':scope > .page').forEach(p => p.classList.remove('active')); ui.appContainer.querySelector(`#${pageId}`).classList.add('active'); }
@@ -6098,11 +6015,22 @@ const getDefaultConfig = () => ({
                 el.className = `album-item ${state.isAlbumManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`;
                 el.dataset.albumId = folder.id;
                 el.dataset.action = "open-album-folder";
-                el.innerHTML = `<input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div>`;
+                el.innerHTML = `<span class="sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div>`;
+
+                
+                // [新增] 应用自定义背景
+                if (folder.background) {
+                    el.classList.add('has-custom-bg');
+                    el.style.backgroundImage = `url(${folder.background})`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                }
+
                 ui.albumList.appendChild(el);
             });
-                        if (memoryCache.album.folders.length === 0) ui.albumList.innerHTML = `<p class="empty-list-placeholder">没有相册</p>`;
+            if (memoryCache.album.folders.length === 0) ui.albumList.innerHTML = `<p class="empty-list-placeholder">没有相册</p>`;
         }
+
         function renderPhotos() {
             if (photoObserver) photoObserver.disconnect();
             ui.photoList.innerHTML = '';
@@ -6408,8 +6336,22 @@ const getDefaultConfig = () => ({
                 target.textContent = state.isAlbumManageMode ? '取消' : '管理';
                 ui.albumManageControls.classList.toggle('active', state.isAlbumManageMode);
                 if (!state.isAlbumManageMode) state.albumFoldersToDelete = [];
+                
+                // [新增] 替换全局漫游按钮的逻辑
+                const globalWanderBtn = document.querySelector('#album-folder-view [data-action="wander-global"]');
+                if (globalWanderBtn) {
+                     if (state.isAlbumManageMode) {
+                        // 在管理模式下，全局漫游没有意义，可以隐藏或禁用
+                        globalWanderBtn.style.display = 'none';
+                    } else {
+                        // 退出管理模式时恢复
+                        globalWanderBtn.style.display = 'inline-block';
+                    }
+                }
+
                 renderAlbumFolders();
             },
+
             'select-all-album': () => {
                 if (state.albumFoldersToDelete.length === memoryCache.album.folders.length) {
                     state.albumFoldersToDelete = [];
@@ -6435,13 +6377,56 @@ const getDefaultConfig = () => ({
                     scheduleSave();
                 }
             },
-            'toggle-photo-manage': (target) => {
+             'toggle-photo-manage': (target) => {
                 state.isPhotoManageMode = !state.isPhotoManageMode;
                 target.textContent = state.isPhotoManageMode ? '取消' : '管理';
                 ui.photoManageControls.classList.toggle('active', state.isPhotoManageMode);
                 if (!state.isPhotoManageMode) state.photosToDelete = [];
+
+                // [修改] 替换漫游按钮的逻辑
+                const wanderBtn = document.querySelector('#photo-grid-view [data-action="wander-local"], #photo-grid-view [data-action="set-album-bg"]'); // 确保能选中按钮
+                if (wanderBtn) {
+                    if (state.isPhotoManageMode) {
+                        wanderBtn.innerHTML = '🖼️'; // [修改] 使用emoji图标
+                        wanderBtn.dataset.action = 'set-album-bg';
+                        wanderBtn.title = '设置相册背景'; // [新增] 增加提示
+                        wanderBtn.classList.remove('wander-btn');
+                    } else {
+                        wanderBtn.innerHTML = '💫'; // 恢复emoji
+                        wanderBtn.dataset.action = 'wander-local';
+                        wanderBtn.title = '漫游此相册'; // [新增] 恢复提示
+                        wanderBtn.classList.add('wander-btn');
+                    }
+                }
+                
                 renderPhotos();
             },
+
+            // [新增] 设置相册背景的action
+            'set-album-bg': () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = e => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const backgroundUrl = event.target.result;
+                        const album = memoryCache.album.folders.find(f => f.id === state.currentAlbumId);
+                        if (album) {
+                            album.background = backgroundUrl;
+                            scheduleSave();
+                            renderAlbumFolders(); // 返回相册列表时会看到更新
+                            showTopToast('相册背景已设置！', 2000);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            },
+
              'select-all-photos': () => {
                 const currentAlbumItems = memoryCache.album.items.filter(p => p.albumId === state.currentAlbumId);
                 if (state.photosToDelete.length === currentAlbumItems.length) {
@@ -6467,7 +6452,16 @@ const getDefaultConfig = () => ({
                 }
             },
             'save-photo-details': () => { state.isSavingPhoto = true; },
-            'skip-photo-details': () => { state.isSavingPhoto = false; document.getElementById('photo-title-input').value = ''; document.getElementById('photo-desc-input').value = ''; },
+            'skip-photo-details': () => {
+                // [修改] 如果当前是多文件上传，点击跳过将跳过后续所有
+                if (state.photoUploadQueue.length > 1) {
+                    state.skipAllPhotoDetails = true;
+                }
+                state.isSavingPhoto = false; 
+                document.getElementById('photo-title-input').value = ''; 
+                document.getElementById('photo-desc-input').value = '';
+            },
+
             'open-item': (target) => {
                 const itemId = parseInt(target.closest('[data-item-id]').dataset.itemId, 10);
                  if (state.isPhotoManageMode) {
@@ -6492,66 +6486,113 @@ const getDefaultConfig = () => ({
 
         async function processPhotoUploadQueue() {
             if (state.photoUploadQueue.length === 0) return;
-            const isSet = state.photoUploadQueue.length > 1;
-            ui.photosetToggleContainer.style.display = isSet ? 'block' : 'none';
-            ui.photosetToggle.checked = isSet;
+            const totalPhotos = state.photoUploadQueue.length;
+            
+            state.skipAllPhotoDetails = false;
+            let isPhotoSetMode = false;
+
+            const isBatch = totalPhotos > 1;
+            ui.photosetToggleContainer.style.display = isBatch ? 'block' : 'none';
+            ui.photosetToggle.checked = isBatch;
 
             let photosetData = { id: Date.now(), albumId: state.currentAlbumId, type: 'photoset', title: '', description: '', timestamp: Date.now(), photos: [] };
-        
-            for (let i = 0; i < state.photoUploadQueue.length; i++) {
-                const file = state.photoUploadQueue[i];
-                ui.photoDetailsModal.querySelector('#upload-thumbnail').src = URL.createObjectURL(file);
-                ui.photoDetailsModal.querySelector('#photo-details-modal-title').textContent = isSet ? `上传照片集 (${i + 1}/${state.photoUploadQueue.length})` : '添加照片信息';
-                ui.photoDetailsModal.classList.add('show');
+            
+            try {
+                for (let i = 0; i < totalPhotos; i++) {
+                    const file = state.photoUploadQueue[i];
+                    let title = '';
+                    let description = '';
+                    
+                    const shouldShowModal = i === 0 || (!isPhotoSetMode && !state.skipAllPhotoDetails);
 
-                let savePromise = new Promise(resolve => {
-                    const saveHandler = () => { ui.photoDetailsModal.querySelector('[data-action="save-photo-details"]').removeEventListener('click', saveHandler); resolve(); };
-                     ui.photoDetailsModal.querySelector('[data-action="save-photo-details"]').addEventListener('click', saveHandler);
-                    const skipHandler = (e) => { e.stopPropagation(); ui.photoDetailsModal.removeEventListener('click', skipDelegation); resolve(); };
-                    const skipDelegation = (e) => { if (e.target.closest('[data-action="skip-photo-details"]')) skipHandler(e); };
-                    ui.photoDetailsModal.addEventListener('click', skipDelegation);
-                });
-                await savePromise;
-
-                const title = document.getElementById('photo-title-input').value.trim();
-                const description = document.getElementById('photo-desc-input').value.trim();
-                const createSet = document.getElementById('create-photoset-toggle').checked;
-                
-                ui.photoDetailsModal.classList.remove('show');
-                const photoData = await uploadPhoto(file, title, description);
-                if (photoData) {
-                    if (isSet && createSet) {
-                         photosetData.photos.push(photoData);
-                         if (!photosetData.title) photosetData.title = title;
-                         if (!photosetData.description) photosetData.description = description;
-                    } else {
-                        memoryCache.album.items.push({
-                            id: Date.now() + i, albumId: state.currentAlbumId, type: 'photo',
-                            title: title, description: description, timestamp: Date.now(),
-                            ...photoData
+                    if (shouldShowModal) {
+                        updateStatus(`等待用户输入... (${i + 1}/${totalPhotos})`);
+                        ui.photoDetailsModal.querySelector('#upload-thumbnail').src = URL.createObjectURL(file);
+                        ui.photoDetailsModal.querySelector('#photo-details-modal-title').textContent = isBatch ? `上传照片 (${i + 1}/${totalPhotos})` : '添加照片信息';
+                        ui.photoDetailsModal.classList.add('show');
+                        
+                        await new Promise(resolve => {
+                            const saveHandler = () => { state.isSavingPhoto = true; cleanupAndResolve(); };
+                            const skipHandler = () => { actions['skip-photo-details'](); state.isSavingPhoto = false; cleanupAndResolve(); };
+                            const cleanupAndResolve = () => {
+                                saveBtn.removeEventListener('click', saveHandler);
+                                skipBtn.removeEventListener('click', skipHandler);
+                                resolve();
+                            };
+                            const saveBtn = ui.photoDetailsModal.querySelector('[data-action="save-photo-details"]');
+                            const skipBtn = ui.photoDetailsModal.querySelector('[data-action="skip-photo-details"]');
+                            saveBtn.addEventListener('click', saveHandler, { once: true });
+                            skipBtn.addEventListener('click', skipHandler, { once: true });
                         });
+                        
+                        if (state.isSavingPhoto) {
+                            title = document.getElementById('photo-title-input').value.trim();
+                            description = document.getElementById('photo-desc-input').value.trim();
+                        }
+                        if (i === 0) isPhotoSetMode = document.getElementById('create-photoset-toggle').checked;
+                        
+                        ui.photoDetailsModal.classList.remove('show');
+                        document.getElementById('photo-title-input').value = '';
+                        document.getElementById('photo-desc-input').value = '';
                     }
-                }
-                document.getElementById('photo-title-input').value = '';
-                document.getElementById('photo-desc-input').value = '';
-            }
-            if (photosetData.photos.length > 0) memoryCache.album.items.push(photosetData);
 
-            state.photoUploadQueue = [];
-            renderPhotos();
-            scheduleSave();
+                    // [修改] 调用新的 uploadPhoto 并传入进度回调
+                    const photoData = await uploadPhoto(file, (percent) => {
+                         let progressText = Math.round(percent) + '%';
+                         updateStatus(`上传中 (${i + 1}/${totalPhotos}): ${progressText}`);
+                    });
+                    
+                    if (photoData) {
+                        if (isPhotoSetMode) {
+                            photosetData.photos.push(photoData);
+                            if (i === 0) {
+                                photosetData.title = title;
+                                photosetData.description = description;
+                            }
+                        } else {
+                            memoryCache.album.items.push({
+                                id: Date.now() + i, albumId: state.currentAlbumId, type: 'photo',
+                                title: title, description: description, timestamp: Date.now(),
+                                ...photoData
+                            });
+                        }
+                    }
+                } // 循环结束
+
+                if (photosetData.photos.length > 0) {
+                    memoryCache.album.items.push(photosetData);
+                }
+
+                updateStatus('上传完成，正在整理...');
+                state.photoUploadQueue = [];
+                renderPhotos();
+                scheduleSave();
+
+            } catch (error) {
+                // [新增] 统一的错误处理
+                updateStatus('上传失败', true, error.message);
+                alert(error.message); // 给用户一个明确的弹窗提示
+                state.photoUploadQueue = []; // 清空队列
+            }
         }
 
-        async function uploadPhoto(file, title, description) {
+
+        async function uploadPhoto(file, onProgressCallback) {
             try {
                 const path = `${MEMORY_PHOTOS_PATH}${Date.now()}_${file.name}`;
-                const result = await uploadFileViaGitData({ file, path, commitMessage: `Upload photo: ${file.name}`, onProgress: () => {} });
+                const result = await uploadFileViaGitData({ 
+                    file, 
+                    path, 
+                    commitMessage: `Upload photo: ${file.name}`, 
+                    onProgress: onProgressCallback // [修改] 传递进度回调
+                });
                 return { path: result.path, sha: result.sha };
             } catch (error) {
-                alert(`上传照片 ${file.name} 失败: ${await handleApiError('上传照片', error)}`);
-                return null;
+                // [修改] 不再弹窗，而是向上抛出错误，由调用者统一处理
+                throw new Error(`上传照片 ${file.name} 失败: ${await handleApiError('上传照片', error)}`);
             }
         }
+
        
               function populateDriveCategorySelector() {
     ui.categorySelector.innerHTML = '<option value="">-- 请选择分类 --</option>';
@@ -7696,14 +7737,8 @@ const blob = b64toBlob(blobData.content, contentType);
         setupHexInputSync(colorModal.hexN1, colorModal.pickerN1, 'nightColor1');
         setupHexInputSync(colorModal.hexN2, colorModal.pickerN2, 'nightColor2');
 
-        // [V2 修正] 初始化后台保活相关的功能
-        createKeepAliveAudio(); // 提前创建好 Audio 元素
-        document.body.addEventListener('click', unlockAudioContext, { once: true }); // 设置一次性的音频解锁监听器
-        document.body.addEventListener('touchstart', unlockAudioContext, { once: true }); // 兼容移动端触摸
-
         // [核心新增] 将悬浮球初始化移至最后，并增加常驻逻辑
         FloatingBallManager.init();
-
 
         // ★ 新增：应用随机CSS预设的逻辑 ★
         const randomCssEnabled = localStorage.getItem('jellyRandomCssEnabled') === 'true';
@@ -7818,7 +7853,7 @@ const blob = b64toBlob(blobData.content, contentType);
                 }
                 
                 // 检查下方元素是否是有效的放置目标
-                const potentialTarget = elementBelow ? elementBelow.closest('.nav-btn, .category-pill') : null;
+                const potentialTarget = elementBelow ? elementBelow.closest('.nav-btn, .category-pill, .album-item') : null;
                 if (potentialTarget && potentialTarget !== draggedEl && draggedEl.classList.contains(potentialTarget.classList[0])) {
                     dropTarget = potentialTarget;
                     dropTarget.classList.add('drag-over');
@@ -7878,29 +7913,46 @@ const blob = b64toBlob(blobData.content, contentType);
 
             // 按下事件（长按的起点）
             function onDragStart(event) {
-                // 只在管理模式下生效
-                if (!document.body.classList.contains('management-active')) return;
+                const isAlbumManageMode = document.querySelector('.album-item.manage-mode');
+
+                // 如果两个管理模式都没开，则退出
+                if (!document.body.classList.contains('management-active') && !isAlbumManageMode) return;
                 
-                const target = event.target.closest('.nav-btn, .category-pill');
-                if (!target || isDragging) return;
+                if (isDragging) return;
 
-                // 排除删除按钮
-                if (event.target.classList.contains('delete-icon')) return;
-
-                draggedEl = target;
                 const a = event.touches ? event.touches[0] : event;
                 startPos.x = a.clientX;
                 startPos.y = a.clientY;
 
-                // 设置长按计时器
+                // 路径1：立即拖拽 (针对相册排序把手)
+                if (event.target.classList.contains('sort-handle')) {
+                    draggedEl = event.target.closest('.album-item');
+                    if (!draggedEl) return;
+                    
+                    // 立即开始拖拽流程，不使用计时器
+                    startDrag(event);
+                    
+                    // 绑定事件
+                    document.addEventListener('mousemove', onDragMove);
+                    document.addEventListener('touchmove', onDragMove, { passive: false });
+                    document.addEventListener('mouseup', onDragEnd, { once: true });
+                    document.addEventListener('touchend', onDragEnd, { once: true });
+                    return; 
+                }
+                
+                // 路径2：长按拖拽 (针对项目和分类)
+                const target = event.target.closest('.nav-btn, .category-pill');
+                if (!target || event.target.classList.contains('delete-icon')) return;
+
+                draggedEl = target;
                 longPressTimer = setTimeout(() => startDrag(event), LONG_PRESS_DELAY);
 
-                // 绑定移动和结束事件
                 document.addEventListener('mousemove', onDragMove);
                 document.addEventListener('touchmove', onDragMove, { passive: false });
                 document.addEventListener('mouseup', onDragEnd, { once: true });
                 document.addEventListener('touchend', onDragEnd, { once: true });
             }
+
 
             // 更新底层数据结构
             function updateDataModel(el1, el2, parent) {
@@ -7916,8 +7968,24 @@ const blob = b64toBlob(blobData.content, contentType);
 
                     category.buttons = newButtonOrder;
                 }
+                // [新增] 情况三：对相册封面排序
+                else if (parent.id === 'album-list-container') {
+                    const allAlbums = Array.from(parent.querySelectorAll('.album-item'));
+                    // 从 DOM 顺序反向更新数据数组
+                    const newAlbumOrder = allAlbums.map(albumEl => {
+                        const albumId = parseInt(albumEl.dataset.albumId, 10);
+                        return memoryCache.album.folders.find(f => f.id === albumId);
+                    }).filter(Boolean); // 过滤掉可能未找到的项
+
+                    memoryCache.album.folders = newAlbumOrder;
+                    
+                    // 调用 MemoryApp 自己的保存机制，而不是全局保存
+                    MemoryApp.scheduleSave();
+                    return; // 结束函数，避免执行下面的全局保存
+                }
                 // 情况二：对分类标签排序
                 else if (parent.id === 'categoryNav') {
+
                     const allPills = Array.from(parent.querySelectorAll('.category-pill'));
                     const newCategoryOrder = allPills.map(pill => {
                         return currentConfig.categories.find(c => c.name === pill.dataset.category);
@@ -7944,11 +8012,17 @@ const blob = b64toBlob(blobData.content, contentType);
                     const categoryContainer = document.getElementById('categoryNav');
 
                     // 使用事件委托来处理动态添加的按钮
+                    const albumContainer = document.getElementById('album-list-container');
+
                     mainContainer.addEventListener('mousedown', onDragStart);
                     mainContainer.addEventListener('touchstart', onDragStart, { passive: true });
                     
                     categoryContainer.addEventListener('mousedown', onDragStart);
                     categoryContainer.addEventListener('touchstart', onDragStart, { passive: true });
+
+                    albumContainer.addEventListener('mousedown', onDragStart);
+                    albumContainer.addEventListener('touchstart', onDragStart, { passive: true });
+
                 }
             };
         })();
@@ -9069,8 +9143,9 @@ const blob = b64toBlob(blobData.content, contentType);
                 console.warn("GitHub config is incomplete. Cannot fetch Giscus stats.");
                 return null;
             }
-            // 从仓库全名中解析出 owner 和 name
-            const [owner, repo] = GITHUB_CONFIG.repo.split('/');
+            // [核心修改] 硬编码为社区评论仓库，而不是使用用户的个人数据仓库
+            const repoOwner = 'Yeexein';
+            const repoName = 'Jellyfish-Comments';
             // Giscus 讨论区的固定 ID，从你的 HTML 配置中获取
             const categoryId = "DIC_kwDOQBfb-84CwlT0";
             // Giscus 用来唯一标识帖子的标题
@@ -9110,8 +9185,8 @@ const blob = b64toBlob(blobData.content, contentType);
                     body: JSON.stringify({
                         query,
                         variables: {
-                            repoOwner: GITHUB_CONFIG.owner,
-                            repoName: repo,
+                            repoOwner: repoOwner, // [核心修改] 使用硬编码的 owner
+                            repoName: repoName,   // [核心修改] 使用硬编码的 repo name
                             categoryId,
                             discussionTitle
                         }
@@ -9445,7 +9520,7 @@ const blob = b64toBlob(blobData.content, contentType);
                     savePinnedPhones(currentPinned);
                 };
 
-                // ★ 修改：在HTML模板中加入反馈数据的占位符 ★
+                // [核心修改] 移除了包含 giscusFeedback 容器的HTML部分
                 ui.detailContainer.innerHTML = `
                     <div class="detail-info-group">
                         <label>作者ID</label>
@@ -9467,12 +9542,7 @@ const blob = b64toBlob(blobData.content, contentType);
                         <div class="detail-info-value">${phone.status}</div>
                     </div>
                     <button id="enterCommentsBtn" class="modal-button" data-phone-id="${phone.id}" style="margin-top: 10px;">进入安利区</button>
-                    
-                    <!-- ★ 新增的反馈数据容器 ★ -->
-                    <div id="giscusFeedback" class="giscus-feedback-container">
-                        正在加载社区反馈...
-                    </div>
-                `;
+                    `;
                 
                 // 绑定常规事件 (逻辑不变)
                 ui.detailContainer.querySelector('#copyAuthorId').addEventListener('click', function() {
@@ -9504,37 +9574,11 @@ const blob = b64toBlob(blobData.content, contentType);
                     }
                 });
 
-                // ★ 新增：异步获取并渲染 Giscus 统计数据 ★
-                const feedbackContainer = document.getElementById('giscusFeedback');
-                fetchGiscusStats(phone.id, phone.name).then(stats => {
-                    if (stats) {
-                        if (stats.reactions.length === 0 && stats.comments === 0) {
-                            feedbackContainer.textContent = '暂无社区反馈，快来第一个安利吧！';
-                        } else {
-                            const reactionsHTML = stats.reactions.map(r => `
-                                <div class="reaction-item">${r.emoji} ${r.count}</div>
-                            `).join('');
-                            
-                            feedbackContainer.innerHTML = `
-                                <div class="giscus-reactions">${reactionsHTML}</div>
-                                <div class="giscus-comments">
-                                    <a href="#" id="commentsLink">💬 ${stats.comments} 条评论</a>
-                                </div>
-                            `;
-                            // 让评论数也成为一个可以点击进入安利区的按钮
-                            feedbackContainer.querySelector('#commentsLink').addEventListener('click', (e) => {
-                                e.preventDefault();
-                                ui.detailContainer.querySelector('#enterCommentsBtn').click();
-                            });
-                            feedbackContainer.classList.add('loaded');
-                        }
-                    } else {
-                        feedbackContainer.textContent = '无法加载社区反馈';
-                    }
-                });
+                // [核心修改] 移除了整个 fetchGiscusStats 的调用和渲染逻辑
 
                 ui.detailModal.classList.add('show');
             }
+
 
             return {
                 init() {
@@ -9631,6 +9675,5 @@ const blob = b64toBlob(blobData.content, contentType);
             </div>
         </div>
     </div>
-
 </body>
 </html>
