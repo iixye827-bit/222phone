@@ -4788,19 +4788,6 @@ const getDefaultConfig = () => ({
         }
     }
     
-    function initTheme() { 
-        const t=localStorage.getItem('theme'); 
-        if (t==='dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
-            document.body.classList.add('dark-mode'); 
-            fabMainBtn.textContent = '🌜'; 
-        } else { 
-            fabMainBtn.textContent = '🌞'; 
-        }
-        applyAllBackgrounds();
-        // [修改] 从 currentConfig 读取主题风格设置
-        const savedThemeStyle = currentConfig.settings.themeStyle || 'neumorphism';
-        setThemeStyle(savedThemeStyle);
-    }
 
     function toggleTheme() { 
         document.body.classList.toggle('dark-mode'); 
@@ -5215,6 +5202,22 @@ const getDefaultConfig = () => ({
             await saveGlobalConfig(wasMigrated ? 'Auto-migrate legacy config format' : 'Auto-create or repair config.json');
         }
 
+        // --- [核心修改] ---
+        // 1. 将主题初始化逻辑移到这里，确保 currentConfig 已加载
+        const t = localStorage.getItem('theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark-mode');
+            fabMainBtn.textContent = '🌜';
+        } else {
+            fabMainBtn.textContent = '🌞';
+        }
+
+        const savedThemeStyle = currentConfig.settings.themeStyle || 'neumorphism';
+        setThemeStyle(savedThemeStyle); // setThemeStyle 内部已经有保存逻辑了，这里调用即可
+
+        applyAllBackgrounds();
+        // --- [修改结束] ---
+
         document.getElementById('title').textContent = currentConfig.title; 
         document.getElementById('subtitle').textContent = currentConfig.subtitle; 
         document.querySelector('.editable-title').style.opacity = 1; 
@@ -5227,9 +5230,8 @@ const getDefaultConfig = () => ({
         
         renderCategories();
         loadColorState(); 
-        
-  
     }
+
 
     
     function renderCategories() {
