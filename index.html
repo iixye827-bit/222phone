@@ -2449,6 +2449,14 @@ body.theme-glass.dark-mode .memo-toolbar {
 /* =============================================================== */
 /* ================= [新增] 手机收藏馆专属样式 ================== */
 /* =============================================================== */
+
+/* 新增：泡泡漂浮动画 (保持不变) */
+@keyframes float-bubble {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-8px) scale(1.02); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
 #phoneCollectionModal .modal-content {
     max-width: 800px;
     height: calc(100vh - 40px);
@@ -2458,49 +2466,69 @@ body.theme-glass.dark-mode .memo-toolbar {
     flex-direction: column;
 }
 #phoneCollectionModal .page-content {
-    flex-grow: 1; /* 核心：让此容器填满 .modal-content 内的剩余空间 */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
-    min-height: 0; /* 核心：Flex布局中的重要技巧，防止内容溢出 */
-    overflow: hidden; /* 确保此容器本身不滚动 */
+    min-height: 0; 
+    overflow: hidden; 
 }
 #phoneCollectionModal .page-header-container {
-    flex-shrink: 0; /* 核心：确保头部和搜索区域不被压缩 */
+    flex-shrink: 0; 
+    position: relative; /* ★ 新增：为渐变遮罩提供定位上下文 */
+    z-index: 10; /* ★ 新增：确保头部在内容之上 */
 }
+
+/* ★★★ 核心修复点 ★★★ */
 #phoneCollectionModal .list-container {
-    padding: 15px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 20px;
-    align-content: flex-start;
-    flex-grow: 1; /* 核心：让列表容器占据 Page-content 内所有剩余的垂直空间 */
-    overflow-y: auto; /* 核心：当内容超出时，只在这个容器内滚动 */
+    padding: 60px 20px; /* 关键：大大增加上下内边距，为错落效果提供足够空间 */
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 25px; 
+    align-content: flex-start; /* 关键：确保内容从容器顶部开始排列，而不是居中 */
+    flex-grow: 1; 
+    overflow-y: auto; 
     min-height: 0;
 }
 
+/* 核心修改：将分区项目改为圆形泡泡 */
 .phone-partition-item {
-    aspect-ratio: 1 / 1;
+    width: 100px; 
+    height: 100px; 
+    flex-shrink: 0; 
     position: relative;
     padding: 8px;
-    border-radius: 45px;
+    border-radius: 50%; 
     box-shadow: 6px 6px 12px var(--shadow-dark-day), -6px -6px 12px var(--shadow-light-day);
     background: var(--bg-day-element);
     color: var(--text-day);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease, transform 0.2s ease; 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     gap: 0;
-    user-select: none; /* 防止长按时选中文本 */
-    -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+    user-select: none; 
+    -webkit-tap-highlight-color: transparent;
+
+    animation: float-bubble 6s ease-in-out infinite;
+}
+
+/* 错落有致的布局效果 (保持不变) */
+.phone-partition-item:nth-child(odd) {
+    transform: translateY(-20px); 
+}
+.phone-partition-item:nth-child(even) {
+    transform: translateY(20px); 
 }
 
 .phone-partition-item:active {
     box-shadow: inset 3px 3px 6px var(--shadow-dark-day), inset -3px -3px 6px var(--shadow-light-day);
-    transform: scale(0.97);
+    animation-play-state: paused; 
+    transform: scale(0.97) !important; 
 }
 body.dark-mode .phone-partition-item {
     box-shadow: 6px 6px 12px var(--shadow-dark-night), -6px -6px 12px var(--shadow-light-night);
@@ -2517,7 +2545,16 @@ body.dark-mode .phone-partition-item:active {
     font-size: 0.9rem;
     font-weight: 600;
     line-height: 1.4;
+    padding: 0 5px; 
 }
+
+/* 修复磨砂玻璃主题下的圆角问题 (保持不变) */
+body.theme-glass .phone-partition-item {
+    border-radius: 50%;
+}
+
+
+/* ----- 以下为详情页样式，保持不变 ----- */
 #phone-detail-content {
     gap: 18px;
     padding-bottom: 30px;
@@ -2563,6 +2600,8 @@ body.dark-mode .detail-info-value.copyable:hover {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+
+
 /* =============================================================== */
 /* ================== [新增] Giscus 主题适配样式 ================= */
 /* =============================================================== */
@@ -8940,10 +8979,16 @@ const blob = b64toBlob(blobData.content, contentType);
                         <div class="phone-partition-icon">${phone.icon || ''}</div>
                         <div class="phone-partition-name">${phone.name}</div>
                     `;
+
+                    // ★ 新增：为每个泡泡设置一个随机的动画延迟时间
+                    // 负延迟会让动画从周期中的一个随机点立即开始，看起来更自然
+                    item.style.animationDelay = `${Math.random() * -6}s`;
+
                     item.addEventListener('click', () => renderPhoneDetail(phone.id));
                     ui.listContainer.appendChild(item);
                 });
             }
+
 
             // ★★★ 新增：主列表的入口函数，处理排序和过滤
             function displayPhoneList() {
