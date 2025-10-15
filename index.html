@@ -2792,6 +2792,49 @@ body.dark-mode .reaction-item {
 .giscus-comments a:hover {
     text-decoration: underline;
 }
+/* =============================================================== */
+/* ============= [新增] 后台保活功能专属样式 v2 ================ */
+/* =============================================================== */
+/* [V2 修正] 改用 filter: drop-shadow 实现更精准的辉光效果 */
+@keyframes icon-glow-blue {
+  0% {
+    filter: drop-shadow(0 0 4px var(--hold-border, rgba(91, 153, 226, 0.7)));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px var(--hold-border, rgba(91, 153, 226, 1)));
+  }
+  100% {
+    filter: drop-shadow(0 0 4px var(--hold-border, rgba(91, 153, 226, 0.7)));
+  }
+}
+
+.jelly-menu-btn.keep-alive-active {
+    animation: icon-glow-blue 2.5s ease-in-out infinite;
+}
+
+/* [新增] 后台保活运行时长计时器样式 */
+#keepAliveTimerDisplay {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: monospace;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+#keepAliveTimerDisplay.show {
+    opacity: 1;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
 
     </style>
 
@@ -3678,7 +3721,17 @@ body.dark-mode .reaction-item {
     // [JS - V12.5.0 "Cascade Select"]
     const CURRENT_APP_VERSION = '3.7.0';
     let GITHUB_CONFIG = {}, configSha = null, isManagementMode = false, isEditingButton = false, editingButtonData = null;
+    
+    // [V2 修正] 后台保活功能的状态变量
+    let isKeepAliveActive = false;
+    let keepAliveAudio = null;
+    let isAudioContextUnlocked = false; // [新增] 用于标记iOS音频上下文是否已解锁
+    let keepAliveTimerId = null;        // [新增] 用于存储计时器的ID
+    let keepAliveSeconds = 0;           // [新增] 计时器秒数
+
     const navContainer = document.getElementById('navContainer'), pageOverlay = document.getElementById('pageOverlay');
+
+
     const syncStatusIndicator = document.getElementById('sync-status-indicator');
     const syncErrorModal = document.getElementById('syncErrorModal');
     const iframeModal = document.getElementById('iframeModal'), iframeModalContent = iframeModal.querySelector('.iframe-modal-content'), iframeEl = document.getElementById('iframeContent'), swipeHint = document.getElementById('swipeHint'), returnConfirmationToast = document.getElementById('returnConfirmationToast');
@@ -3981,8 +4034,10 @@ const getDefaultConfig = () => ({
             { id: 'folder', icon: '📁', title: '文件夹' },
             { id: 'return', icon: '🔙', title: '返回' },
             { id: 'memo', icon: '📝', title: '备忘录' },
-            { id: 'quick_switch', icon: '🔗', title: '快速切换' }
+            { id: 'quick_switch', icon: '🔗', title: '快速切换' },
+            { id: 'keep_alive', icon: '📻', title: '后台保活' } // [新增] 后台保活功能
         ];
+
 
         function _create() {
             if (currentConfig.settings.jellyBall?.enabled !== true) return;
@@ -4135,9 +4190,11 @@ const getDefaultConfig = () => ({
                 case 'folder': openMemoryAndSwitch('cloud'); break;
                 case 'return': if (iframeModal.classList.contains('active')) { closeIframeModal(); } break;
                 case 'quick_switch': _showQuickSwitchMenu(); break;
+                case 'keep_alive': toggleKeepAlive(); break; // [新增] 处理后台保活点击事件
             }
             _closeMenu();
         }
+
 
         function _showQuickSwitchMenu() {
             let existingMenu = document.getElementById('quick-switch-menu-overlay');
@@ -4460,7 +4517,110 @@ const getDefaultConfig = () => ({
     })();
     // ===== [END] FLOATING JELLYFISH BALL LOGIC =====
 
+    // ===============================================================
+    // ================ [V2 修正] 后台保活功能核心逻辑 ================
+    // ===============================================================
+    
+    /**
+     * [V2 新增] 解锁音频上下文，专门用于解决iOS的播放限制。
+     * 此函数应该在用户首次与页面交互时被调用一次。
+     */
+    function unlockAudioContext() {
+        if (isAudioContextUnlocked || !keepAliveAudio) return;
+        
+        // 尝试播放然后立即暂停，这个过程用户无感知
+        const playPromise = keepAliveAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                keepAliveAudio.pause();
+                isAudioContextUnlocked = true;
+                console.log('Audio context unlocked for background playback.');
+            }).catch(error => {
+                // 即便解锁失败，也不打扰用户，因为后续的真实播放还会尝试
+                console.warn('Audio context unlock failed silently:', error);
+            });
+        } else {
+             isAudioContextUnlocked = true; // 在不支持Promise的旧浏览器中，假定已解锁
+        }
+    }
+    
+    /**
+     * [V2 修正] 创建音频播放器，现在此函数也会被“音频解锁”功能提前调用。
+     */
+    function createKeepAliveAudio() {
+        if (keepAliveAudio) return;
+        keepAliveAudio = new Audio();
+        keepAliveAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+        keepAliveAudio.loop = true;
+        keepAliveAudio.playsInline = true;
+        keepAliveAudio.volume = 0;
+        document.body.appendChild(keepAliveAudio);
+    }
+
+    /**
+     * [V2 修正] 格式化秒数为 HH:MM:SS 格式
+     */
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    /**
+     * [V2 修正] 切换后台保活的状态，包含计时器和更强的错误处理。
+     */
+    function toggleKeepAlive() {
+        const keepAliveBtn = document.querySelector('.jelly-menu-btn[data-action-id="keep_alive"]');
+        const timerDisplay = document.getElementById('keepAliveTimerDisplay');
+
+        if (isKeepAliveActive) {
+            // --- 关闭后台保活 ---
+            if (keepAliveAudio) keepAliveAudio.pause();
+            if (keepAliveBtn) keepAliveBtn.classList.remove('keep-alive-active');
+            
+            clearInterval(keepAliveTimerId); // 停止计时器
+            timerDisplay.classList.remove('show'); // 隐藏计时器
+            
+            isKeepAliveActive = false;
+            showTopToast('后台保活已关闭', 2000);
+        } else {
+            // --- 开启后台保活 ---
+            // 注意：此时音频上下文应该已经被解锁了
+            const playPromise = keepAliveAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    if (keepAliveBtn) keepAliveBtn.classList.add('keep-alive-active');
+                    isKeepAliveActive = true;
+                    showTopToast('后台保活已开启');
+
+                    // 启动计时器
+                    keepAliveSeconds = 0;
+                    timerDisplay.textContent = '后台保活: 00:00:00';
+                    timerDisplay.classList.add('show');
+                    keepAliveTimerId = setInterval(() => {
+                        keepAliveSeconds++;
+                        timerDisplay.textContent = `后台保活: ${formatTime(keepAliveSeconds)}`;
+                    }, 1000);
+
+                }).catch(error => {
+                    console.error("后台保活音频播放失败:", error);
+                    // 提供更明确的提示
+                    alert("无法启动后台保活功能。如果您是首次使用或长时间未操作页面，请先在页面上任意点击一下，然后再试。");
+                    // 确保状态正确
+                    isKeepAliveActive = false;
+                    if (keepAliveBtn) keepAliveBtn.classList.remove('keep-alive-active');
+                });
+            }
+        }
+    }
+    // ===============================================================
+    // ========================= [新增结束] ==========================
+    // ===============================================================
+
+
     const utf8_to_b64 = (str) => btoa(unescape(encodeURIComponent(str)));
+
     const b64_to_utf8 = (str) => decodeURIComponent(escape(atob(str)));
 
     function b64toBlob(b64Data, contentType = '', sliceSize = 512) {
@@ -7538,8 +7698,14 @@ const blob = b64toBlob(blobData.content, contentType);
         setupHexInputSync(colorModal.hexN1, colorModal.pickerN1, 'nightColor1');
         setupHexInputSync(colorModal.hexN2, colorModal.pickerN2, 'nightColor2');
 
+        // [V2 修正] 初始化后台保活相关的功能
+        createKeepAliveAudio(); // 提前创建好 Audio 元素
+        document.body.addEventListener('click', unlockAudioContext, { once: true }); // 设置一次性的音频解锁监听器
+        document.body.addEventListener('touchstart', unlockAudioContext, { once: true }); // 兼容移动端触摸
+
         // [核心新增] 将悬浮球初始化移至最后，并增加常驻逻辑
         FloatingBallManager.init();
+
 
         // ★ 新增：应用随机CSS预设的逻辑 ★
         const randomCssEnabled = localStorage.getItem('jellyRandomCssEnabled') === 'true';
@@ -9467,5 +9633,7 @@ const blob = b64toBlob(blobData.content, contentType);
             </div>
         </div>
     </div>
+    <!-- [新增] 后台保活运行时长显示元素 -->
+    <div id="keepAliveTimerDisplay"></div>
 </body>
 </html>
