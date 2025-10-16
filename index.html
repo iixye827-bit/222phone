@@ -197,7 +197,25 @@
         #nightPreview { border: 2px solid var(--bg-night-element); color: var(--text-night); } body.dark-mode #nightPreview { border-color: rgba(255,255,255,0.2); }
         .preset-manager, .background-image-manager { border-top: 1px solid rgba(0,0,0,0.1); padding-top: 20px; display: flex; flex-direction: column; gap: 15px; }
         body.dark-mode .preset-manager, body.dark-mode .background-image-manager { border-color: rgba(255,255,255,0.1); } 
-        .preset-row, .background-image-row { display: flex; align-items: center; gap: 10px; }
+        .preset-row, .background-image-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            /* [新增] 核心修复：确保容器不会因为内容溢出而被撑开 */
+            min-width: 0; 
+        }
+        
+        /* [新增] 针对 preset-row 内部输入框的特殊处理 */
+        .preset-row .modal-input {
+            /* [新增] 确保输入框本身不会被内容无限撑大 */
+            min-width: 0;
+            /* [新增] 当文本溢出时，用省略号显示 */
+            text-overflow: ellipsis;
+            /* [新增] 防止文本换行，与 ellipsis 配合使用 */
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
         .preset-row .modal-input, .preset-row .modal-select { flex-grow: 1; }
         .preset-row .modal-button, .background-image-row .modal-button { width: auto; padding: 12px 15px; flex-shrink: 0; font-size: 14px; }
         .preset-row .modal-button.save { color: #28a745; } .preset-row .modal-button.delete, .background-image-row .modal-button.delete { color: #dc3545; }
@@ -226,8 +244,45 @@
         .file-select-wrapper { display: flex; align-items: center; gap: 10px; width: 100%; } .file-select-wrapper .modal-button { flex-shrink: 0; width: auto; padding: 10px 15px; font-size: 14px; }
         .file-select-wrapper .status-text { flex-grow: 1; font-size: 14px; color: #889; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .file-upload-section { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; } input[type="file"] { display: none; }
-        .progress-container { display: none; height: 12px; background:var(--bg-day-element); border-radius: 6px; box-shadow: inset 2px 2px 4px var(--shadow-dark-day), inset -2px -2px 4px var(--shadow-light-day); padding: 2px; } body.dark-mode .progress-container { box-shadow: inset 2px 2px 4px var(--shadow-dark-night), inset -2px -2px 4px var(--shadow-light-night); }
-        .progress-bar { width: 0%; height: 100%; border-radius: 4px; background-color: #707899; transition: width 0.2s linear; }
+.progress-container { 
+    display: none; /* 初始隐藏 */
+    align-items: center; 
+    gap: 10px; /* 进度条和按钮的间距 */
+    height: 36px; /* 增加容器高度以容纳按钮 */
+} 
+.progress-bar-wrapper {
+    flex-grow: 1; /* 让进度条容器占据大部分空间 */
+    height: 12px; 
+    background: var(--bg-day-element); 
+    border-radius: 6px; 
+    box-shadow: inset 2px 2px 4px var(--shadow-dark-day), inset -2px -2px 4px var(--shadow-light-day); 
+    padding: 2px;
+}
+body.dark-mode .progress-bar-wrapper { 
+    box-shadow: inset 2px 2px 4px var(--shadow-dark-night), inset -2px -2px 4px var(--shadow-light-night); 
+}
+.progress-bar { 
+    width: 0%; 
+    height: 100%; 
+    border-radius: 4px; 
+    background-color: var(--hold-border); /* 使用主题高亮色 */ 
+    transition: width 0.2s linear; 
+}
+#upload-cancel-btn {
+    flex-shrink: 0; /* 防止按钮被压缩 */
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #aaa;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+#upload-cancel-btn:hover {
+    color: #e53e3e;
+}
+
         #helpModal .modal-body { gap: 0; padding-top: 15px; } #helpModal .modal-body > input[name="help-tab"] { display: none; } 
       .help-page-content { display: none; padding: 15px 5px 40px 5px; overflow-x: hidden; } /* 修改点：底部内边距调整为 40px */
 
@@ -1031,10 +1086,10 @@ body.dragging-active {
     left: 50%;
     transform: translate(-50%, -150%); /* 初始位置在屏幕外 */
     padding: 12px 20px;
-    background-color: var(--bg-night-element, #1f2a40);
-    color: var(--text-night, #e0e6f0);
+    background: var(--bg-day-element); /* 适配主题背景 */
+    color: #6c757d; /* 设置为清晰的灰色字体 */
     border-radius: 0 0 12px 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 -1px 0 rgba(0,0,0,0.05); /* 适配主题的阴影 */
     z-index: 9999;
     font-size: 15px;
     font-weight: 600;
@@ -1044,6 +1099,27 @@ body.dragging-active {
     text-align: center;
     max-width: 90%;
 }
+/* 新增：夜间模式适配 */
+body.dark-mode .top-toast {
+    background: var(--bg-night-element);
+    color: #a0aec0; /* 夜间模式使用更亮的灰色 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+/* 新增：磨砂玻璃主题适配 */
+body.theme-glass .top-toast {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-top: none;
+    color: #343a40;
+}
+body.theme-glass.dark-mode .top-toast {
+    background: rgba(30, 30, 30, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e9ecef;
+}
+
 .top-toast.show {
     transform: translate(-50%, 0); /* 移动到屏幕内 */
     opacity: 1;
@@ -1767,8 +1843,8 @@ body.dark-mode .roller-btn:active {
     border-color: transparent;
 }
 .widget-preview-item {
-    padding: 12px 20px;
-    border-radius: 10px;
+    padding: 10px; /* 统一内边距 */
+    border-radius: 16px; /* 增加圆角弧度，使其更像组件本身 */
     text-align: center;
     cursor: grab;
     font-size: 14px;
@@ -1776,7 +1852,17 @@ body.dark-mode .roller-btn:active {
     background: var(--bg-day-element);
     box-shadow: 4px 4px 8px var(--shadow-dark-day), -4px -4px 8px var(--shadow-light-day);
     transition: all 0.2s ease;
+    /* 核心修改：让其成为 flex 子项以便居中和控制尺寸 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 核心修改：设定固定的正方形尺寸 */
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0; /* 防止被 flex 容器压缩 */
+    word-break: break-word; /* 防止文字溢出 */
 }
+
 body.dark-mode .widget-preview-item {
     background: var(--bg-night-element);
     box-shadow: 4px 4px 8px var(--shadow-dark-night), -4px -4px 8px var(--shadow-light-night);
@@ -2870,6 +2956,8 @@ body.dark-mode .album-item .sort-handle {
 
  <style id="custom-jelly-ball-styles"></style>
 
+    <!-- [新增] 用于全局字体的样式标签 -->
+
 
     <!-- 手机模式滑动容器 -->
     <div class="main-wrapper" id="mainWrapper">
@@ -3111,6 +3199,21 @@ body.dark-mode .album-item .sort-handle {
     </div>
         <!-- ★ 在这里新增下面的代码块 ★ -->
     <div class="update-log-entry">
+        <h4>v5.7.6 <span class="update-date">- 2025.10.16</span></h4>
+        <ul>
+            <li><span class="tag new">新功能</span> 新增全局字体更换功能，支持在主题设置中应用在线字体及管理预设。</li>
+            <li><span class="tag new">新功能</span> 新增为相册设置自定义背景（封面）的功能。</li>
+            <li><span class="tag new">新功能</span> 新增相册排序功能，在管理模式下可以拖拽调整相册顺序。</li>
+            <li><span class="tag opt">优化</span> 优化了项目编辑逻辑，修改项目后其按钮将保持在原位，不再移动到末尾。</li>
+            <li><span class="tag opt">优化</span> 美化了“手机收藏馆”的界面，采用更具动感的泡泡布局以提升视觉体验。</li>
+            <li><span class="tag opt">优化</span> 优化了相册的上传流程，批量上传照片和编辑信息的交互更为简洁。</li>
+            <li><span class="tag fix">修复</span> 修复了备忘录内容无法垂直滚动以及代码块内长文本溢出的问题。</li>
+            <li><span class="tag fix">修复</span> 修复了在主题设置中，所选的主题风格（如“磨砂玻璃”）无法被正确保存的问题。</li>
+            <li><span class="tag fix">修复</span> 修复了在管理模式下长按拖拽排序时，项目按钮位置可能无法正确互换的问题。</li>
+        </ul>
+    </div>
+
+    <div class="update-log-entry">
         <h4>v5.5.0 <span class="update-date">- 2025.10.14</span></h4>
         <ul>
             <li><span class="tag new">新功能</span> 新增悬浮球CSS预设管理功能。</li>
@@ -3208,7 +3311,7 @@ body.dark-mode .album-item .sort-handle {
     </div>
     
     <footer class="update-footer">
-        当前版本: v5.5.0
+        当前版本: v5.7.6
     </footer>
 </div>
                     <div id="help-page-3" class="help-page-content">
@@ -3309,6 +3412,27 @@ body.dark-mode .album-item .sort-handle {
                         <button id="clearNightTitleCardBgBtn" class="modal-button delete">清除</button>
                     </div>
                 </div>
+
+                <!-- [新增] 全局字体管理区域 -->
+                <div class="preset-manager font-manager" style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 20px; margin-top:20px;">
+                    <label style="font-weight: 600; font-size: 1em; margin-bottom: 10px; display: block; text-align: left;">全局字体设置</label>
+                    
+                    <!-- [优化] 一行式操作布局 -->
+                    <div class="preset-row">
+                        <input type="text" id="fontUrlInput" class="modal-input" placeholder="输入字体文件链接 (.woff2, .ttf)" style="flex-grow: 1;">
+                        <button id="applyFontBtn" class="modal-button" style="width: auto; padding: 12px 15px; flex-shrink: 0; font-size: 14px;">应用</button>
+                        <button id="clearFontBtn" class="modal-button" style="width: auto; padding: 12px 15px; flex-shrink: 0; font-size: 14px; color:#889;">恢复</button>
+                    </div>
+                    
+                    <div class="preset-row" style="margin-top: 15px;">
+                        <select id="fontPresetSelector" class="modal-select" style="flex-grow: 1;"></select>
+                        <button id="addFontPresetBtn" title="添加新预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">+</button>
+                        <button id="updateFontPresetBtn" title="修改预设名" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">✎</button>
+                        <button id="deleteFontPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">🗑</button>
+                    </div>
+                </div>
+                <!-- [新增结束] -->
+
             </div>
         </div>
     </div>
@@ -3542,10 +3666,13 @@ body.dark-mode .album-item .sort-handle {
                                 <span id="selectedFileName" class="status-text">未选择任何文件</span>
                             </div>
                             <input type="text" id="fileNameInput" class="modal-input" placeholder="可修改文件名（可选）"/>
-                            <button id="uploadBtn" class="modal-button">上传文件</button>
-                            <div id="progressContainer" class="progress-container">
-                                <div id="uploadProgressBar" class="progress-bar"></div>
-                            </div>
+<button id="uploadBtn" class="modal-button">上传文件</button>
+<div id="progressContainer" class="progress-container">
+    <div class="progress-bar-wrapper">
+        <div id="uploadProgressBar" class="progress-bar"></div>
+    </div>
+    <button id="upload-cancel-btn" title="终止上传">✖</button>
+</div>
                         </div>
                         <div id="file-list-container">
                             <ul id="fileList"></ul>
@@ -3755,6 +3882,19 @@ body.dark-mode .album-item .sort-handle {
     const syncErrorModal = document.getElementById('syncErrorModal');
     const iframeModal = document.getElementById('iframeModal'), iframeModalContent = iframeModal.querySelector('.iframe-modal-content'), iframeEl = document.getElementById('iframeContent'), swipeHint = document.getElementById('swipeHint'), returnConfirmationToast = document.getElementById('returnConfirmationToast');
     let activeUploadXHR = null;
+let activePhotoUploadXHRs = []; // [新增] 跟踪所有活跃的照片上传请求
+
+
+window.addEventListener('beforeunload', (event) => {
+    // [最终修正] 只检查真正跟踪后台网络请求的变量
+    if (activeUploadXHR || activePhotoUploadXHRs.length > 0) {
+        event.preventDefault();
+        event.returnValue = '有文件正在上传，确定要离开吗？';
+    }
+});
+
+
+
     const secureFileCache = new Map();
     let currentCategory = '全部';
     let photoObserver;
@@ -3765,8 +3905,11 @@ const getDefaultConfig = () => ({
         categories: [{ name: '全部', buttons: [] }],
         settings: {
             paginationEnabled: true,
-            themeStyle: 'neumorphism', // [修改] 新增主题风格配置项，默认为拟态
-            jellyBall: { enabled: false, swipeBack: true, functions: {}, customCSS: '' }
+            themeStyle: 'neumorphism', 
+            jellyBall: { enabled: false, swipeBack: true, functions: {}, customCSS: '' },
+            // [新增] 全局字体和预设的默认配置
+            globalFont: { name: '', url: '' }, 
+            fontPresets: []
         },
         // 核心修改：直接在默认配置中加入“原生主题”预设
         themePresets: [
@@ -3782,6 +3925,7 @@ const getDefaultConfig = () => ({
         ],
         lockscreenWidgets: {}
     });
+
 
 
     let currentConfig = getDefaultConfig();
@@ -4728,51 +4872,35 @@ const getDefaultConfig = () => ({
     
     async function uploadFileViaGitData({ file, path, commitMessage, onProgress }) {
         if (!checkConfig(true)) throw new Error("GitHub未配置");
-        const { owner, repo, token, branch = 'main' } = GITHUB_CONFIG;
-
-        const content = await new Promise((resolve, reject) => {
+        
+        // 1. 将文件读取为 Base64 编码的 Data URL
+        const contentB64 = await new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
+            //  reader.onload 的结果是 'data:image/jpeg;base64,....'，我们需要去掉头部
+            reader.onload = () => resolve(reader.result.split(',')[1]); 
             reader.onerror = reject;
             reader.readAsDataURL(file);
         });
 
-        const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs`;
-        const blobResponse = await new Promise((resolve, reject) => {
-            activeUploadXHR = new XMLHttpRequest();
-            activeUploadXHR.open("POST", blobUrl, true);
-            activeUploadXHR.setRequestHeader("Authorization", `token ${token}`);
-            activeUploadXHR.setRequestHeader("Content-Type", "application/json");
-            activeUploadXHR.upload.onprogress = (event) => { if (event.lengthComputable) onProgress((event.loaded / event.total) * 90); };
-            activeUploadXHR.onload = () => {
-                if (activeUploadXHR.status === 201) resolve(JSON.parse(activeUploadXHR.responseText));
-                else reject(new Error(`${activeUploadXHR.status}: ${activeUploadXHR.responseText}`));
-            };
-            activeUploadXHR.onerror = () => reject(new Error("网络错误，Blob创建失败。"));
-            activeUploadXHR.onabort = () => reject(new Error("上传已取消。"));
-            activeUploadXHR.send(JSON.stringify({ content, encoding: "base64" }));
-        });
-        const blobSha = blobResponse.sha;
-        activeUploadXHR = null;
-        onProgress(95);
+        // 2. 调用我们已经非常稳定的 saveToGithub 函数
+        // 这个函数内部使用了 Contents API (PUT /.../contents/:path)，是原子操作，更可靠。
+        // 它还会自动处理文件已存在时的 SHA 更新，避免冲突。
+        
+        // 尽管 onProgress 不再被精确调用，我们仍然可以在关键步骤调用它来更新UI
+        if (onProgress) onProgress(50); // 表示文件已读取，准备上传
 
-        const refUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
-        const refData = await (await fetch(refUrl, { headers: { 'Authorization': `token ${token}` } })).json();
-        const parentCommitSha = refData.object.sha;
+        const result = await saveToGithub(path, contentB64, commitMessage);
 
-        const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees`;
-        const treeBody = { base_tree: parentCommitSha, tree: [{ path, mode: "100644", type: "blob", sha: blobSha }] };
-        const treeData = await (await fetch(treeUrl, { method: 'POST', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify(treeBody) })).json();
-        const newTreeSha = treeData.sha;
+        if (onProgress) onProgress(100);
 
-        const commitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits`;
-        const commitBody = { message: commitMessage, tree: newTreeSha, parents: [parentCommitSha] };
-        const commitData = await (await fetch(commitUrl, { method: 'POST', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify(commitBody) })).json();
-        const newCommitSha = commitData.sha;
-
-        await fetch(refUrl, { method: 'PATCH', headers: { 'Authorization': `token ${token}` }, body: JSON.stringify({ sha: newCommitSha }) });
-        onProgress(100);
-        return { sha: blobSha, path };
+        // 3. 检查结果并返回
+        if (result.sha) {
+            // 上传成功，返回与旧函数兼容的格式
+            return { sha: result.sha, path: path };
+        } else {
+            // 如果 saveToGithub 失败，它内部已经处理了错误提示，这里我们抛出错误以便上层捕获
+            throw new Error(result.error || "未知上传错误");
+        }
     }
 
     async function deleteFromGithub(path, commitMessage, sha, ignoreNotFound = false) {
@@ -6008,7 +6136,10 @@ const getDefaultConfig = () => ({
         }
         function renderAlbumFolders() {
             ui.albumList.innerHTML = '';
-            memoryCache.album.folders.forEach(folder => {
+            // [修改] 如果存在排序，则使用排序后的数组，否则使用原数组
+            const foldersToRender = memoryCache.album.folders;
+
+            foldersToRender.forEach(folder => {
                 const itemCount = memoryCache.album.items.filter(p => p.albumId === folder.id).length;
                 const isSelected = state.albumFoldersToDelete.includes(folder.id);
                 const el = document.createElement('div');
@@ -6018,17 +6149,29 @@ const getDefaultConfig = () => ({
                 el.innerHTML = `<span class="sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div>`;
 
                 
-                // [新增] 应用自定义背景
+                // [核心修正] 处理自定义背景逻辑
                 if (folder.background) {
                     el.classList.add('has-custom-bg');
-                    el.style.backgroundImage = `url(${folder.background})`;
                     el.style.backgroundSize = 'cover';
                     el.style.backgroundPosition = 'center';
+                    
+                    // 判断 background 是 Base64 还是路径
+                    if (folder.background.startsWith('data:image')) {
+                        // 兼容可能存在的旧数据
+                        el.style.backgroundImage = `url(${folder.background})`;
+                    } else {
+                        // 新的路径方案，需要异步获取安全URL
+                        getSecureFileUrl(folder.background).then(secureUrl => {
+                            if (secureUrl) {
+                                el.style.backgroundImage = `url(${secureUrl})`;
+                            }
+                        });
+                    }
                 }
 
                 ui.albumList.appendChild(el);
             });
-            if (memoryCache.album.folders.length === 0) ui.albumList.innerHTML = `<p class="empty-list-placeholder">没有相册</p>`;
+            if (foldersToRender.length === 0) ui.albumList.innerHTML = `<p class="empty-list-placeholder">没有相册</p>`;
         }
 
         function renderPhotos() {
@@ -6402,28 +6545,52 @@ const getDefaultConfig = () => ({
                 renderPhotos();
             },
 
-            // [新增] 设置相册背景的action
+            // [V2 修正] 使用文件上传机制设置相册背景
             'set-album-bg': () => {
+                // 1. 创建一个文件选择器
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = 'image/*';
-                input.onchange = e => {
+
+                // 2. 监听文件选择事件
+                input.onchange = async e => {
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const backgroundUrl = event.target.result;
+                    // 3. 立即显示加载状态，提升用户体验
+                    showTopToast('正在上传背景图...', 60000); // 长时间提示以防上传慢
+
+                    try {
+                        // 4. 定义上传路径和唯一文件名
+                        const ALBUM_BG_PATH = 'memory/album_backgrounds/';
+                        const path = `${ALBUM_BG_PATH}bg-${state.currentAlbumId}-${Date.now()}.${file.name.split('.').pop()}`;
+                        
+                        // 5. 调用文件上传函数（复用已有逻辑）
+                        const result = await uploadFileViaGitData({
+                            file,
+                            path,
+                            commitMessage: `Update album background for ID ${state.currentAlbumId}`,
+                            onProgress: (p) => { /* 可以在这里更新提示，暂时省略 */ }
+                        });
+
+                        // 6. 核心：只保存返回的路径
                         const album = memoryCache.album.folders.find(f => f.id === state.currentAlbumId);
                         if (album) {
-                            album.background = backgroundUrl;
+                            album.background = result.path; // 只保存路径！
                             scheduleSave();
-                            renderAlbumFolders(); // 返回相册列表时会看到更新
-                            showTopToast('相册背景已设置！', 2000);
+                            renderAlbumFolders(); // 重新渲染当前相册列表，即时看到效果
+                            renderPhotos(); // 刷新照片视图，背景图可能也需要在这里更新
+                            showTopToast('相册背景已成功设置！', 2000);
                         }
-                    };
-                    reader.readAsDataURL(file);
+                    } catch (error) {
+                        console.error("Failed to upload album background:", error);
+                        const userMessage = await handleApiError("上传背景图", error);
+                        alert(`上传失败: ${userMessage}`);
+                        showTopToast('上传背景图失败', 3000);
+                    }
                 };
+                
+                // 7. 触发文件选择
                 input.click();
             },
 
@@ -6486,11 +6653,17 @@ const getDefaultConfig = () => ({
 
         async function processPhotoUploadQueue() {
             if (state.photoUploadQueue.length === 0) return;
+
+            // [解决方案 1] 同步添加一个标记，确保在文件读取期间关闭页面也能触发提示。
+            activePhotoUploadXHRs.push("photo_upload_session");
+
             const totalPhotos = state.photoUploadQueue.length;
-            
+
+            // [解决方案 2] 弹出一个长时存在的顶部提示框作为视觉反馈。
+            showTopToast(`正在上传 ${totalPhotos} 张照片...`, 600000); // 持续10分钟或直到任务结束
+
             state.skipAllPhotoDetails = false;
             let isPhotoSetMode = false;
-
             const isBatch = totalPhotos > 1;
             ui.photosetToggleContainer.style.display = isBatch ? 'block' : 'none';
             ui.photosetToggle.checked = isBatch;
@@ -6503,24 +6676,23 @@ const getDefaultConfig = () => ({
                     let title = '';
                     let description = '';
                     
+                    let statusText = `上传中 (${i + 1}/${totalPhotos})`;
+                    updateStatus(statusText);
+
                     const shouldShowModal = i === 0 || (!isPhotoSetMode && !state.skipAllPhotoDetails);
 
                     if (shouldShowModal) {
-                        updateStatus(`等待用户输入... (${i + 1}/${totalPhotos})`);
+                        ui.photoDetailsModal.querySelector('#photo-details-modal-title').textContent = '添加照片信息';
                         ui.photoDetailsModal.querySelector('#upload-thumbnail').src = URL.createObjectURL(file);
-                        ui.photoDetailsModal.querySelector('#photo-details-modal-title').textContent = isBatch ? `上传照片 (${i + 1}/${totalPhotos})` : '添加照片信息';
                         ui.photoDetailsModal.classList.add('show');
                         
                         await new Promise(resolve => {
-                            const saveHandler = () => { state.isSavingPhoto = true; cleanupAndResolve(); };
-                            const skipHandler = () => { actions['skip-photo-details'](); state.isSavingPhoto = false; cleanupAndResolve(); };
-                            const cleanupAndResolve = () => {
-                                saveBtn.removeEventListener('click', saveHandler);
-                                skipBtn.removeEventListener('click', skipHandler);
-                                resolve();
-                            };
+                            const saveHandler = () => { state.isSavingPhoto = true; resolve(); };
+                            const skipHandler = () => { actions['skip-photo-details'](); state.isSavingPhoto = false; resolve(); };
+                            
                             const saveBtn = ui.photoDetailsModal.querySelector('[data-action="save-photo-details"]');
                             const skipBtn = ui.photoDetailsModal.querySelector('[data-action="skip-photo-details"]');
+
                             saveBtn.addEventListener('click', saveHandler, { once: true });
                             skipBtn.addEventListener('click', skipHandler, { once: true });
                         });
@@ -6535,11 +6707,9 @@ const getDefaultConfig = () => ({
                         document.getElementById('photo-title-input').value = '';
                         document.getElementById('photo-desc-input').value = '';
                     }
-
-                    // [修改] 调用新的 uploadPhoto 并传入进度回调
+                    
                     const photoData = await uploadPhoto(file, (percent) => {
-                         let progressText = Math.round(percent) + '%';
-                         updateStatus(`上传中 (${i + 1}/${totalPhotos}): ${progressText}`);
+                         // 此回调为空，因为用户不需要进度条
                     });
                     
                     if (photoData) {
@@ -6563,35 +6733,89 @@ const getDefaultConfig = () => ({
                     memoryCache.album.items.push(photosetData);
                 }
 
-                updateStatus('上传完成，正在整理...');
+                showTopToast('所有照片上传完成!', 3000); // 显示最终成功状态
+                updateStatus('上传完成!');
                 state.photoUploadQueue = [];
                 renderPhotos();
                 scheduleSave();
 
             } catch (error) {
-                // [新增] 统一的错误处理
+                showTopToast('照片上传失败，请检查网络或配置', 4000); // 显示最终失败状态
                 updateStatus('上传失败', true, error.message);
-                alert(error.message); // 给用户一个明确的弹窗提示
-                state.photoUploadQueue = []; // 清空队列
+                alert(error.message); 
+                state.photoUploadQueue = []; 
+            } finally {
+                // [解决方案 1 清理] 无论成功或失败，都在任务结束后移除标记。
+                const index = activePhotoUploadXHRs.indexOf("photo_upload_session");
+                if (index > -1) {
+                    activePhotoUploadXHRs.splice(index, 1);
+                }
             }
         }
 
 
-        async function uploadPhoto(file, onProgressCallback) {
-            try {
-                const path = `${MEMORY_PHOTOS_PATH}${Date.now()}_${file.name}`;
-                const result = await uploadFileViaGitData({ 
-                    file, 
-                    path, 
-                    commitMessage: `Upload photo: ${file.name}`, 
-                    onProgress: onProgressCallback // [修改] 传递进度回调
-                });
-                return { path: result.path, sha: result.sha };
-            } catch (error) {
-                // [修改] 不再弹窗，而是向上抛出错误，由调用者统一处理
-                throw new Error(`上传照片 ${file.name} 失败: ${await handleApiError('上传照片', error)}`);
-            }
+
+        function uploadPhoto(file, onProgressCallback) {
+            return new Promise((resolve, reject) => {
+                const extension = (file.name.split('.').pop() || 'jpg').toLowerCase();
+                const newSafeFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}.${extension}`;
+                const path = `${MEMORY_PHOTOS_PATH}${newSafeFileName}`;
+                const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
+
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = async () => {
+                    const contentB64 = reader.result.split(',')[1];
+                    const body = { message: `Upload photo: ${newSafeFileName}`, content: contentB64, branch: 'main' };
+
+                    const xhr = new XMLHttpRequest();
+                    activePhotoUploadXHRs.push(xhr); // [核心] 将请求添加到跟踪列表
+
+                    xhr.open('PUT', url, true);
+                    xhr.setRequestHeader('Authorization', `token ${GITHUB_CONFIG.token}`);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable && onProgressCallback) {
+                            const percent = (e.loaded / e.total) * 100;
+                            onProgressCallback(percent);
+                        }
+                    };
+
+                    xhr.onload = function() {
+                        const index = activePhotoUploadXHRs.indexOf(xhr);
+                        if (index > -1) activePhotoUploadXHRs.splice(index, 1);
+
+                        if (this.status >= 200 && this.status < 300) {
+                            const response = JSON.parse(this.responseText);
+                            resolve({ path: response.content.path, sha: response.content.sha });
+                        } else {
+                            const errorResponse = JSON.parse(this.responseText);
+                            const errorMessage = errorResponse.message || `HTTP ${this.status}`;
+                            reject(new Error(`上传照片 ${file.name || '未知文件'} 失败: ${errorMessage}`));
+                        }
+                    };
+
+                    xhr.onerror = () => {
+                        const index = activePhotoUploadXHRs.indexOf(xhr);
+                        if (index > -1) activePhotoUploadXHRs.splice(index, 1);
+                        reject(new Error("网络错误，上传失败。"));
+                    };
+                    
+                    xhr.onabort = () => {
+                        const index = activePhotoUploadXHRs.indexOf(xhr);
+                        if (index > -1) activePhotoUploadXHRs.splice(index, 1);
+                        reject(new Error("上传已取消。"));
+                    };
+
+                    xhr.send(JSON.stringify(body));
+                };
+                reader.onerror = () => {
+                   reject(new Error("读取文件失败！"));
+                };
+            });
         }
+
 
        
               function populateDriveCategorySelector() {
@@ -6843,82 +7067,154 @@ const getDefaultConfig = () => ({
             }
         }
                 async function uploadFile() {
-    if (activeUploadXHR) { activeUploadXHR.abort(); return; }
-    if (!checkConfig()) return;
+                    if (activeUploadXHR) {
+                        if(confirm("当前有文件正在上传，要终止它吗？")) {
+                            activeUploadXHR.abort();
+                        }
+                        return;
+                    }
+                    if (!checkConfig(true)) return;
 
-    const selectedProjectHref = ui.projectSelector.value;
-    const file = ui.fileUploader.files[0];
-    let fileName = ui.fileNameInput.value.trim() || (file && file.name);
+                    const selectedProjectHref = ui.projectSelector.value;
+                    const file = ui.fileUploader.files[0];
+                    let fileName = ui.fileNameInput.value.trim() || (file && file.name);
 
-    if (!selectedProjectHref || !file || !fileName) {
-        return alert("请选择要上传到的项目、文件，并确保文件名不为空。");
-    }
+                    if (!selectedProjectHref || !file || !fileName) { return alert("请选择要上传到的项目、文件，并确保文件名不为空。"); }
+                    const projectConfig = findButtonConfigByHref(selectedProjectHref);
+                    if (!projectConfig) { return alert("此项目配置无效。"); }
 
-    const projectConfig = findButtonConfigByHref(selectedProjectHref);
-    if (!projectConfig) {
-        return alert("此项目配置无效。");
-    }
-    
-    const projectName = projectConfig.text;
-    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `project-${Date.now()}`;
-    const basePath = `jellyfish_drive/${folderName}`;
-    const path = `${basePath}/${fileName}`;
+                    const projectName = projectConfig.text;
+                    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+                    const path = `jellyfish_drive/${folderName}/${fileName}`;
+                    const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
 
-    ui.uploadBtn.disabled = true;
-    ui.uploadBtn.textContent = "上传中 (0%)...";
-    ui.progressContainer.style.display = 'block';
-    ui.progressBar.style.width = '0%';
+                    // --- [修改] UI 准备 ---
+                    let progressToast = null; // 用于管理顶部持久化进度提示框
 
-    try {
-        const result = await uploadFileViaGitData({ 
-            file, 
-            path, 
-            commitMessage: `Upload ${fileName} to Drive/${projectName}`, 
-            onProgress: (percent) => { 
-                ui.progressBar.style.width = `${percent}%`; 
-                if (percent < 100) { 
-                    ui.uploadBtn.textContent = `上传中 (${Math.round(percent)}%)...`; 
-                } else { 
-                    ui.uploadBtn.textContent = '正在处理...'; 
-                } 
-            } 
-        });
+                    // --- [新增] 创建/更新/销毁 顶部提示框的函数 ---
+                    const manageProgressToast = (status, isFinal = false, duration = 3000) => {
+                        // 如果是最终状态（成功/失败），但提示框从未被创建（即用户未关闭弹窗），则直接使用标准的 showTopToast
+                        if (isFinal && !progressToast) {
+                            showTopToast(status, duration);
+                            return;
+                        }
 
-        // --- [核心修复] ---
-        // 直接在本地构建新文件对象，并添加到UI，而不是重新从服务器获取整个列表
-        ui.fileListStatus.style.display = "none";
-        const newFile = {
-            name: fileName,
-            path: path,
-            sha: result.sha, // 使用上传后返回的精确sha
-            size: file.size
-        };
+                        // 如果提示框不存在，则创建它 (仅在非最终状态或模态框关闭后调用)
+                        if (!progressToast) {
+                            progressToast = document.createElement('div');
+                            progressToast.className = 'top-toast';
+                            document.body.appendChild(progressToast);
+                            // 触发显示动画
+                            setTimeout(() => {
+                                if (progressToast) progressToast.classList.add('show');
+                            }, 50);
+                        }
 
-        const li = document.createElement("li");
-        const sizeText = `${(newFile.size / 1024).toFixed(1)} KB`;
-        li.innerHTML = `<div class="file-info"><span class="file-name">${newFile.name}</span><span class="file-meta" data-path="${newFile.path}">${sizeText}</span></div><button class="delete-btn">&times;</button>`;
-        ui.fileList.appendChild(li);
+                        // 更新内容
+                        progressToast.textContent = status;
 
-        li.querySelector(".file-info").addEventListener("click", () => forceDownload(newFile.path, newFile.name, li));
-        li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(newFile.path, newFile.sha, li));
-        // --- [修复结束] ---
+                        // 如果是最终状态，安排移除
+                        if (isFinal) {
+                            setTimeout(() => {
+                                if (progressToast) {
+                                    progressToast.classList.remove('show');
+                                    progressToast.addEventListener('transitionend', () => {
+                                        if (progressToast) progressToast.remove();
+                                        progressToast = null; // 清理引用
+                                    }, { once: true });
+                                }
+                            }, duration);
+                        }
+                    };
+                    
+                    // --- [修改] 监听主上传模态框的关闭 ---
+                    const modalObserver = new MutationObserver(mutations => {
+                        for (const mutation of mutations) {
+                            if (mutation.attributeName === 'class' && !mutation.target.classList.contains('show') && activeUploadXHR) {
+                                // 当模态框关闭时，创建顶部持久提示框
+                                const currentProgress = parseInt(ui.progressBar.style.width, 10) || 0;
+                                manageProgressToast(`上传中... ${currentProgress}%`);
+                                modalObserver.disconnect();
+                                return;
+                            }
+                        }
+                    });
+                    modalObserver.observe(document.getElementById('memoryModal'), { attributes: true });
 
-        alert("上传成功！");
-        ui.fileUploader.value = "";
-        ui.fileNameInput.value = "";
-        ui.selectedFileName.textContent = '未选择任何文件';
+                    // --- 核心上传逻辑 ---
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = async () => {
+                        const contentB64 = reader.result.split(',')[1];
+                        const { data: existingFile } = await fetchFromGithub(path);
+                        
+                        const body = { message: `Upload ${fileName} to Drive`, content: contentB64, branch: 'main', sha: existingFile?.sha };
+                        
+                        activeUploadXHR = new XMLHttpRequest();
+                        activeUploadXHR.open('PUT', url, true);
+                        activeUploadXHR.setRequestHeader('Authorization', `token ${GITHUB_CONFIG.token}`);
+                        activeUploadXHR.setRequestHeader('Content-Type', 'application/json');
+                        
+                        const uploadCancelBtn = document.getElementById('upload-cancel-btn');
+                        const uploadCancelHandler = () => { if (activeUploadXHR) activeUploadXHR.abort(); };
+                        uploadCancelBtn.addEventListener('click', uploadCancelHandler);
 
-    } catch (error) {
-        if (error.message !== "上传已取消。") {
-            alert(await handleApiError(`上传文件 ${fileName}`, error));
-        }
-    } finally {
-        ui.uploadBtn.disabled = false;
-        ui.uploadBtn.textContent = "上传文件";
-        ui.progressContainer.style.display = 'none';
-    }
-}
+                        activeUploadXHR.upload.onprogress = (e) => {
+                            if (e.lengthComputable) {
+                                const percent = (e.loaded / e.total) * 100;
+                                ui.progressBar.style.width = `${percent}%`;
+                                // 如果顶部提示框已存在，同步更新进度
+                                if(progressToast) {
+                                    manageProgressToast(`上传中... ${Math.round(percent)}%`);
+                                }
+                            }
+                        };
 
+                        activeUploadXHR.onload = function() {
+                            if (this.status >= 200 && this.status < 300) {
+                                manageProgressToast("上传成功！", true, 2000);
+                                fetchFilesForSelectedProject();
+                                ui.fileUploader.value = "";
+                                ui.fileNameInput.value = "";
+                                ui.selectedFileName.textContent = '未选择任何文件';
+                            } else {
+                                const errorMsg = JSON.parse(this.responseText).message || `HTTP ${this.status}`;
+                                manageProgressToast(`上传失败`, true, 4000);
+                                alert(`上传失败: ${errorMsg}`);
+                            }
+                            cleanup();
+                        };
+
+                        activeUploadXHR.onerror = () => { 
+                            manageProgressToast("网络错误", true, 4000);
+                            alert("上传失败，请检查网络连接。"); 
+                            cleanup(); 
+                        };
+
+                        activeUploadXHR.onabort = () => { 
+                            manageProgressToast("已取消", true, 2000);
+                            cleanup(); 
+                        };
+
+                        const cleanup = () => {
+                            uploadCancelBtn.removeEventListener('click', uploadCancelHandler);
+                            ui.progressContainer.style.display = 'none';
+                            activeUploadXHR = null;
+                            modalObserver.disconnect();
+                            // 如果清理时，toast 仍在且不处于最终状态，则立即移除
+                            if (progressToast && !progressToast.textContent.includes('成功') && !progressToast.textContent.includes('失败') && !progressToast.textContent.includes('取消')) {
+                                progressToast.classList.remove('show');
+                                progressToast.addEventListener('transitionend', () => progressToast.remove(), { once: true });
+                                progressToast = null;
+                            }
+                        };
+
+                        ui.progressContainer.style.display = 'flex';
+                        ui.progressBar.style.width = '0%';
+                        activeUploadXHR.send(JSON.stringify(body));
+                    };
+                    reader.onerror = () => { alert("读取文件失败！"); };
+                }
 
 
         return {
@@ -8350,7 +8646,11 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (typeof onCompleteCallback === 'function') {
                     onCompleteCallback();
                 }
+                
+                // === 新增：显示成功提示 ===
+                showTopToast("小组件已添加", 2000);
             }
+
 
             async function deleteWidgetFromCell(cellIndex) {
                 delete currentConfig.lockscreenWidgets[cellIndex];
@@ -8364,6 +8664,9 @@ const blob = b64toBlob(blobData.content, contentType);
                 if (settingsModal?.classList.contains('show')) {
                     renderSettingsGrid(settingsModal.querySelector('.settings-grid'));
                 }
+                
+                // === 新增：显示成功提示 ===
+                showTopToast("小组件已删除", 2000);
             }
 
 
@@ -8434,12 +8737,24 @@ const blob = b64toBlob(blobData.content, contentType);
             }
 
             
-            async function ensureMemoryDataIsLoaded(signal) {
-                if (memoryCache && memoryCache.album) {
+             async function ensureMemoryDataIsLoaded(signal) {
+                // 如果内存中已有缓存，直接返回成功
+                if (memoryCache && memoryCache.album && memoryCache.memo) {
                     return { success: true };
                 }
 
                 const MEMORY_DATA_PATH = 'memory/data.json';
+
+                const getInitialData = () => ({ 
+                    memo: { 
+                        folders: [{ id: Date.now(), name: "默认文件夹" }], 
+                        notes: [] 
+                    }, 
+                    album: { 
+                        folders: [{ id: Date.now() + 1, name: "我的照片" }],
+                        items: [] 
+                    } 
+                });
                 
                 try {
                     const { data, error, response } = await fetchFromGithub(MEMORY_DATA_PATH, 'GET', null, signal);
@@ -8450,31 +8765,43 @@ const blob = b64toBlob(blobData.content, contentType);
                     }
 
                     if (error) {
-                        alert(`加载相册数据失败: ${error}\n\n请检查您的网络连接和GitHub配置。`);
+                        alert(`加载记忆数据失败: ${error}\n\n请检查您的网络连接和GitHub配置。`);
                         return { success: false, reason: 'error' };
                     }
                     
-                    if (response && response.status === 404) {
-                         console.log('memory/data.json not found on remote. Creating new initial data.');
-                         const getInitialData = () => ({ memo: { folders: [{ id: Date.now(), name: "默认文件夹" }], notes: [] }, album: { folders: [{ id: Date.now() + 1, name: "我的照片" }], items: [] } });
-                         memoryCache = getInitialData();
-                    } else if (data) {
-                        memoryCache = JSON.parse(b64_to_utf8(data.content));
+                    let loadedData = null;
+                    if ((response && response.status === 404) || !data || !data.content) {
+                         console.log('memory/data.json not found or is empty on remote. Using initial data.');
+                         loadedData = getInitialData();
                     } else {
-                        throw new Error("从云端获取的数据为空，但没有明确错误。");
+                        // 只有在确定内容非空时才尝试解析
+                        loadedData = JSON.parse(b64_to_utf8(data.content));
                     }
-                    if (!memoryCache.memo) memoryCache.memo = { folders: [], notes: [] };
-                    if (!memoryCache.album) memoryCache.album = { folders: [], items: [] };
+
+                    // [核心最终修复] 使用正确的 mergeDeep 顺序
+                    // 1. 创建一个全新的空对象 {} 作为安全的目标。
+                    // 2. 将 defaultConfig (最新的数据结构) 合并进去作为基础。
+                    // 3. 将 loadedData (你的数据) 合并进去，你的数据会覆盖掉默认值，从而被完整保留。
+                    const defaultConfig = getInitialData();
+                    memoryCache = mergeDeep({}, defaultConfig, loadedData);
+
+                    // 兼容旧版 `photos` 字段到 `items` 的迁移
+                    if (memoryCache.album && memoryCache.album.photos && (!memoryCache.album.items || memoryCache.album.items.length === 0)) {
+                        console.log("Migrating legacy 'photos' array to 'items'.");
+                        memoryCache.album.items = memoryCache.album.photos.map(p => ({...p, type: 'photo'}));
+                        delete memoryCache.album.photos;
+                    }
 
                     return { success: true };
 
                 } catch (e) {
+                    // 捕获所有致命错误，包括JSON解析失败
                     console.error('Critical error in ensureMemoryDataIsLoaded:', e);
-                    alert(`处理相册数据时发生严重错误: ${e.message}\n\n这可能是因为云端文件已损坏。您可以尝试进入“记忆”功能，它会自动尝试修复或重建数据。`);
+                    alert(`处理记忆数据时发生严重错误: ${e.message}\n\n这可能是因为云端文件格式已损坏。您可以尝试进入“记忆”功能，它会自动尝试修复或重建数据。`);
                     return { success: false, reason: 'critical' };
                 }
             }
-            
+
             function openLockscreenSettingsWindow() {
                 const modalId = 'lockscreen-settings-modal';
                 // [修复] 移除防止重复创建的判断，因为关闭时元素会被彻底销毁，需要能够重新创建
@@ -9368,6 +9695,14 @@ const blob = b64toBlob(blobData.content, contentType);
                     price: '无偿',            // 【必填】如：免费、19.9元、未知
                     status: '开放'         // 【必填】如：在售、已停售、群内获取
                 },
+ {
+                    id: 'youzi-phone',    // 【必填】一个全英文、不重复的唯一ID
+                    name: '柚子机',          // 【必填】手机的显示名称
+                    authorId: '5007799940',       // 【必填】作者的小红书或QQ号
+                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
+                    price: '无偿',            // 【必填】如：免费、19.9元、未知
+                    status: '开放测试'         // 【必填】如：在售、已停售、群内获取
+                },
                 // 在这里继续添加新的手机对象...
             ];
 
@@ -9435,6 +9770,8 @@ const blob = b64toBlob(blobData.content, contentType);
                 document.getElementById('phone-comments-title').textContent = `${phoneName} - 安利区`;
                 commentsModal.classList.add('show');
             }
+
+
             
             // ★★★ 核心修改：渲染函数现在接受一个数据数组作为参数
             function renderPhoneList(phonesToRender) {
@@ -9617,7 +9954,203 @@ const blob = b64toBlob(blobData.content, contentType);
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
+        
+        /* =============================================================== */
+        /* ================== [新增] 全局字体管理逻辑 (V2) =================== */
+        /* =============================================================== */
+        const FontManager = (() => {
+            const FONT_FAMILY_NAME = 'GlobalCustomFont'; // 使用一个固定的内部字体族名
+
+            const ui = {
+                styleTag: document.getElementById('global-font-style'),
+                urlInput: document.getElementById('fontUrlInput'),
+                applyBtn: document.getElementById('applyFontBtn'),
+                clearBtn: document.getElementById('clearFontBtn'),
+                presetSelector: document.getElementById('fontPresetSelector'),
+                addPresetBtn: document.getElementById('addFontPresetBtn'),
+                updatePresetBtn: document.getElementById('updateFontPresetBtn'),
+                deletePresetBtn: document.getElementById('deleteFontPresetBtn'),
+            };
+
+            function applyFont(fontUrl) {
+                if (fontUrl) {
+                    const fontFaceRule = `@font-face {
+                        font-family: '${FONT_FAMILY_NAME}';
+                        src: url('${fontUrl}');
+                        font-display: swap;
+                    }`;
+                    const globalRule = `* {
+                        font-family: '${FONT_FAMILY_NAME}', Arial, -apple-system, BlinkMacSystemFont, sans-serif !important;
+                    }`;
+                    ui.styleTag.innerHTML = fontFaceRule + '\n' + globalRule;
+                } else {
+                    ui.styleTag.innerHTML = ''; // 清空样式以恢复默认
+                }
+            }
+
+            function populatePresetDropdown() {
+                const currentVal = ui.presetSelector.value;
+                ui.presetSelector.innerHTML = '<option value="">选择或管理预设...</option>';
+                if (!currentConfig.settings.fontPresets) {
+                    currentConfig.settings.fontPresets = [];
+                }
+                currentConfig.settings.fontPresets.forEach((preset, index) => {
+                    ui.presetSelector.innerHTML += `<option value="${index}">${preset.name}</option>`;
+                });
+                if (currentVal) ui.presetSelector.value = currentVal;
+            }
+
+            function loadCurrentSettings() {
+                const fontSettings = currentConfig.settings.globalFont || { url: '' };
+                ui.urlInput.value = fontSettings.url;
+                applyFont(fontSettings.url);
+                populatePresetDropdown();
+            }
+
+            function setupEventListeners() {
+                ui.applyBtn.addEventListener('click', () => {
+                    const fontUrl = ui.urlInput.value.trim();
+                    if (!fontUrl) {
+                        alert('字体链接不能为空！');
+                        return;
+                    }
+                    applyFont(fontUrl);
+                    currentConfig.settings.globalFont = { name: FONT_FAMILY_NAME, url: fontUrl };
+                    saveGlobalConfig('Apply global font');
+                    showTopToast('全局字体已应用！', 2000);
+                });
+
+                ui.clearBtn.addEventListener('click', () => {
+                    ui.urlInput.value = '';
+                    applyFont('');
+                    currentConfig.settings.globalFont = { name: '', url: '' };
+                    saveGlobalConfig('Clear global font');
+                    showTopToast('已恢复默认字体。', 2000);
+                });
+
+                ui.presetSelector.addEventListener('change', () => {
+                    const index = ui.presetSelector.value;
+                    if (index === '') {
+                        // 如果选择 "选择预设"，则恢复到当前非预设状态
+                        const currentFont = currentConfig.settings.globalFont;
+                        ui.urlInput.value = currentFont.url;
+                        applyFont(currentFont.url);
+                        return;
+                    }
+                    const preset = currentConfig.settings.fontPresets[index];
+                    if (preset) {
+                        ui.urlInput.value = preset.url;
+                        applyFont(preset.url);
+                        currentConfig.settings.globalFont = { name: FONT_FAMILY_NAME, url: preset.url };
+                        saveGlobalConfig('Apply font preset');
+                    }
+                });
+
+                ui.addPresetBtn.addEventListener('click', () => {
+                    const presetName = prompt('请输入新预设的名称：');
+                    if (!presetName || presetName.trim() === '') return;
+                    
+                    const fontUrl = ui.urlInput.value.trim();
+                    if (!fontUrl) {
+                        alert('字体链接不能为空，无法保存预设。');
+                        return;
+                    }
+                    if (currentConfig.settings.fontPresets.some(p => p.name === presetName.trim())) {
+                        alert('该预设名称已存在！');
+                        return;
+                    }
+                    
+                    currentConfig.settings.fontPresets.push({
+                        name: presetName.trim(),
+                        url: fontUrl
+                    });
+                    saveGlobalConfig(`Save font preset: ${presetName.trim()}`);
+                    populatePresetDropdown();
+                    ui.presetSelector.value = currentConfig.settings.fontPresets.length - 1;
+                    showTopToast('预设已保存！', 2000);
+                });
+
+                ui.updatePresetBtn.addEventListener('click', () => {
+                    const index = ui.presetSelector.value;
+                    if (index === '') {
+                        alert('请先从下拉框中选择一个要修改的预设。');
+                        return;
+                    }
+
+                    const presetToUpdate = currentConfig.settings.fontPresets[index];
+                    const newName = prompt('请输入新的预设名称：', presetToUpdate.name);
+
+                    if (!newName || newName.trim() === '') {
+                        return; // 用户取消或输入为空
+                    }
+                    
+                    const trimmedNewName = newName.trim();
+                    
+                    // 检查新名称是否与自身相同（大小写不敏感）
+                    if (trimmedNewName.toLowerCase() === presetToUpdate.name.toLowerCase()) {
+                        return; // 名称未改变
+                    }
+
+                    // 检查新名称是否与其他预设冲突（排除自身）
+                    const isDuplicate = currentConfig.settings.fontPresets.some((p, i) => 
+                        i !== parseInt(index) && p.name.toLowerCase() === trimmedNewName.toLowerCase()
+                    );
+
+                    if (isDuplicate) {
+                        alert('该预设名称已存在，请换一个名称。');
+                        return;
+                    }
+
+                    const oldName = presetToUpdate.name;
+                    presetToUpdate.name = trimmedNewName;
+                    
+                    saveGlobalConfig(`Rename font preset from "${oldName}" to "${trimmedNewName}"`);
+                    // 刷新下拉列表以显示新名称，并保持选中状态
+                    populatePresetDropdown();
+                    ui.presetSelector.value = index; 
+                    
+                    showTopToast(`预设已重命名为 "${trimmedNewName}"！`, 2000);
+                });
+
+
+                ui.deletePresetBtn.addEventListener('click', () => {
+                    const index = ui.presetSelector.value;
+                    if (index === '') {
+                        alert('请先从下拉框中选择一个要删除的预设。');
+                        return;
+                    }
+                    
+                    const presetName = currentConfig.settings.fontPresets[index].name;
+                    if (confirm(`确定要删除预设 "${presetName}" 吗？`)) {
+                        currentConfig.settings.fontPresets.splice(index, 1);
+                        saveGlobalConfig(`Delete font preset: ${presetName}`);
+                        populatePresetDropdown();
+                        // 删除后，将输入框和应用状态恢复到当前保存的全局设置
+                        const currentFont = currentConfig.settings.globalFont;
+                        ui.urlInput.value = currentFont.url;
+                        applyFont(currentFont.url);
+                        showTopToast('预设已删除。', 2000);
+                    }
+                });
+            }
+
+            return {
+                init() {
+                    loadCurrentSettings();
+                    setupEventListeners();
+                }
+            };
+        })();
+
+
+        // 初始化字体管理器
+        FontManager.init();
+        
+        /* =============================================================== */
+        /* ========================= [新增结束] ========================== */
+        /* =============================================================== */
     });
+
             // [新增] 锁屏组件交互事件监听
             document.getElementById('lockscreenGrid').addEventListener('click', (e) => {
                 const li = e.target.closest('li[data-note-id]');
