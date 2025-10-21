@@ -14,7 +14,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
-    <title>JellyfishCenter</title>
+    <title>Jellyfish Island</title>
     <style>
         /* [CSS - V12.5.0 "Cascade Select"] */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -328,7 +328,7 @@ body.dark-mode .progress-bar-wrapper {
         #memoryModal .header-btn.manage-btn { color: var(--hold-border); }
         #memoryModal .header-btn.wander-btn { font-size: 20px; padding: 6px; }
         #memoryModal .header-controls { display: flex; gap: 8px; align-items:center; }
-        #memoryModal .list-container { flex-grow: 1; overflow-y: auto; padding: 0 15px 80px 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; align-content: flex-start; }
+#memoryModal .list-container { flex-grow: 1; overflow-y: auto; padding: 0 15px 80px 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; align-content: flex-start; min-height: 0; /* [核心修复] 允许Flex容器在内容溢出时正确收缩 */ }
         #memoryModal #hub-view-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; }
         #memoryModal .hub-btn { width: 80%; max-width: 300px; padding: 40px 20px; border: none; border-radius: 20px; box-shadow: 10px 10px 20px var(--shadow-dark-day), -10px -10px 20px var(--shadow-light-day); background: var(--bg-day-element); color: var(--text-day); font-size: 24px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         body.dark-mode #memoryModal .hub-btn { box-shadow: 10px 10px 20px var(--shadow-dark-night), -10px -10px 20px var(--shadow-light-night); background: var(--bg-night-element); color: var(--text-night); }
@@ -347,8 +347,37 @@ body.dark-mode .progress-bar-wrapper {
         #memoryModal .album-item { aspect-ratio: 1 / 1; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; }
         #memoryModal .album-item .folder-icon { font-size: 32px; }
         #memoryModal .album-info { font-size: 12px; color: #889; }
-        #memoryModal #photo-list-container { grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        #memoryModal .photo-item, .photo-item-set { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1), inset -2px -2px 4px rgba(255,255,255,0.7); cursor: pointer; transition: transform 0.2s ease; background-color: rgba(128,128,128,0.1); }
+#memoryModal #photo-list-container {
+    display: flex;          /* 1. 声明为 Flexbox 弹性布局 */
+    flex-wrap: wrap;        /* 2. 允许项目自动换行 */
+    justify-content: flex-start; /* 3. 核心：实现从左到右排列 */
+    min-height: 0;
+    gap: 10px;              /* 4. 使用 gap 属性创建统一的 10px 间隙 */
+}
+
+        #memoryModal .photo-item, .photo-item-set {
+    /* 核心：计算项目宽度，减去 gap 的空间，实现每行完美的3列 */
+    width: calc(33.333% - 6.7px); 
+    
+    /* 你可以调整这里的百分比和减去的值来改变列数，例如 4 列：
+       width: calc(25% - 7.5px);
+       5 列：
+       width: calc(20% - 8px);
+    */
+    
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+    border-radius: 25px;
+    background-color: var(--item-bg-color);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    /* 删除了所有旧的 display, vertical-align, width, margin 属性 */
+}
+
+
         #memoryModal .photo-item img, .photo-item-set img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
         .photo-item-set .photo-stack-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: transform 0.3s ease; border: 2px solid var(--bg-day-element); }
         body.dark-mode .photo-item-set .photo-stack-img { border-color: var(--bg-night-element); }
@@ -397,19 +426,18 @@ body.dark-mode .progress-bar-wrapper {
         #memoryPhotoDetailsModal #photoset-toggle-container { display: none; padding: 10px; border-bottom: 1px solid rgba(128,128,128,0.2); }
         #memoryPhotoDetailsModal .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
         #memoryPhotoDetailsModal .modal-button.primary { color: var(--hold-border); }
-        #memoryModal .pin-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 20px; cursor: pointer; opacity: 0.3; transition: opacity 0.2s, transform 0.2s; z-index: 5; }
+        #memoryModal .pin-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 13px; font-weight: 600; cursor: pointer; opacity: 0.3; transition: opacity 0.2s, transform 0.2s; z-index: 5; border-radius: 4px; padding: 2px 5px; }
         #memoryModal .note-item.pinned .pin-btn { opacity: 1; color: var(--hold-border); }
         #memoryModal .pin-btn:hover { transform: scale(1.2); }
         .management-controls { display: none; position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: var(--bg-day-element); box-shadow: 0 -4px 12px rgba(0,0,0,0.1); z-index: 101; flex-direction: row; justify-content: space-between; gap: 10px; border-radius: 16px 16px 0 0;}
         body.dark-mode .management-controls { background: var(--bg-night-element); }
         .management-controls.active { display: flex; }
         .management-controls .modal-button { flex-grow: 1; margin: 0; padding: 12px; }
-        .folder-item.manage-mode, .album-item.manage-mode, .photo-item.manage-mode, .photo-item-set.manage-mode { cursor: pointer; }
-        .folder-item .manage-checkbox, .album-item .manage-checkbox, .photo-item .manage-checkbox, .photo-item-set .manage-checkbox { display: none; position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; z-index: 5; }
-        .folder-item.manage-mode .manage-checkbox, .album-item.manage-mode .manage-checkbox, .photo-item.manage-mode .manage-checkbox, .photo-item-set.manage-mode .manage-checkbox { display: block; }
-        .folder-item.manage-selected, .album-item.manage-selected, .photo-item.manage-selected, .photo-item-set.manage-selected { border: 2px solid var(--hold-border); box-shadow: 0 0 0 2px var(--hold-border), 8px 8px 16px var(--shadow-dark-day), -8px -8px 16px var(--shadow-light-day) !important; }
-        body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-selected, body.dark-mode .photo-item.manage-selected, body.dark-mode .photo-item-set.manage-selected { box-shadow: 0 0 0 2px var(--hold-border), 8px 8px 16px var(--shadow-dark-night), -8px -8px 16px var(--shadow-light-night) !important; }
-        
+.folder-item.manage-mode, .album-item.manage-mode, .photo-item.manage-mode, .photo-item-set.manage-mode, .note-item.manage-mode { cursor: pointer; }
+.folder-item .manage-checkbox, .album-item .manage-checkbox, .photo-item .manage-checkbox, .photo-item-set .manage-checkbox, .note-item .manage-checkbox { display: none; position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; z-index: 5; }
+.folder-item.manage-mode .manage-checkbox, .album-item.manage-mode .manage-checkbox, .photo-item.manage-mode .manage-checkbox, .photo-item-set.manage-mode .manage-checkbox, .note-item.manage-mode .manage-checkbox { display: block; }
+.folder-item.manage-selected, .album-item.manage-selected, .photo-item.manage-selected, .photo-item-set.manage-selected, .note-item.manage-selected { border: 2px solid var(--hold-border); box-shadow: 0 0 0 2px var(--hold-border), 8px 8px 16px var(--shadow-dark-day), -8px -8px 16px var(--shadow-light-day) !important; }
+body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-selected, body.dark-mode .photo-item.manage-selected, body.dark-mode .photo-item-set.manage-selected, body.dark-mode .note-item.manage-selected { box-shadow: 0 0 0 2px var(--hold-border), 8px 8px 16px var(--shadow-dark-night), -8px -8px 16px var(--shadow-light-night) !important; }
         #cloud-drive-section .list-container { display: flex; flex-direction: column; gap: 15px; padding: 15px; overflow-y: hidden; min-height: 0; }
         #file-list-container { flex-shrink: 1; flex-grow: 1; min-height: 100px; overflow-y: auto; border-radius: 10px; padding: 5px; background:var(--bg-day-element); box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day); display: flex; flex-direction: column; }
         body.dark-mode #file-list-container { background:var(--bg-night-element); box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night); }
@@ -2553,26 +2581,25 @@ body.theme-glass.dark-mode .memo-toolbar {
 }
 #phoneCollectionModal .page-content {
     flex-grow: 1; 
-    display: flex;
-    flex-direction: column;
+    display: grid; /* [核心修改] 使用 Grid 布局替代 Flex */
+    grid-template-rows: auto 1fr; /* [核心修改] 定义一个高度自适应的头部行，和一个占满剩余空间的滚动内容行 */
     min-height: 0; 
-    overflow: hidden; 
+    overflow: hidden; /* 保持不变，确保整个页面内容不溢出 */
 }
+
 #phoneCollectionModal .page-header-container {
     flex-shrink: 0; 
 }
 
-/* 核心修改：列表容器改为 Flex 布局以实现泡泡效果 */
 #phoneCollectionModal .list-container {
-    padding: 35px 20px; /* 进一步增加上下内边距，为错落效果留出空间 */
-    display: flex; 
-    flex-wrap: wrap; 
-    justify-content: center; 
-    align-items: center; 
-    gap: 25px; 
-    align-content: center; /* 让多行内容在容器里整体居中 */
-    flex-grow: 1; 
-    overflow-y: auto; 
+    /* 垂直内边距保持，水平内边距交由布局自动处理 */
+    padding: 35px 0;
+    display: flex; /* ★ 核心修改：使用 Flexbox 布局 */
+    flex-wrap: wrap; /* ★ 核心修改：允许泡泡换行 */
+    justify-content: space-evenly; /* ★ 核心修改：实现所有水平间距（包括两端）相等 */
+    row-gap: 40px; /* ★ 核心修改：设置一个充足的行间距，以适应泡泡的错落效果 */
+    align-content: flex-start;
+    overflow-y: auto;
     min-height: 0;
 }
 
@@ -2878,6 +2905,26 @@ body.dark-mode .reaction-item {
 .giscus-comments a:hover {
     text-decoration: underline;
 }
+/* =============================================================== */
+/* ============== [新增] 手机收藏馆筛选功能样式 =============== */
+/* =============================================================== */
+.filter-section { margin-bottom: 20px; border-bottom: 1px solid rgba(128, 128, 128, 0.1); padding-bottom: 15px; }
+.filter-section:last-of-type { border-bottom: none; margin-bottom: 0px; }
+.filter-group-title { font-size: 14px; font-weight: 600; color: rgb(136, 136, 153); margin-bottom: 12px; }
+#selected-filters-container { padding: 10px; background: rgba(128, 128, 128, 0.05); border-radius: 10px; min-height: 40px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.selected-filter-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 16px; font-size: 13px; font-weight: 600; color: white; background-color: var(--hold-border); }
+.selected-filter-tag .remove-tag-btn { font-family: sans-serif; font-weight: bold; font-size: 14px; cursor: pointer; line-height: 1; opacity: 0.7; transition: opacity 0.2s ease 0s; }
+.selected-filter-tag .remove-tag-btn:hover { opacity: 1; }
+.filter-options-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.filter-tag-option { padding: 8px 16px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; background: var(--bg-day-element); color: var(--text-day); box-shadow: var(--shadow-dark-day) 4px 4px 8px, var(--shadow-light-day) -4px -4px 8px; transition: all 0.2s ease 0s; }
+body.dark-mode .filter-tag-option { background: var(--bg-night-element); color: var(--text-night); box-shadow: var(--shadow-dark-night) 4px 4px 8px, var(--shadow-light-night) -4px -4px 8px; }
+.filter-tag-option:active { box-shadow: var(--shadow-dark-day) 4px 4px 8px inset, var(--shadow-light-day) -4px -4px 8px inset; }
+body.dark-mode .filter-tag-option:active { box-shadow: var(--shadow-dark-night) 4px 4px 8px inset, var(--shadow-light-night) -4px -4px 8px inset; }
+.filter-tag-option.selected { opacity: 0.5; pointer-events: none; }
+.filter-tag-option[data-group="user"][data-value="owned"] { color: #d69e2e; font-weight: bold; }
+.filter-tag-option[data-group="user"][data-value="wishlist"] { color: #C53030; font-weight: bold; }
+.filter-tag-option[data-group="user"][data-value="not_owned"] { color: #718096; }
+
 
 /* [新增] 相册自定义背景样式 */
 #memoryModal .album-item.has-custom-bg {
@@ -2950,15 +2997,454 @@ body.dark-mode .album-item .sort-handle {
     cursor: grabbing;
 }
 
+/* =============================================================== */
+/* =================== [新增] 功能优化专属样式 =================== */
+/* =============================================================== */
+
+/* 1. 更新公告标签的红点 */
+.segmented-control label[for="help-tab-2"] {
+    position: relative; /* 为红点的绝对定位提供基准 */
+}
+#update-log-indicator {
+    display: none; /* 默认隐藏 */
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background-color: #e53e3e;
+    border-radius: 50%;
+    border: 1px solid white;
+    box-shadow: 0 0 5px #e53e3e;
+}
+#update-log-indicator.show {
+    display: block; /* 用于JS控制显示 */
+}
+
+/* 2. 美化新用户引导弹窗的内容 */
+#welcome-modal-content p {
+    line-height: 1.7;
+    margin-bottom: 12px;
+}
+#welcome-modal-content ul {
+    list-style: none;
+    padding-left: 10px;
+    margin-bottom: 15px;
+}
+#welcome-modal-content li {
+    margin-bottom: 8px;
+    color: #4a5568;
+}
+body.dark-mode #welcome-modal-content li {
+    color: #a0aec0;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] 备份提醒设置弹窗专属样式 V3 ============ */
+/* =============================================================== */
+.time-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 减小间距，让布局更紧凑 */
+    margin-bottom: 10px; /* 每行之间增加一点垂直间距 */
+}
+.time-input-row .modal-input {
+    flex-grow: 1; /* 核心：让输入框占据所有剩余空间 */
+    flex-shrink: 1; /* 允许输入框在空间不足时收缩 */
+    min-width: 100px; /* 保证输入框的最小可操作宽度 */
+}
+.time-action-btn {
+    flex-shrink: 0; /* 核心：禁止按钮收缩 */
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-day-element);
+    box-shadow: 2px 2px 4px var(--shadow-dark-day),-2px -2px 4px var(--shadow-light-day);
+    color: var(--text-day);
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all .2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+body.dark-mode .time-action-btn {
+    background: var(--bg-night-element);
+    box-shadow: 2px 2px 4px var(--shadow-dark-night),-2px -2px 4px var(--shadow-light-night);
+    color: var(--text-night);
+}
+.time-action-btn:active {
+    box-shadow: inset 2px 2px 4px var(--shadow-dark-day), inset -2px -2px 4px var(--shadow-light-day);
+}
+body.dark-mode .time-action-btn:active {
+     box-shadow: inset 2px 2px 4px var(--shadow-dark-night), inset -2px -2px 4px var(--shadow-light-night);
+}
+.time-action-btn.add {
+    color: var(--hold-border);
+}
+.time-action-btn.remove {
+    color: #f56565;
+}
+
+
+#backupProjectList .project-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+#backupProjectList .project-checkbox-item:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+body.dark-mode #backupProjectList .project-checkbox-item:hover {
+    background-color: rgba(255,255,255,0.08);
+}
+
+#backupProjectList .project-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+        /* ===== [修改] 相册照片下载按钮样式 V3 (最终版) ===== */
+        #download-photo-btn {
+            position: absolute;
+            right: 15px; /* 向右移动 */
+            bottom: 8px; /* 向下移动 */
+            z-index: 20;
+            background: transparent; /* 移除背景 */
+            border: none;
+            color: white;
+            font-size: 17px; /* 稍微增大图标尺寸 */
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.7; /* 初始透明度 */
+            display: none; /* 默认隐藏，由JS控制显示 */
+            padding: 10px; /* 增加点击热区 */
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* 为图标增加轻微阴影，增强可读性 */
+        }
+        #download-photo-btn:hover {
+            opacity: 1; /* 悬停时完全显示 */
+            transform: scale(1.15); /* 悬停时放大效果更明显 */
+        }
+        /* ===== [修改结束] ===== */
+
+/* =============================================================== */
+/* =============== [新增] 手机收藏馆状态功能样式 =============== */
+/* =============================================================== */
+
+/* 状态按钮的弹出菜单容器 */
+#phoneStatusMenu {
+    position: absolute;
+    top: 100%; /* 定位在状态按钮的正下方 */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px) scale(0.9); /* 初始状态，轻微下移和缩小 */
+    display: flex;
+    gap: 15px; /* 按钮之间的间距 */
+    padding: 8px 12px;
+    background: var(--bg-day-element);
+    border-radius: 20px; /* 胶囊形状 */
+    box-shadow: 4px 4px 8px var(--shadow-dark-day), -4px -4px 8px var(--shadow-light-day);
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+body.dark-mode #phoneStatusMenu {
+    background: var(--bg-night-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-night), -4px -4px 8px var(--shadow-light-night);
+}
+
+/* 弹出菜单显示时的样式 */
+#phoneStatusMenu.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(5px) scale(1);
+}
+
+/* 弹出菜单中的小按钮 */
+.status-option-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+.status-option-btn:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+body.dark-mode .status-option-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+.status-option-btn:active {
+    transform: scale(0.9);
+}
+
+/* 按钮图标颜色 */
+.status-option-btn .owned-icon {
+    color: #ffc107; /* 黄色 */
+}
+.status-option-btn .wishlist-icon {
+    color: #ff85a2; /* 粉色 */
+}
+
+/* "已拥有" 状态的呼吸辉光效果 */
+@keyframes breathing-glow {
+    0% { box-shadow: 0 0 5px 0px var(--status-color), inset 0 0 3px 0px var(--status-color); }
+    50% { box-shadow: 0 0 15px 3px var(--status-color), inset 0 0 5px 1px var(--status-color); }
+    100% { box-shadow: 0 0 5px 0px var(--status-color), inset 0 0 3px 0px var(--status-color); }
+}
+
+.phone-partition-item.status-owned {
+    background: var(--status-color); /* 将背景设为状态颜色 */
+    color: black; /* 将文字颜色设为黑色 */
+    text-shadow: 0 1px 3px rgba(255,255,255,0.3); /* 为文字添加轻微阴影以增强可读性 */
+    animation: float-bubble 6s ease-in-out infinite, breathing-glow 2.5s ease-in-out infinite;
+}
+
+
+/* "愿望单" 状态的实线边框效果 (修正版) */
+.phone-partition-item.status-wishlist {
+    outline: 2.5px solid var(--status-color);
+    outline-offset: 2px; /* 让边框与泡泡之间有一点空隙，更好看 */
+}
+/* ★★★ 新增：修复磨砂玻璃主题下“已拥有”状态的背景色问题 ★★★ */
+body.theme-glass .phone-partition-item.status-owned,
+body.theme-glass.dark-mode .phone-partition-item.status-owned {
+    background: var(--status-color);
+    /* 移除磨砂玻璃主题添加的透明边框，避免颜色冲突 */
+    border: none;
+}
+/* =============================================================== */
+/* ============= [新增] 多版本恢复选择器样式 ================ */
+/* =============================================================== */
+#recovery-versions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 45vh;
+    overflow-y: auto;
+    padding: 5px;
+    margin: 10px 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15px, black 90%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 15px, black 90%, transparent 100%);
+}
+
+.recovery-version-item {
+    border: 1px solid rgba(128,128,128,0.2);
+    border-radius: 10px;
+    transition: background-color 0.2s, border-color 0.2s;
+    position: relative;
+}
+
+.recovery-version-item:has(input:checked) {
+    background-color: rgba(91, 153, 226, 0.1);
+    border-color: var(--hold-border);
+    box-shadow: 0 0 8px rgba(91, 153, 226, 0.3);
+}
+
+.recovery-version-item label {
+    display: block;
+    padding: 12px 18px;
+    cursor: pointer;
+    line-height: 1.6;
+}
+
+.recovery-version-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.version-meta {
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+.version-meta span {
+    font-size: 12px;
+    font-weight: normal;
+    color: #889;
+    margin-left: 8px;
+}
+body.dark-mode .version-meta span {
+    color: #a0aec0;
+}
+
+.version-summary {
+    font-size: 13px;
+    color: #5a6778;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 15px; /* 行间距 和 列间距 */
+}
+body.dark-mode .version-summary {
+    color: #c0c6cc;
+}
+
+#confirmRecoveryBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: #9db2c2 !important;
+    box-shadow: none !important;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
+/* ===== [新增] 相册重命名图标样式 ===== */
+#memoryModal .album-item .rename-icon {
+    display: none; /* 默认隐藏 */
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 20px;
+    font-weight: normal;
+    color: #a0aec0; /* 一个柔和的颜色 */
+    cursor: pointer;
+    padding: 5px;
+    z-index: 10;
+    transition: color 0.2s, transform 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+    line-height: 1;
+}
+
+body.dark-mode #memoryModal .album-item .rename-icon {
+    color: #718096;
+}
+
+/* 管理模式下显示 */
+#memoryModal .album-item.manage-mode .rename-icon {
+    display: block;
+}
+
+#memoryModal .album-item .rename-icon:hover {
+    color: var(--hold-border);
+    transform: scale(1.2);
+}
+
+/* 当有自定义背景时，使图标更清晰 */
+#memoryModal .album-item.has-custom-bg .rename-icon {
+    color: white;
+    opacity: 0.7;
+    text-shadow: 0 0 3px rgba(0,0,0,0.7);
+}
+#memoryModal .album-item.has-custom-bg .rename-icon:hover {
+    opacity: 1;
+}
+/* ===== [新增] 长图查看器缩放样式 ===== */
+#memoryPhotoViewerOverlay #viewer-img-container {
+    cursor: zoom-in; /* 默认显示放大光标 */
+}
+#viewer-img-container.zoomed-long {
+    align-items: flex-start; /* 切换为顶部对齐 */
+    overflow-y: auto;        /* 允许垂直滚动 */
+    cursor: default;         /* 容器本身恢复默认光标 */
+}
+#viewer-img-container.zoomed-long #viewer-img {
+    max-height: none;        /* 移除最大高度限制 */
+    width: 100%;             /* 宽度占满容器 */
+    cursor: zoom-out;        /* 图片上显示缩小光标 */
+}
+/* =============================================================== */
+/* ============= [新增] 备忘录文件夹管理图标样式 =============== */
+/* =============================================================== */
+
+/* 1. 重命名图标样式 (复用相册样式) */
+#memoryModal .folder-item .rename-icon {
+    display: none; /* 默认隐藏 */
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 20px;
+    font-weight: normal;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 10;
+    transition: color 0.2s, transform 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+    line-height: 1;
+}
+
+body.dark-mode #memoryModal .folder-item .rename-icon {
+    color: #718096;
+}
+
+/* 管理模式下显示重命名图标 */
+#memoryModal .folder-item.manage-mode .rename-icon {
+    display: block;
+}
+
+#memoryModal .folder-item .rename-icon:hover {
+    color: var(--hold-border);
+    transform: scale(1.2);
+}
+
+/* 2. 排序拖拽把手样式 (复用相册样式) */
+.folder-item .sort-handle.memo-sort-handle {
+    display: none; /* 默认隐藏 */
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #b0b0b0;
+    cursor: grab;
+    padding: 5px;
+    z-index: 10;
+    transition: color 0.2s, transform 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+    line-height: 1;
+}
+
+body.dark-mode .folder-item .sort-handle.memo-sort-handle {
+    color: #777;
+}
+
+/* 管理模式下显示排序把手 */
+.folder-item.manage-mode .sort-handle.memo-sort-handle {
+    display: block;
+}
+
+.folder-item .sort-handle.memo-sort-handle:hover {
+    color: var(--hold-border);
+    transform: scale(1.1);
+}
+
+.folder-item .sort-handle.memo-sort-handle:active {
+    cursor: grabbing;
+}
 
     </style>
-
 
  <style id="custom-jelly-ball-styles"></style>
 
     <!-- [新增] 用于全局字体的样式标签 -->
-
-
+    <style id="global-font-style"></style>
     <!-- 手机模式滑动容器 -->
     <div class="main-wrapper" id="mainWrapper">
         <div class="page-slider" id="pageSlider">
@@ -2967,6 +3453,8 @@ body.dark-mode .album-item .sort-handle {
                 <div class="lockscreen-grid" id="lockscreenGrid">
                     <!-- JS 动态填充 -->
                 </div>
+                <!-- [新增] 锁屏空白提示 -->
+                <div id="lockscreen-swipe-hint" style="display: none; position: absolute; color: inherit; opacity: 0.5; font-size: 16px; font-weight: 600; text-align: center; pointer-events: none;">向右滑动进入主屏幕 →</div>
             </div>
             <!-- 主屏幕页面 (JS会将下面的内容移入此div) -->
             <div class="home-screen-page" id="homeScreenPage">
@@ -2978,7 +3466,7 @@ body.dark-mode .album-item .sort-handle {
     <!-- [核心修复] 将主页内容移出 mobile-wrapper，作为 body 的直接子元素 -->
     <div class="page-overlay" id="pageOverlay"></div>
     <div class="title-card" id="titleCard">
-        <h1 class="editable-title" id="title">JellyfishCenter</h1>
+        <h1 class="editable-title" id="title">Jellyfish Island</h1>
         <div class="editable-subtitle" id="subtitle">长按🌞打开工具栏 | By淡季水母</div>
     </div>
 
@@ -3006,21 +3494,23 @@ body.dark-mode .album-item .sort-handle {
         <button class="fab-main theme-toggle" id="themeBtn" title="切换主题">🌞</button>
     </div>
 
-    <!-- ===== [结构修改] 手机收藏馆模态框 ===== -->
+    <!-- ===== [结构修改] 手机收藏馆模态框 v2 ===== -->
     <!-- 列表主窗口 -->
     <div class="modal-overlay" id="phoneCollectionModal">
         <div class="modal-content">
-            <div class="page-content"> <!-- ★ 修改点：移除了 .app-container 和 .page，简化为一层 .page-content -->
-                <div class="page-header-container"> <!-- ★ 新增：包裹住所有非滚动区域 -->
-                    <div class="modal-header" style="padding: 12px 15px;"> <!-- ★ 修改点：增加了内边距 -->
+            <div class="page-content">
+                <div class="page-header-container">
+                    <div class="modal-header" style="padding: 12px 15px;">
                         <div class="modal-title-group" style="gap: 8px; align-items: center;">
                             <span>手机收藏馆</span>
-<button id="showNoticeBell" title="查看社区须知">ⓘ</button>
+                            <button id="showNoticeBell" title="查看社区须知">ⓘ</button>
                         </div>
                         <button class="close-btn" data-modal-id="phoneCollectionModal">&times;</button>
                     </div>
-                    <div style="padding: 0 25px 15px 25px; display: flex; justify-content: center;">
-                        <input type="search" id="phoneSearchInput" class="modal-input" placeholder="按名称搜索..." style="width: 100%; max-width: 400px;">
+                    <!-- ★★★ 修改：将搜索框和筛选按钮放在一个 flex 容器中 ★★★ -->
+                    <div id="phone-search-filter-bar" style="padding: 0 15px 15px 15px; display: flex; align-items: center; gap: 10px;">
+                        <input type="search" id="phoneSearchInput" class="modal-input" placeholder="按名称或作者ID搜索..." style="flex-grow: 1; min-width: 0;">
+                        <button id="phoneFilterBtn" class="modal-button" style="flex-shrink: 0; padding: 10px 15px;">筛选</button>
                     </div>
                 </div>
                 <div id="phone-list-container" class="list-container">
@@ -3029,14 +3519,67 @@ body.dark-mode .album-item .sort-handle {
             </div>
         </div>
     </div>
+
+    <!-- ★★★ 新增：筛选功能的模态框 ★★★ -->
+    <div id="phoneFilterModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px; max-height: 80vh;">
+            <div class="modal-header">
+                <div class="modal-title-group">筛选器</div>
+                <button class="close-btn" data-modal-id="phoneFilterModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 1. 已选中的筛选标签 -->
+                <div id="selected-filters-container" class="filter-section" style="border-bottom:none; padding-bottom: 5px; margin-bottom: 5px;">
+                    <!-- JS 将在此处填充 -->
+                </div>
+                <!-- 2. 可选的筛选条件 -->
+                <div class="filter-section">
+                    <h4 class="filter-group-title">手机状态</h4>
+                    <div id="filter-options-status" class="filter-options-grid">
+                        <!-- JS 将在此处填充 -->
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <h4 class="filter-group-title">售卖类型</h4>
+                    <div id="filter-options-price" class="filter-options-grid">
+                        <!-- JS 将在此处填充 -->
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <h4 class="filter-group-title">我的状态</h4>
+                    <div id="filter-options-user" class="filter-options-grid">
+                        <!-- JS 将在此处填充 -->
+                    </div>
+                </div>
+            </div>
+            <!-- 3. 底部按钮 -->
+            <div class="modal-footer" style="display: flex; justify-content: space-between; padding: 15px; flex-grow: 0; flex-shrink: 0; border-top: 1px solid rgba(128,128,128,0.2);">
+                <button id="clear-filters-btn" class="modal-button" style="color: #889;">清除</button>
+                <button id="apply-filters-btn" class="modal-button" style="flex-grow: 1; margin-left: 10px; color: var(--hold-border);">确认</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 详情悬浮窗 -->
     <div class="modal-overlay" id="phoneDetailModal">
         <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header">
-                <!-- ★★★ 修改点：将标题和置顶按钮包裹起来 ★★★ -->
-                <div id="phone-detail-title-group" class="modal-title-group" style="gap: 12px; align-items: center;">
+                <!-- ★★★ 修改点：将标题和状态按钮包裹起来，并新增弹出菜单 ★★★ -->
+                <div id="phone-detail-title-group" class="modal-title-group" style="gap: 12px; align-items: center; position: relative;">
                     <span id="phone-detail-title">手机详情</span>
-                    <span id="pinPhoneBtn" style="cursor: pointer; font-size: 24px; color: #ccc;" title="置顶">★</span>
+                    <span id="phoneStatusBtn" style="cursor: pointer; font-size: 24px;" title="设置状态">◌</span>
+                    <!-- [新增] 状态选择弹出菜单 -->
+                    <div id="phoneStatusMenu">
+                        <button class="status-option-btn" data-status="owned" title="已拥有">
+                            <span class="status-icon owned-icon">★</span>
+                        </button>
+                        <button class="status-option-btn" data-status="wishlist" title="加入愿望单">
+                            <span class="status-icon wishlist-icon">♥</span>
+                        </button>
+                         <button class="status-option-btn" data-status="none" title="未拥有">
+                            <span class="status-icon" style="font-size: 20px;">∅</span>
+                        </button>
+                    </div>
                 </div>
                 <button class="close-btn" data-modal-id="phoneDetailModal">&times;</button>
             </div>
@@ -3078,15 +3621,16 @@ body.dark-mode .album-item .sort-handle {
                 <div class="segmented-control four-segments">
                     <label for="help-tab-0">首次配置</label>
                     <label for="help-tab-1">功能介绍</label>
-                    <label for="help-tab-2">更新公告</label>
+                    <label for="help-tab-2">更新公告<span id="update-log-indicator"></span></label>
                     <label for="help-tab-3">免责声明</label>
                     <div class="slider-indicator"></div>
                 </div>
                 <div class="help-content-wrapper">
                     <div id="help-page-0" class="help-page-content">
-                        <h3>从零开始 (必需)</h3><p>此流程仅需您创建一个安全的“钥匙”(PAT)和一个云端“私人数据仓库”，让本应用可以为您安全地存储和同步所有数据。</p><ol><li><strong>访问创建页面</strong>：<a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer">点击此链接直接进入 GitHub Token 创建页面</a>。</li><li><strong>填写基本信息</strong>：备注(Note)填写 <code>JellyfishCenterToken</code>，有效期(Expiration)选择 <code>No expiration</code> (永不过期)。</li><li><strong>分配权限 (关键)</strong>：只需 <strong>勾选 <code>repo</code></strong> 这一项。</li><li><strong>生成并复制</strong>：滑动到页面最底部，点击 <strong><code>Generate token</code></strong> 按钮。<strong>【⚠️极其重要⚠️】</strong> GitHub 只会显示这一次完整的 Token。请 <strong>立即点击复制按钮</strong> 将其保存到安全的地方，下一步会马上用到。它应该以 <code>ghp_</code> 开头。</li></ol>
+                        <h3>从零开始 (必需)</h3><p>此流程仅需您创建一个安全的“钥匙”(PAT)和一个云端“私人数据仓库”，让本应用可以为您安全地存储和同步所有数据。</p><ol><li><strong>访问创建页面</strong>：<a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer">点击此链接直接进入 GitHub Token 创建页面</a>。</li><li><strong>填写基本信息</strong>：备注(Note)填写 <code>JellyfishIslandToken</code>，有效期(Expiration)选择 <code>No expiration</code> (永不过期)。</li><li><strong>分配权限 (关键)</strong>：只需 <strong>勾选 <code>repo</code></strong> 这一项。</li><li><strong>生成并复制</strong>：滑动到页面最底部，点击 <strong><code>Generate token</code></strong> 按钮。<strong>【⚠️极其重要⚠️】</strong> GitHub 只会显示这一次完整的 Token。请 <strong>立即点击复制按钮</strong> 将其保存到安全的地方，下一步会马上用到。它应该以 <code>ghp_</code> 开头。</li></ol>
                         <h4>步骤 2：创建私人数据仓库</h4><p>此步骤将创建一个独立的、完全私密的仓库，专门用来存放您的所有配置和文件。</p><ol><li><strong>访问创建页面</strong>：<a href="https://github.com/new" target="_blank" rel="noopener noreferrer">点击此链接直接进入 GitHub 仓库创建页面</a>。</li><li><strong>填写仓库信息</strong>：<ul><li><strong>Repository name (仓库名称)</strong>：起一个清晰的名字，例如 <code>My-Jellyfish-Data</code>。</li><li><strong>关键：选择 <code>Private</code> (私有)</strong>。这是您的私人数据，必须设为私有。</li><li><strong>勾选 <code>Add a README file</code></strong>：确保仓库被成功初始化。</li></ul></li><li><strong>点击 <code>Create repository</code></strong> 按钮完成创建。</li></ol>
-                        <h4>步骤 3：在 JellyfishCenter 内完成最终配置</h4><p>现在，我们将“钥匙”和“数据仓库”信息告诉本应用。</p><ol><li><strong>打开配置面板</strong>：长按右下角的 🌞/🌜 按钮展开菜单 → 点击 <strong>☁️ (数据同步)</strong>。</li><li><strong>填入信息</strong>：<ul><li><strong>仓库</strong>：填写您在 <strong>步骤2</strong> 创建的**私人数据仓库**地址，格式为 <code>你的GitHub用户名/My-Jellyfish-Data</code>。</li><li><strong>Personal Access Token</strong>：粘贴您在 <strong>步骤1</strong> 创建并复制好的完整 Token。</li></ul></li><li><strong>保存并同步</strong>：点击 <strong><code>保存配置</code></strong> 按钮。</li></ol><p><strong>恭喜！</strong> 您的 JellyfishCenter 现已与云端完全同步，可以开始使用了！</p>
+                        <h4>步骤 3：在 Jellyfish Island
+ 内完成最终配置</h4><p>现在，我们将“钥匙”和“数据仓库”信息告诉本应用。</p><ol><li><strong>打开配置面板</strong>：长按右下角的 🌞/🌜 按钮展开菜单 → 点击 <strong>☁️ (数据同步)</strong>。</li><li><strong>填入信息</strong>：<ul><li><strong>仓库</strong>：填写您在 <strong>步骤2</strong> 创建的**私人数据仓库**地址，格式为 <code>你的GitHub用户名/My-Jellyfish-Data</code>。</li><li><strong>Personal Access Token</strong>：粘贴您在 <strong>步骤1</strong> 创建并复制好的完整 Token。</li></ul></li><li><strong>保存并同步</strong>：点击 <strong><code>保存配置</code></strong> 按钮。</li></ol><p><strong>恭喜！</strong> 您的 Jellyfish Island 现已与云端完全同步，可以开始使用了！</p>
                     </div>
               
 <div id="help-page-1" class="help-page-content">
@@ -3196,6 +3740,36 @@ body.dark-mode .album-item .sort-handle {
     <div class="update-header-info">
         <p><strong>小红书ID:</strong> 淡季水母</p>
         <p><strong>QQ交流群:</strong> 563191005</p>
+    </div>
+        <!-- ★ 在这里新增下面的代码块 ★ -->
+<div class="update-log-entry">
+    <h4>v5.9.5 <span class="update-date">- 2025.10.19</span></h4>
+    <ul>
+        <li><span class="tag new">新功能</span> 新增备份提醒功能，支持定时或在关闭项目时弹出提醒，有效防止数据丢失。</li>
+        <li><span class="tag new">新功能</span> 手机收藏馆新增“我的状态”功能，可将手机标记为“已拥有”或“愿望单”，并附有专属动态效果。</li>
+        <li><span class="tag new">新功能</span> 手机收藏馆新增高级筛选功能，支持按手机状态、售价和“我的状态”进行多条件组合筛选。</li>
+        <li><span class="tag new">新功能</span> 在相册的全屏看图模式下，现已支持直接下载当前照片。</li>
+    </ul>
+</div>
+<div class="update-log-entry">
+    <h4>v5.9.0 <span class="update-date">- 2025.10.17</span></h4>
+    <ul>
+        <li><span class="tag release">里程碑</span> 应用正式更名为“水母岛 (Jellyfish Island)”。</li>
+        <li><span class="tag opt">优化</span> 重构了新用户引导流程。首次打开应用时，将弹出友好的配置向导，取代了原有的技术性错误提示，帮助用户更顺畅地完成初始设置。</li>
+        <li><span class="tag new">新功能</span> “更新公告”标签页新增红点提示，与主菜单的更新提醒同步，让版本变更一目了然。</li>
+        <li><span class="tag fix">修复</span> 解决了因逻辑中断导致全局字体设置功能按钮无法点击的问题。</li>
+    </ul>
+</div>
+    <div class="update-log-entry">
+        <h4>v5.8.0 <span class="update-date">- 2025.10.16</span></h4>
+        <ul>
+            <li><span class="tag new">新功能</span> 【数据保险箱】当云端数据意外清空时，进入“数据同步”弹窗点击“手动同步与修复”，系统会自动检测并引导您从上一个历史版本一键恢复所有数据。</li>
+            <li><span class="tag new">新功能</span> 新增上传中断保护，在上传文件或照片时关闭页面会触发挽留提示。</li>
+            <li><span class="tag new">新功能</span> 在“记忆-文件夹”中上传文件时，增加了“✖”按钮以随时终止上传任务。</li>
+            <li><span class="tag fix">修复</span> 修复了在特定情况下，“记忆-相册”批量上传照片时可能中断或失败的问题。</li>
+            <li><span class="tag opt">优化</span> 优化了项目内所有弹窗的字体渲染，增强了可读性。</li>
+            <li><span class="tag opt">优化</span> 提升了文件上传进度条的计算精度。</li>
+        </ul>
     </div>
         <!-- ★ 在这里新增下面的代码块 ★ -->
     <div class="update-log-entry">
@@ -3311,18 +3885,39 @@ body.dark-mode .album-item .sort-handle {
     </div>
     
     <footer class="update-footer">
-        当前版本: v5.7.6
+        当前版本: v5.9.5
     </footer>
 </div>
                     <div id="help-page-3" class="help-page-content">
-                        <h3>免责声明与使用条款</h3><h4>1. 服务条款</h4><p>本应用 (JellyfishCenter) 按“现状”提供，不附带任何明示或暗示的保证。开发者不保证应用的持续可用性、功能完整性或无错误。所有因使用本应用导致的直接或间接风险与责任，均由用户自行承担。</p><h4>2. 数据安全</h4><p>用户需自行负责其GitHub个人访问令牌 (PAT) 的安全保管。任何因PAT泄露导致的数据丢失、篡改或账户安全问题，开发者概不负责。强烈建议为本应用创建独立的、具有最小必要权限 (<code>repo</code>) 的PAT。</p><h4>3. 知识产权与版权责任</h4><div class="important-note"><p>本应用可能被用于托管或链接至第三方项目。用户必须对所上传或链接的内容负全部法律责任，并确保拥有展示、使用和分发该内容的合法权利。<strong>用户必须尊重所有原创作者的知识产权，不得侵犯他人版权。</strong></p></div><h4>4. 使用与分发限制</h4><div class="warning"><p>本项目 (JellyfishCenter) 及其源代码仅供个人非商业性使用。严禁以下行为：</p><ul><li>对本项目的源代码进行任何形式的二次修改、再分发或公开发布（即“二传二改”）。</li><li>公开或私下分享通过本应用“上传项目”功能生成的任何网页链接或文件。此行为可能构成对原创内容的未授权分发。</li></ul></div><p>继续使用本应用，即表示您已阅读、理解并同意上述所有条款。</p>
+                        <h3>免责声明与使用条款</h3><h4>1. 服务条款</h4><p>本应用 (Jellyfish Island) 按“现状”提供，不附带任何明示或暗示的保证。开发者不保证应用的持续可用性、功能完整性或无错误。所有因使用本应用导致的直接或间接风险与责任，均由用户自行承担。</p><h4>2. 数据安全</h4><p>用户需自行负责其GitHub个人访问令牌 (PAT) 的安全保管。任何因PAT泄露导致的数据丢失、篡改或账户安全问题，开发者概不负责。强烈建议为本应用创建独立的、具有最小必要权限 (<code>repo</code>) 的PAT。</p><h4>3. 知识产权与版权责任</h4><div class="important-note"><p>本应用可能被用于托管或链接至第三方项目。用户必须对所上传或链接的内容负全部法律责任，并确保拥有展示、使用和分发该内容的合法权利。<strong>用户必须尊重所有原创作者的知识产权，不得侵犯他人版权。</strong></p></div><h4>4. 使用与分发限制</h4><div class="warning"><p>本项目 (Jellyfish Island) 及其源代码仅供个人非商业性使用。严禁以下行为：</p><ul><li>对本项目的源代码进行任何形式的二次修改、再分发或公开发布（即“二传二改”）。</li><li>公开或私下分享通过本应用“上传项目”功能生成的任何网页链接或文件。此行为可能构成对原创内容的未授权分发。</li></ul></div><p>继续使用本应用，即表示您已阅读、理解并同意上述所有条款。</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="modal-overlay" id="syncErrorModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span>⚠️ 同步失败</span></div><button class="close-btn" data-modal-id="syncErrorModal">&times;</button></div><div class="modal-body"><p>无法连接到云端。请检查您的网络连接或GitHub配置。</p><p><strong>失败原因:</strong></p><div id="sync-error-message"></div></div></div></div>
-    <div class="modal-overlay" id="addNavModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span id="addNavModalTitle">管理项目</span></div><div class="header-toggle-group"><span>连续添加</span><label class="toggle-switch"><input type="checkbox" id="stayOpenToggle"><span class="slider"></span></label></div><button class="close-btn" data-modal-id="addNavModal">&times;</button></div><div class="modal-body"><button id="enterManageModeBtn" class="modal-button" style="color:#5a6778;">进入按钮管理模式</button><div class="toggle-section" style="margin-top: 10px;"><span>分页展示</span><label class="toggle-switch"><input type="checkbox" id="paginationToggle"><span class="slider"></span></label></div><div class="segmented-control two-segments"><input type="radio" id="type-link" name="nav-type" value="link" checked hidden><label for="type-link">外部链接</label><input type="radio" id="type-upload" name="nav-type" value="upload" hidden><label for="type-upload">上传项目</label><div class="slider-indicator"></div></div><div class="form-section"><label for="newButtonCategoryInput">分类名称</label><input type="text" id="newButtonCategoryInput" class="modal-input" placeholder="选择或创建分类" list="category-datalist"><datalist id="category-datalist"></datalist></div><div id="category-management-section" style="display: none;"><button id="deleteCategoryBtn" class="modal-button" style="color:#e53e3e;">删除当前分类</button></div><div class="form-section"><label for="newButtonNameInput">按钮名称</label><input type="text" id="newButtonNameInput" class="modal-input" placeholder="例如: 我的博客"></div><div id="link-section"><div class="form-section"><label for="newButtonUrlInput">网址链接</label><input type="text" id="newButtonUrlInput" class="modal-input" placeholder="https://example.com"></div><div class="toggle-section" style="margin-top: 10px;"><span>在新标签页中打开</span><label class="toggle-switch"><input type="checkbox" id="openExternallyToggle"><span class="slider"></span></label></div></div><div id="upload-section" class="form-section" style="display: none;"><label>选择项目的主HTML文件</label><div class="file-select-wrapper"><input type="file" id="projectHtmlPicker" accept=".html,.htm" style="display: none;"><button id="filePickerBtn" class="modal-button">选择文件</button><span id="file-picker-status" class="status-text">未选择任何文件</span></div><div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;"><p>上传的项目无法编辑链接，如需更新请删除后重新上传。</p></div></div><button id="createNavBtn" class="modal-button">加入新项目</button><div class="status-text" id="upload-status"></div></div></div></div>
+<div class="modal-overlay" id="addNavModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span id="addNavModalTitle">管理项目</span></div><div class="header-toggle-group"><span>连续添加</span><label class="toggle-switch"><input type="checkbox" id="stayOpenToggle"><span class="slider"></span></label></div><button class="close-btn" data-modal-id="addNavModal">&times;</button></div><div class="modal-body">
+    <button id="enterManageModeBtn" class="modal-button" style="color:#5a6778;">进入按钮管理模式</button>
+    
+    <!-- 分页展示开关 -->
+    <div class="toggle-section" style="margin-top: 10px;">
+        <span>分页展示</span>
+        <label class="toggle-switch"><input type="checkbox" id="paginationToggle"><span class="slider"></span></label>
+    </div>
+
+    <!-- [新增] 备份提醒入口 -->
+    <div class="toggle-section" style="margin-top: 10px; flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px;">
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+            <span>备份提醒</span>
+            <label class="toggle-switch"><input type="checkbox" id="backupReminderToggle"><span class="slider"></span></label>
+        </div>
+        <div id="backupSettingsEntry" style="width: 100%; display: none;">
+                <button id="openBackupSettingsBtn" class="modal-button" style="width: 100%; margin-top: 10px;">备份提醒设置</button>
+        </div>
+    </div>
+    <!-- [新增结束] -->
+    
+    <div class="segmented-control two-segments"><input type="radio" id="type-link" name="nav-type" value="link" checked hidden><label for="type-link">外部链接</label><input type="radio" id="type-upload" name="nav-type" value="upload" hidden><label for="type-upload">上传项目</label><div class="slider-indicator"></div></div><div class="form-section"><label for="newButtonCategoryInput">分类名称</label><input type="text" id="newButtonCategoryInput" class="modal-input" placeholder="选择或创建分类" list="category-datalist"><datalist id="category-datalist"></datalist></div><div id="category-management-section" style="display: none;"><button id="deleteCategoryBtn" class="modal-button" style="color:#e53e3e;">删除当前分类</button></div><div class="form-section"><label for="newButtonNameInput">按钮名称</label><input type="text" id="newButtonNameInput" class="modal-input" placeholder="例如: 我的博客"></div><div id="link-section"><div class="form-section"><label for="newButtonUrlInput">网址链接</label><input type="text" id="newButtonUrlInput" class="modal-input" placeholder="https://example.com"></div><div class="toggle-section" style="margin-top: 10px;"><span>在新标签页中打开</span><label class="toggle-switch"><input type="checkbox" id="openExternallyToggle"><span class="slider"></span></label></div></div><div id="upload-section" class="form-section" style="display: none;"><label>选择项目的主HTML文件</label><div class="file-select-wrapper"><input type="file" id="projectHtmlPicker" accept=".html,.htm" style="display: none;"><button id="filePickerBtn" class="modal-button">选择文件</button><span id="file-picker-status" class="status-text">未选择任何文件</span></div><div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;"><p>上传的项目无法编辑链接，如需更新请删除后重新上传。</p></div></div><button id="createNavBtn" class="modal-button">加入新项目</button><div class="status-text" id="upload-status"></div></div></div></div>
     <div class="modal-overlay" id="settingsModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span>数据同步</span></div><button class="close-btn" data-modal-id="settingsModal">&times;</button></div><div class="modal-body"><div class="form-section"><label for="githubRepoInput">仓库 (格式: 用户名/仓库名)</label><input type="text" id="githubRepoInput" class="modal-input" placeholder="例如: my-username/JellyfishPhones"></div><div class="form-section"><label for="githubTokenInput">Personal Access Token</label><input type="password" id="githubTokenInput" class="modal-input" placeholder="ghp_xxxxxxxxxx"></div><button id="saveSettingsBtn" class="modal-button">保存配置</button><button id="manualSyncBtn" class="modal-button" style="color:#5a6778; margin-top: 10px;">手动同步与修复</button><div class="nuke-section"><button id="nukeDataBtn" class="modal-button">清空所有云端及本地数据</button></div></div></div></div>
     <div class="modal-overlay" id="colorPaletteModal">
         <div class="modal-content">
@@ -3587,9 +4182,17 @@ body.dark-mode .album-item .sort-handle {
                         <div class="page-header">
                             <button data-action="back-to-memo-folders" class="header-btn back-btn">&#10094;</button>
                             <h1 id="notes-view-title" class="title">文件夹</h1>
+                            <div class="header-controls">
+                                <button data-action="toggle-note-manage" class="header-btn manage-btn">管理</button>
+                            </div>
                         </div>
                         <div id="notes-list-container" class="list-container"></div>
                         <button data-action="add-note" class="fab">+</button>
+                        <div id="note-management-controls" class="management-controls">
+                             <button data-action="select-all-notes" class="modal-button">全选</button>
+                             <button data-action="move-selected-notes" class="modal-button">移动选中</button>
+                             <button data-action="delete-selected-notes" class="modal-button" style="color:#f56565;">删除选中</button>
+                        </div>
                     </div>
                     <div id="note-editor-view" class="page">
                         <div class="editor-header">
@@ -3646,6 +4249,7 @@ body.dark-mode .album-item .sort-handle {
                         <input type="file" id="photo-uploader" multiple accept="image/*" style="display: none;">
                         <div id="photo-management-controls" class="management-controls">
                              <button data-action="select-all-photos" class="modal-button">全选</button>
+                             <button data-action="move-selected-photos" class="modal-button">移动选中</button>
                              <button data-action="delete-selected-photos" class="modal-button" style="color:#f56565;">删除选中</button>
                         </div>
                     </div>
@@ -3715,6 +4319,37 @@ body.dark-mode .album-item .sort-handle {
             </div>
         </div>
     </div>
+
+    <!-- [新增] 移动照片模态框 -->
+    <div id="movePhotosModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title-group">移动到...</div>
+            </div>
+            <div class="modal-body">
+                <select id="album-destination-selector" class="modal-select"></select>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button data-action="close-move-modal" class="modal-button">取消</button>
+                <button data-action="confirm-move-photos" class="modal-button" style="color:var(--hold-border)">确认移动</button>
+            </div>
+        </div>
+    </div>
+    <!-- [新增] 移动备忘录模态框 -->
+    <div id="moveNotesModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title-group">移动到...</div>
+            </div>
+            <div class="modal-body">
+                <select id="memo-destination-selector" class="modal-select"></select>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button data-action="close-move-notes-modal" class="modal-button">取消</button>
+                <button data-action="confirm-move-notes" class="modal-button" style="color:var(--hold-border)">确认移动</button>
+            </div>
+        </div>
+    </div>
     <!-- ===== [END] MEMORY MODAL ===== -->
 
     <!-- 全屏照片查看器 -->
@@ -3732,9 +4367,10 @@ body.dark-mode .album-item .sort-handle {
             <h3 id="viewer-title"></h3>
             <p id="viewer-description"></p>
             <p id="viewer-timestamp"></p>
+            <!-- [修改] 将下载按钮移动到页脚内部 -->
+            <a id="download-photo-btn" title="下载图片">⇩</a>
         </div>
     </div>
-
     <!-- Wander View -->
     <div id="wanderViewOverlay">
         <div class="wander-header">
@@ -3818,7 +4454,7 @@ body.dark-mode .album-item .sort-handle {
     <!-- == Iframe Modal & Confirmation Toast == -->
     <div class="iframe-modal-overlay" id="iframeModal">
         <div id="returnConfirmationToast" class="return-toast">
-            <span>返回 JellyfishCenter?</span>
+            <span>返回 Jellyfish Island?</span>
             <div>
                 <button id="cancelReturnBtn" class="toast-btn toast-btn-cancel">取消</button>
                 <button id="confirmReturnBtn" class="toast-btn toast-btn-confirm">确认</button>
@@ -3900,18 +4536,26 @@ window.addEventListener('beforeunload', (event) => {
     let photoObserver;
 
 const getDefaultConfig = () => ({
-        title: 'JellyfishCenter',
+        title: 'Jellyfish Island',
         subtitle: '长按🌞打开工具栏 | By淡季水母',
         categories: [{ name: '全部', buttons: [] }],
         settings: {
             paginationEnabled: true,
             themeStyle: 'neumorphism', 
             jellyBall: { enabled: false, swipeBack: true, functions: {}, customCSS: '' },
-            // [新增] 全局字体和预设的默认配置
             globalFont: { name: '', url: '' }, 
-            fontPresets: []
+            fontPresets: [],
+            // [新增] 备份提醒设置的默认结构 V2
+            backupReminder: {
+                enabled: false,
+                timeBasedEnabled: false, // 定时提醒的总开关
+                times: [], // 存储 "HH:MM" 格式的时间字符串
+                message: '是时候该备份你的项目啦！', // 默认提醒文字
+                onExit: false, // 关闭项目时提醒
+                projects: [] // 需要提醒的项目href列表
+            }
+
         },
-        // 核心修改：直接在默认配置中加入“原生主题”预设
         themePresets: [
             {
                 name: "原生主题",
@@ -3925,8 +4569,6 @@ const getDefaultConfig = () => ({
         ],
         lockscreenWidgets: {}
     });
-
-
 
     let currentConfig = getDefaultConfig();
 
@@ -4349,11 +4991,18 @@ const getDefaultConfig = () => ({
                 case 'album': openMemoryAndSwitch('album'); break;
                 case 'memo': openMemoryAndSwitch('memo'); break;
                 case 'folder': openMemoryAndSwitch('cloud'); break;
-                case 'return': if (iframeModal.classList.contains('active')) { closeIframeModal(); } break;
+                case 'return':
+                    if (iframeModal.classList.contains('active')) {
+                        // ★ 新增：在这里同样触发退出提醒
+                        BackupReminderManager.triggerOnExitReminder();
+                        closeIframeModal();
+                    }
+                    break;
                 case 'quick_switch': _showQuickSwitchMenu(); break;
             }
             _closeMenu();
         }
+
 
         function _showQuickSwitchMenu() {
             let existingMenu = document.getElementById('quick-switch-menu-overlay');
@@ -4675,6 +5324,192 @@ const getDefaultConfig = () => ({
         return { init: initSettings, create: _create, destroy: _destroy };
     })();
     // ===== [END] FLOATING JELLYFISH BALL LOGIC =====
+        /* =============================================================== */
+        /* ============== [最终修正] 备份提醒功能管理器 V3.0 =============== */
+        /* =============================================================== */
+        const BackupReminderManager = (() => {
+            // [核心修改1] 将 ui 对象声明为空，延迟初始化
+            let ui = {}; 
+            let activeTimers = [];
+
+            // [核心修改2] 新增一个专门用于获取DOM元素的函数
+            function initUI() {
+                ui = {
+                    // 入口
+                    toggle: document.getElementById('backupReminderToggle'),
+                    settingsEntry: document.getElementById('backupSettingsEntry'),
+                    openSettingsBtn: document.getElementById('openBackupSettingsBtn'),
+                    // 设置弹窗 V2
+                    modal: document.getElementById('backupReminderSettingsModal'),
+                    timeBasedToggle: document.getElementById('backupTimeBasedToggle'),
+                    timeContainer: document.getElementById('backupTimeContainer'),
+                    timeListContainer: document.getElementById('backupTimeListContainer'),
+                    messageTextarea: document.getElementById('backupMessageTextarea'),
+                    onExitToggle: document.getElementById('backupOnExitToggle'),
+                    projectsSection: document.getElementById('backupProjectsSection'),
+                    projectList: document.getElementById('backupProjectList'),
+                    saveBtn: document.getElementById('saveBackupSettingsBtn'),
+                };
+            }
+
+            function getSettings() {
+                if (!currentConfig.settings.backupReminder) {
+                    currentConfig.settings.backupReminder = getDefaultConfig().settings.backupReminder;
+                }
+                return currentConfig.settings.backupReminder;
+            }
+            
+            function renderTimeRows(times = []) {
+                ui.timeListContainer.innerHTML = '';
+                if (times.length > 0) {
+                    times.forEach(time => addTimeRow(time));
+                } else {
+                    addTimeRow();
+                }
+            }
+
+            function addTimeRow(timeValue = '') {
+                const row = document.createElement('div');
+                row.className = 'time-input-row';
+                row.innerHTML = `
+                    <input type="time" class="modal-input" value="${timeValue}">
+                    <button class="time-action-btn add" title="添加新一行">+</button>
+                    <button class="time-action-btn remove" title="删除此行">-</button>
+                `;
+                row.querySelector('.add').addEventListener('click', () => addTimeRow());
+                row.querySelector('.remove').addEventListener('click', (e) => {
+                    if (ui.timeListContainer.childElementCount <= 1) {
+                         e.currentTarget.parentElement.querySelector('input[type="time"]').value = '';
+                    } else {
+                         e.currentTarget.parentElement.remove();
+                    }
+                });
+                ui.timeListContainer.appendChild(row);
+            }
+
+            function renderProjectList() {
+                ui.projectList.innerHTML = '';
+                const reminderSettings = getSettings();
+                const allButtons = currentConfig.categories.flatMap(c => c.buttons);
+                const uniqueButtons = Array.from(new Map(allButtons.map(item => [item.href, item])).values());
+                if (uniqueButtons.length === 0) {
+                    ui.projectList.innerHTML = '<p style="color: #889; text-align: center;">暂无项目</p>';
+                    return;
+                }
+                uniqueButtons.forEach(btn => {
+                    const isChecked = reminderSettings.projects.includes(btn.href);
+                    const itemHtml = `<label class="project-checkbox-item"><input type="checkbox" data-href="${btn.href}" ${isChecked ? 'checked' : ''}><span>${btn.text}</span></label>`;
+                    ui.projectList.innerHTML += itemHtml;
+                });
+            }
+
+            function populateSettingsModal() {
+                const settings = getSettings();
+                ui.messageTextarea.value = settings.message;
+                ui.timeBasedToggle.checked = settings.timeBasedEnabled;
+                ui.timeContainer.style.display = settings.timeBasedEnabled ? 'flex' : 'none';
+                renderTimeRows(settings.times);
+                ui.onExitToggle.checked = settings.onExit;
+                ui.projectsSection.style.display = settings.onExit ? 'block' : 'none';
+                renderProjectList();
+            }
+
+            function openSettingsModal() {
+                populateSettingsModal();
+                ui.modal.classList.add('show');
+            }
+
+            function saveSettings() {
+                const times = Array.from(ui.timeListContainer.querySelectorAll('.time-input-row input[type="time"]'))
+                                .map(input => input.value)
+                                .filter(Boolean);
+
+                const newSettings = {
+                    enabled: getSettings().enabled,
+                    timeBasedEnabled: ui.timeBasedToggle.checked,
+                    times: [...new Set(times)],
+                    message: ui.messageTextarea.value.trim() || '是时候该备份你的项目啦！',
+                    onExit: ui.onExitToggle.checked,
+                    projects: Array.from(ui.projectList.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.dataset.href)
+                };
+
+                currentConfig.settings.backupReminder = newSettings;
+                saveGlobalConfig('Update backup reminder settings');
+                startTimers();
+                ui.modal.classList.remove('show');
+                showTopToast('备份提醒设置已保存！', 2000);
+            }
+            
+            function clearTimers() {
+                activeTimers.forEach(timerId => clearTimeout(timerId));
+                activeTimers = [];
+            }
+
+            function startTimers() {
+                clearTimers();
+                const settings = getSettings();
+                if (!settings.enabled || !settings.timeBasedEnabled || settings.times.length === 0) return;
+                const now = new Date();
+                settings.times.forEach(timeStr => {
+                    const [hours, minutes] = timeStr.split(':').map(Number);
+                    let reminderTime = new Date();
+                    reminderTime.setHours(hours, minutes, 0, 0);
+                    if (reminderTime < now) reminderTime.setDate(reminderTime.getDate() + 1);
+                    const delay = reminderTime.getTime() - now.getTime();
+                    const createReminder = () => {
+                        showTopToast(settings.message);
+                        activeTimers.push(setTimeout(createReminder, 24 * 60 * 60 * 1000));
+                    };
+                    activeTimers.push(setTimeout(createReminder, delay));
+                });
+            }
+
+            function triggerOnExitReminder() {
+                const settings = getSettings();
+                if (!settings.enabled || !settings.onExit) return;
+                const originalUrl = iframeModal.dataset.originalUrl;
+                if (!originalUrl) return;
+                const targetProjects = settings.projects;
+                if (targetProjects.length === 0 || targetProjects.includes(originalUrl)) {
+                    showTopToast(settings.message);
+                }
+            }
+
+            // [核心修改3] init 函数现在只负责绑定事件监听器
+            function init() {
+                const initialSettings = getSettings();
+                ui.toggle.checked = initialSettings.enabled;
+                ui.settingsEntry.style.display = initialSettings.enabled ? 'block' : 'none';
+
+                ui.toggle.addEventListener('change', () => {
+                    const settings = getSettings();
+                    settings.enabled = ui.toggle.checked;
+                    ui.settingsEntry.style.display = settings.enabled ? 'block' : 'none';
+                    saveGlobalConfig('Toggle backup reminder');
+                    if (settings.enabled) startTimers(); else clearTimers();
+                });
+
+                ui.openSettingsBtn.addEventListener('click', openSettingsModal);
+                ui.timeBasedToggle.addEventListener('change', () => {
+                    ui.timeContainer.style.display = ui.timeBasedToggle.checked ? 'flex' : 'none';
+                });
+                ui.onExitToggle.addEventListener('change', () => {
+                    ui.projectsSection.style.display = ui.onExitToggle.checked ? 'block' : 'none';
+                });
+                ui.saveBtn.addEventListener('click', saveSettings);
+
+                startTimers();
+            }
+
+            // [核心修改4] 导出 initUI 和 init
+            return {
+                init,
+                initUI,
+                triggerOnExitReminder
+            };
+
+        })();
+
 
     const utf8_to_b64 = (str) => btoa(unescape(encodeURIComponent(str)));
     const b64_to_utf8 = (str) => decodeURIComponent(escape(atob(str)));
@@ -4744,10 +5579,15 @@ const getDefaultConfig = () => ({
             }, 3000);
             syncErrorModal.classList.remove('show');
         } else if (status === 'error') {
-            document.getElementById('sync-error-message').textContent = message;
-            syncErrorModal.classList.add('show');
+            // [核心修改] 只有在已配置的情况下才弹出错误框
+            const isConfigured = GITHUB_CONFIG.owner && GITHUB_CONFIG.repo && GITHUB_CONFIG.token;
+            if (isConfigured) {
+                document.getElementById('sync-error-message').textContent = message;
+                syncErrorModal.classList.add('show');
+            }
         }
     }
+
     
     async function fetchFromGithub(path, method = 'GET', body = null, signal = null) {
         if (!checkConfig(false)) return { data: null, error: "GitHub未配置" };
@@ -5341,17 +6181,8 @@ const getDefaultConfig = () => ({
     // 切换弹窗和菜单的显示
     document.getElementById("helpModal").classList.add("show");
     toggleFabMenu(false);
-    
-    // [核心修改] 更新“已读”状态
-    const helpPage = document.getElementById('help-page-2');
-    if (helpPage) {
-        const currentUpdateHash = simpleHash(helpPage.innerHTML.trim());
-        localStorage.setItem('lastSeenUpdateHash', String(currentUpdateHash));
-    }
-    
-    // 立即移除红点，提供即时反馈
-    document.getElementById('helpBtn').classList.remove('has-update');
 })
+
 ,document.getElementById("dataSyncBtn").addEventListener("click",()=>{GITHUB_CONFIG.owner&&GITHUB_CONFIG.repo&&(settingsModalElements.githubRepoInput.value=`${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`),settingsModalElements.githubTokenInput.value=GITHUB_CONFIG.token||"",document.getElementById("settingsModal").classList.add("show"),toggleFabMenu(!1)}),document.getElementById("addNavBtn").addEventListener("click",()=>{openAddModal(); toggleFabMenu(false);}),document.getElementById("colorBtn").addEventListener("click", ()=>{document.getElementById("colorPaletteModal").classList.add("show"); updateColorUI(getCurrentColors()); updateBgStatus(); toggleFabMenu(false);}),document.getElementById("memoryBtn").addEventListener('click', () => { MemoryApp.open(); toggleFabMenu(false); }), document.getElementById('jelly-css-help-modal').querySelectorAll('.copy-btn').forEach(btn => { btn.addEventListener('click', async (e) => { const textBlock = e.target.parentElement; const textToCopy = textBlock.innerText.replace(e.target.innerText, '').trim(); try { await navigator.clipboard.writeText(textToCopy); const originalText = e.target.textContent; e.target.textContent = '已复制!'; setTimeout(() => { e.target.textContent = originalText; }, 1500); } catch (err) { alert('复制失败，请手动复制。'); } }); });}
     function saveGithubConfig(e){localStorage.setItem("githubConfig",JSON.stringify(e)),GITHUB_CONFIG=e}function loadGithubConfig(){const e=localStorage.getItem("githubConfig");e&&(GITHUB_CONFIG=JSON.parse(e))}function checkConfig(e=!0){return!GITHUB_CONFIG.owner||!GITHUB_CONFIG.repo||!GITHUB_CONFIG.token?(e&&alert("请先配置GitHub仓库信息。\n(打开菜单 -> 数据同步)"),!1):!0}
     
@@ -5416,138 +6247,245 @@ const getDefaultConfig = () => ({
     }
 
 
+    // [V2 修改] 增加几个新的辅助函数
+    /**
+     * 获取指定文件的提交历史
+     * @param {string} path - 文件路径, e.g., 'config.json'
+     * @returns {Promise<Array|null>} - 包含提交对象的数组或null
+     */
+    async function getHistoryForFile(path) {
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${path}&per_page=5`;
+        try {
+            const response = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error(`Failed to get history for ${path}:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * 获取文件在某次特定提交时的内容
+     * @param {string} path - 文件路径
+     * @param {string} commitSha - 提交的SHA值
+     * @returns {Promise<string|null>} - 文件的UTF-8字符串内容或null
+     */
+    async function getContentAtCommit(path, commitSha) {
+        const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}?ref=${commitSha}`;
+        try {
+            const response = await fetch(url, { headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` } });
+            if (response.status === 404) return null; // 该版本不存在此文件
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
+            const data = await response.json();
+            return data.content ? b64_to_utf8(data.content) : null;
+        } catch (error) {
+            console.error(`Failed to get content for ${path} at commit ${commitSha}:`, error);
+            return null;
+        }
+    }
+
     settingsModalElements.manualSyncBtn.addEventListener("click", async () => {
         if (!checkConfig(true)) return;
+        
         const btn = settingsModalElements.manualSyncBtn;
         const originalText = btn.textContent;
+        const recoveryModal = document.getElementById('dataRecoveryModal');
+        const versionsListContainer = document.getElementById('recovery-versions-list');
+        const confirmRecoveryBtn = document.getElementById('confirmRecoveryBtn');
+        const cancelRecoveryBtn = document.getElementById('cancelRecoveryBtn');
+
         btn.disabled = true;
+        btn.textContent = '正在检查云端数据...';
 
         try {
-            btn.textContent = '正在验证连接...';
+            const currentConfigData = await fetchConfigFromGithub();
+            const isDataEmpty = !currentConfigData || !currentConfigData.categories || currentConfigData.categories.length === 0 || 
+                                (currentConfigData.categories.length === 1 && currentConfigData.categories[0].buttons.length === 0);
 
-            // 1. 新增的验证性请求 (Pre-flight Check)
-            const validationUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
-            let validationResponse;
-            try {
-                validationResponse = await fetch(validationUrl, {
-                    headers: { 'Authorization': `token ${GITHUB_CONFIG.token}` },
-                    cache: 'no-cache'
+            if (isDataEmpty) {
+                btn.textContent = '检测到数据为空，正在查找历史版本...';
+                
+                const history = await getHistoryForFile('config.json');
+                const historyToConsider = history ? history.slice(1, 5) : []; // 跳过最新的错误提交，取最多4个历史版本
+
+                if (!historyToConsider || historyToConsider.length === 0) {
+                    throw new Error('未找到足够的历史记录来进行恢复。');
+                }
+
+                btn.textContent = '正在解析历史数据...';
+
+                const versions = [];
+                await Promise.all(historyToConsider.map(async (commit) => {
+                    const commitSha = commit.sha;
+                    const [configContent, memoryContent] = await Promise.all([
+                        getContentAtCommit('config.json', commitSha),
+                        getContentAtCommit('memory/data.json', commitSha)
+                    ]);
+                    if (!configContent) return;
+
+                    let summary = { buttons: 0, categories: 0, photos: 0, albums: 0, memos: 0, memoFolders: 0 };
+                    try {
+                        const parsedConfig = JSON.parse(configContent);
+                        summary.categories = parsedConfig.categories?.length || 0;
+                        summary.buttons = parsedConfig.categories?.reduce((acc, cat) => acc + (cat.buttons?.length || 0), 0) || 0;
+                    } catch (e) { /* ignore */ }
+                    if (memoryContent) {
+                        try {
+                            const parsedMemory = JSON.parse(memoryContent);
+                            summary.albums = parsedMemory.album?.folders?.length || 0;
+                            summary.photos = parsedMemory.album?.items?.reduce((acc, item) => acc + (item.type === 'photoset' ? item.photos.length : 1), 0) || 0;
+                            summary.memoFolders = parsedMemory.memo?.folders?.length || 0;
+                            summary.memos = parsedMemory.memo?.notes?.length || 0;
+                        } catch (e) { /* ignore */ }
+                    }
+                    versions.push({sha:commitSha,message:commit.commit.message,date:new Date(commit.commit.author.date).toLocaleString('zh-CN'),summary,configContent,memoryContent});
+                }));
+
+                if (versions.length === 0) {
+                    throw new Error('无法解析任何有效的历史版本。');
+                }
+                
+                // 渲染版本列表
+                versionsListContainer.innerHTML = '';
+                versions.forEach((version, index) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'recovery-version-item';
+                    itemEl.innerHTML = `
+                        <input type="radio" name="recovery-version" id="version-${index}" value="${version.sha}">
+                        <label for="version-${index}">
+                            <div class="version-meta">${version.message} <span>(${version.date})</span></div>
+                            <div class="version-summary">
+                                <span><pre>按钮: ${version.summary.buttons}</pre></span>
+                                <span><pre>分类: ${version.summary.categories}</pre></span>
+                                <span><pre>备忘录: ${version.summary.memos}</pre></span>
+                                <span><pre>相册: ${version.summary.albums}</pre></span>
+                                <span><pre>照片: ${version.summary.photos}</pre></span>
+                            </div>
+                        </label>
+                    `;
+                    versionsListContainer.appendChild(itemEl);
                 });
-            } catch (networkError) {
-                // 捕获 fetch 本身的网络错误
-                throw new Error('NetworkError');
-            }
+                
+                document.getElementById('settingsModal').classList.remove('show');
+                recoveryModal.classList.add('show');
+                btn.textContent = '请选择恢复版本...';
+                confirmRecoveryBtn.disabled = true;
 
-            // 2. 分析响应，提供精准错误信息
-            if (!validationResponse.ok) {
-                // 根据状态码抛出特定错误
-                if (validationResponse.status === 401) throw new Error('401 Unauthorized');
-                if (validationResponse.status === 403) throw new Error('403 Forbidden');
-                if (validationResponse.status === 404) throw new Error('404 Not Found');
-                throw new Error(`HTTP Error ${validationResponse.status}`);
-            }
+                return new Promise(resolve => {
+                    const handleSelectionChange = () => confirmRecoveryBtn.disabled = false;
+                    versionsListContainer.addEventListener('change', handleSelectionChange);
 
-            // --- 如果验证通过，才继续执行原有的同步逻辑 ---
-            btn.textContent = '验证成功，正在同步...';
-            let fetchedConfig = await fetchConfigFromGithub();
-            
-            const defaultConfig = getDefaultConfig();
-            let needsSave = false;
-            let wasMigrated = false;
-            
-            if (fetchedConfig) {
-                 btn.textContent = '解析与合并...';
-                 const migrationResult = migrateLegacyConfig(fetchedConfig);
-                 fetchedConfig = migrationResult.migratedConfig;
-                 wasMigrated = migrationResult.wasMigrated;
-                 if (wasMigrated) btn.textContent = '迁移旧版配置...';
+                    const handleConfirm = async () => {
+                        const selectedSha = versionsListContainer.querySelector('input[name="recovery-version"]:checked')?.value;
+                        if (!selectedSha) return;
 
-                 const mergedConfig = mergeDeep({}, defaultConfig, fetchedConfig);
-                 // 核心逻辑不变
-                 if (JSON.stringify(mergedConfig) !== JSON.stringify(fetchedConfig) || wasMigrated) {
-                     currentConfig = mergedConfig;
-                     needsSave = true;
-                 }
+                        const selectedVersion = versions.find(v => v.sha === selectedSha);
+                        if (!selectedVersion) return alert('无法找到所选版本的数据。');
+
+                        recoveryModal.classList.remove('show');
+                        btn.textContent = '正在恢复数据...';
+
+                        const commitMsg = `Recover data from commit ${selectedVersion.sha.substring(0, 7)}`;
+                        const configPromise = saveToGithub('config.json', utf8_to_b64(selectedVersion.configContent), commitMsg);
+                        const memoryPromise = selectedVersion.memoryContent ? saveToGithub('memory/data.json', utf8_to_b64(selectedVersion.memoryContent), commitMsg) : Promise.resolve();
+                        
+                        await Promise.all([configPromise, memoryPromise]);
+                        alert('数据恢复成功！页面将刷新以应用新数据。');
+                        location.reload();
+                        resolve();
+                    };
+
+                    const handleCancel = () => {
+                        recoveryModal.classList.remove('show');
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                        resolve();
+                    };
+                    
+                    confirmRecoveryBtn.onclick = handleConfirm;
+                    cancelRecoveryBtn.onclick = handleCancel;
+                });
+
             } else {
-                 btn.textContent = '云端无配置，正在创建...';
-                 currentConfig = defaultConfig;
-                 configSha = null; // 确保是创建新文件
-                 needsSave = true;
-            }
-            
-            if (needsSave) {
-                 btn.textContent = '正在保存至云端...';
-                 await saveGlobalConfig(wasMigrated ? 'Manual sync: Migrated legacy config' : 'Manual sync and repair');
-                 btn.textContent = '同步完成，即将刷新';
-                 alert("同步与修复完成！页面将刷新以应用最新配置。");
-                 location.reload();
-            } else {
-                 btn.textContent = '配置已是最新';
-                 alert("配置已是最新，无需修复。");
+                btn.textContent = '数据完整，执行常规同步...';
+                let fetchedConfig = currentConfigData;
+                const defaultConfig = getDefaultConfig();
+                let needsSave = false;
+                let wasMigrated = false;
+
+                const migrationResult = migrateLegacyConfig(fetchedConfig);
+                fetchedConfig = migrationResult.migratedConfig;
+                wasMigrated = migrationResult.wasMigrated;
+                if (wasMigrated) btn.textContent = '迁移旧版配置...';
+
+                const mergedConfig = mergeDeep({}, defaultConfig, fetchedConfig);
+                if (JSON.stringify(mergedConfig) !== JSON.stringify(fetchedConfig) || wasMigrated) {
+                    currentConfig = mergedConfig;
+                    needsSave = true;
+                }
+                
+                if (needsSave) {
+                    btn.textContent = '正在保存至云端...';
+                    await saveGlobalConfig(wasMigrated ? 'Manual sync: Migrated legacy config' : 'Manual sync and repair');
+                    btn.textContent = '同步完成，即将刷新';
+                    alert("同步与修复完成！页面将刷新以应用最新配置。");
+                    location.reload();
+                } else {
+                    btn.textContent = '配置已是最新';
+                    alert("配置已是最新，无需修复。");
+                }
             }
         } catch (e) {
-            // 3. 捕获上面抛出的特定错误，并显示给用户
-            let userMessage = `手动同步失败: ${e.message}`;
-            if (e.message.includes('401 Unauthorized')) {
-                userMessage = "认证失败 (401): 您的Personal Access Token无效、已过期或被撤销。请重新生成并更新。";
-            } else if (e.message.includes('403 Forbidden')) {
-                userMessage = "权限不足 (403): 您的Token有效，但缺少对仓库的访问权限。请确保已勾选 `repo` 作用域。";
-            } else if (e.message.includes('404 Not Found')) {
-                userMessage = "仓库未找到 (404): 请检查您的仓库地址 '用户名/仓库名' 是否填写正确。";
-            } else if (e.message.includes('NetworkError')) {
-                userMessage = "网络连接失败: 无法连接到GitHub API。请检查您的网络设置、代理或VPN。";
-            }
-            
-            btn.textContent = '同步失败';
-            alert(userMessage);
-
+            btn.textContent = '发生错误';
+            alert(`操作失败: ${e.message}`);
         } finally {
-            // 无论成功失败，3秒后恢复按钮状态
             setTimeout(() => {
-                btn.disabled = false;
-                btn.textContent = originalText;
+                if(btn.textContent.includes('...')) { // 只在未完成最终操作时恢复按钮
+                   btn.disabled = false;
+                   btn.textContent = originalText;
+                }
             }, 3000);
         }
     });
 
-
     async function loadInitialData() { 
         navContainer.innerHTML = '<p id="loading-status" style="text-align: center; color: #889;">正在从云端加载配置...</p>'; 
         let fetchedConfig = await fetchConfigFromGithub(); 
-        
         let needsSave = false;
         let wasMigrated = false;
 
+        // [核心修复逻辑]
         if (fetchedConfig) {
+            // 云端存在配置，以此为基础进行合并和迁移
             const migrationResult = migrateLegacyConfig(fetchedConfig);
-            fetchedConfig = migrationResult.migratedConfig;
-            if (migrationResult.wasMigrated) {
-                needsSave = true;
-                wasMigrated = true;
-                console.log("Config was migrated, scheduling an auto-save.");
-            }
-        }
+            const migratedConfig = migrationResult.migratedConfig;
+            wasMigrated = migrationResult.wasMigrated;
 
-        let mergedConfig = getDefaultConfig();
-        if (fetchedConfig) {
-            currentConfig = mergeDeep({}, mergedConfig, fetchedConfig);
-            if (JSON.stringify(currentConfig) !== JSON.stringify(fetchedConfig)) {
+            const defaultConfig = getDefaultConfig();
+            // 正确的合并顺序：以用户数据 (migratedConfig) 为主，用默认配置 (defaultConfig) 补充缺失的字段
+            const mergedConfig = mergeDeep({}, defaultConfig, migratedConfig); 
+            
+            currentConfig = mergedConfig;
+            
+            // 检查合并或迁移后是否有变化，有则需要保存
+            if (JSON.stringify(currentConfig) !== JSON.stringify(fetchedConfig) || wasMigrated) {
                 needsSave = true;
-                console.log("Config updated with new fields from default template.");
+                console.log("Config updated with new fields or migrated. Scheduling an auto-save.");
             }
         } else {
-            console.log('Config.json not found or invalid. Using default and attempting to create.');
-            currentConfig = mergedConfig;
-            configSha = null;
-            needsSave = true;
+            // 只有当云端确实没有 config.json 文件时，才使用全新的默认配置并创建
+            console.log('Config.json not found on remote. Creating a new one with default settings.');
+            currentConfig = getDefaultConfig();
+            configSha = null; // 确保是创建新文件
+            needsSave = true; 
         }
 
         if (needsSave) {
             await saveGlobalConfig(wasMigrated ? 'Auto-migrate legacy config format' : 'Auto-create or repair config.json');
         }
 
-        // --- [核心修改] ---
-        // 1. 将主题初始化逻辑移到这里，确保 currentConfig 已加载
+        // --- [UI 初始化逻辑保持不变] ---
         const t = localStorage.getItem('theme');
         if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.body.classList.add('dark-mode');
@@ -5557,11 +6495,10 @@ const getDefaultConfig = () => ({
         }
 
         const savedThemeStyle = currentConfig.settings.themeStyle || 'neumorphism';
-        setThemeStyle(savedThemeStyle); // setThemeStyle 内部已经有保存逻辑了，这里调用即可
+        setThemeStyle(savedThemeStyle);
 
         applyAllBackgrounds();
-        // --- [修改结束] ---
-
+        
         document.getElementById('title').textContent = currentConfig.title; 
         document.getElementById('subtitle').textContent = currentConfig.subtitle; 
         document.querySelector('.editable-title').style.opacity = 1; 
@@ -5575,7 +6512,6 @@ const getDefaultConfig = () => ({
         renderCategories();
         loadColorState(); 
     }
-
 
     
     function renderCategories() {
@@ -5884,6 +6820,7 @@ const getDefaultConfig = () => ({
     function openIframeModal(url) { 
         if (!localStorage.getItem('swipeHintShown')) { swipeHint.classList.add('show'); setTimeout(() => { swipeHint.classList.remove('show'); localStorage.setItem('swipeHintShown', 'true'); }, 4000); } 
         iframeEl.src = url; 
+        iframeModal.dataset.originalUrl = url; // [新增] 记录原始URL
         iframeModal.classList.add('active'); 
     }
 
@@ -5897,7 +6834,11 @@ const getDefaultConfig = () => ({
 
     function showReturnConfirmation() { returnConfirmationToast.classList.add('show'); }
     function hideReturnConfirmation() { returnConfirmationToast.classList.remove('show'); }
-    document.getElementById('confirmReturnBtn').addEventListener('click', closeIframeModal);
+    document.getElementById('confirmReturnBtn').addEventListener('click', () => {
+        // [新增] 触发退出提醒
+        BackupReminderManager.triggerOnExitReminder();
+        closeIframeModal();
+    });
     document.getElementById('cancelReturnBtn').addEventListener('click', hideReturnConfirmation);
     
     const gestureCaptureZone = document.getElementById('gestureCaptureZone');
@@ -6005,6 +6946,73 @@ const getDefaultConfig = () => ({
     
     // ===== [START] MEMORY APP LOGIC =====
     let memoryCache = null; // [修复] 将 memoryCache 提升到模块共享作用域
+    // [新增] 基于 IndexedDB 的图片持久化缓存
+    const ImageCacheDB = (() => {
+        let db;
+        const DB_NAME = 'JellyfishImageCache';
+        const STORE_NAME = 'photo_blobs';
+        const DB_VERSION = 1;
+
+        // 初始化/打开数据库
+        async function init() {
+            return new Promise((resolve, reject) => {
+                if (db) {
+                    resolve(db);
+                    return;
+                }
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = (event) => {
+                    console.error("IndexedDB error:", event.target.error);
+                    reject("IndexedDB 初始化失败。");
+                };
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    console.log("IndexedDB 图片缓存库已准备就绪。");
+                    resolve(db);
+                };
+                request.onupgradeneeded = (event) => {
+                    // 当数据库首次创建或版本升级时调用
+                    const store = event.target.result.createObjectStore(STORE_NAME, { keyPath: 'path' });
+                    console.log("IndexedDB 对象存储空间已创建。");
+                };
+            });
+        }
+
+        // 存储图片 Blob
+        async function set(path, blob) {
+            if (!db) await init();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ path, blob });
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => {
+                    console.error('无法将图片存入 IndexedDB:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // 获取图片 Blob
+        async function get(path) {
+            if (!db) await init();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(path);
+                request.onsuccess = () => {
+                    resolve(request.result ? request.result.blob : null);
+                };
+                request.onerror = (event) => {
+                    console.error('无法从 IndexedDB 读取图片:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        return { init, set, get };
+    })();
+
     const MemoryApp = (() => {
         const MEMORY_DATA_PATH = 'memory/data.json';
         const MEMORY_PHOTOS_PATH = 'memory/photos/';
@@ -6022,9 +7030,10 @@ const getDefaultConfig = () => ({
             albumList: document.getElementById('album-list-container'),
             photoList: document.getElementById('photo-list-container'),
             photoUploader: document.getElementById('photo-uploader'),
-            memoManageControls: document.getElementById('memo-management-controls'),
-            albumManageControls: document.getElementById('album-management-controls'),
-            photoManageControls: document.getElementById('photo-management-controls'),
+        memoManageControls: document.getElementById('memo-management-controls'),
+        albumManageControls: document.getElementById('album-management-controls'),
+        photoManageControls: document.getElementById('photo-management-controls'),
+        noteManageControls: document.getElementById('note-management-controls'),
             folderModal: document.getElementById('memoryFolderModal'),
             photoDetailsModal: document.getElementById('memoryPhotoDetailsModal'),
             photoViewer: document.getElementById('memoryPhotoViewerOverlay'),
@@ -6043,18 +7052,20 @@ const getDefaultConfig = () => ({
             progressBar: document.getElementById("uploadProgressBar")
         };
 
-        const state = {
-            currentSection: null,
-            isMemoManageMode: false, memoFoldersToDelete: [],
-            isAlbumManageMode: false, albumFoldersToDelete: [],
-            isPhotoManageMode: false, photosToDelete: [],
-            currentMemoFolderId: null, currentNoteId: null, currentAlbumId: null,
-            folderModalContext: null,
-            viewerContext: { items: [], index: -1 },
-            photoUploadQueue: [],
-            isSavingPhoto: false,
-            skipAllPhotoDetails: false, // [新增] 用于标记是否跳过后续所有照片详情
-        };
+    const state = {
+        currentSection: null,
+        isMemoManageMode: false, memoFoldersToDelete: [],
+        isAlbumManageMode: false, albumFoldersToDelete: [],
+        isPhotoManageMode: false, photosToDelete: [],
+        isNoteManageMode: false, notesToDelete: [],
+        currentMemoFolderId: null, currentNoteId: null, currentAlbumId: null,
+        folderModalContext: null,
+        viewerContext: { items: [], index: -1 },
+        photoUploadQueue: [],
+        isSavingPhoto: false,
+        skipAllPhotoDetails: false, // [新增] 用于标记是否跳过后续所有照片详情
+        cloudDriveRequestToken: null, // [新增] 为文件夹加载请求创建一个唯一令牌
+    };
 
         function getInitialData() {
             return {
@@ -6114,26 +7125,32 @@ const getDefaultConfig = () => ({
                 el.className = `folder-item ${state.isMemoManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`;
                 el.dataset.folderId = folder.id;
                 el.dataset.action = "open-memo-folder";
-                el.innerHTML = `<input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div class="folder-icon">📁</div><div class="folder-name">${folder.name}</div>`;
+                // 新增了 sort-handle 和 rename-icon
+                el.innerHTML = `<span class="sort-handle memo-sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div class="folder-icon">📁</div><div class="folder-name">${folder.name}</div><span class="rename-icon" data-action="rename-memo-folder" title="重命名">&#9998;</span>`;
                 ui.folderList.appendChild(el);
             });
             if (memoryCache.memo.folders.length === 0) ui.folderList.innerHTML = `<p class="empty-list-placeholder">没有文件夹</p>`;
         }
+
         function renderNotes() {
             ui.notesList.innerHTML = '';
             const notesInFolder = memoryCache.memo.notes.filter(n => n.folderId === state.currentMemoFolderId).sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.timestamp - a.timestamp);
             notesInFolder.forEach(note => {
+                const isSelected = state.notesToDelete.includes(note.id); // 检查是否被选中
                 const el = document.createElement('div');
-                el.className = `note-item ${note.isPinned ? 'pinned' : ''}`; 
+                // 添加管理模式相关的 class
+                el.className = `note-item ${note.isPinned ? 'pinned' : ''} ${state.isNoteManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`; 
                 el.dataset.noteId = note.id;
                 el.dataset.action = "open-note";
                 const preview = (note.content || '').substring(0, 100).replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 const date = new Date(note.timestamp).toLocaleDateString('zh-CN');
-                el.innerHTML = `<div class="note-content-area"><div class="note-title">${note.title || '无标题'}</div><div class="note-preview">${preview || '没有内容'}</div><div class="note-timestamp">${date}</div></div><button class="pin-btn" data-action="pin-note" data-note-id="${note.id}" title="置顶">📌</button>`;
+                // 添加复选框，并将图标从 📌 替换为 "置顶"
+                el.innerHTML = `<input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div class="note-content-area"><div class="note-title">${note.title || '无标题'}</div><div class="note-preview">${preview || '没有内容'}</div><div class="note-timestamp">${date}</div></div><button class="pin-btn" data-action="pin-note" data-note-id="${note.id}" title="置顶">置顶</button>`;
                 ui.notesList.appendChild(el);
             });
             if (notesInFolder.length === 0) ui.notesList.innerHTML = `<p class="empty-list-placeholder">没有笔记</p>`;
         }
+
         function renderAlbumFolders() {
             ui.albumList.innerHTML = '';
             // [修改] 如果存在排序，则使用排序后的数组，否则使用原数组
@@ -6146,7 +7163,8 @@ const getDefaultConfig = () => ({
                 el.className = `album-item ${state.isAlbumManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`;
                 el.dataset.albumId = folder.id;
                 el.dataset.action = "open-album-folder";
-                el.innerHTML = `<span class="sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div>`;
+                el.innerHTML = `<span class="sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div><span class="rename-icon" data-action="rename-album" title="重命名">&#9998;</span>`;
+
 
                 
                 // [核心修正] 处理自定义背景逻辑
@@ -6263,6 +7281,18 @@ const getDefaultConfig = () => ({
             ui.photoViewer.querySelector('#viewer-description').textContent = description || '';
             ui.photoViewer.querySelector('#viewer-timestamp').textContent = new Date(timestamp).toLocaleString('zh-CN');
             
+            // [新增] 更新下载按钮逻辑
+            const downloadBtn = document.getElementById('download-photo-btn');
+            if (downloadBtn) {
+                downloadBtn.href = photoUrl;
+                // 从路径中提取文件名，如果标题存在则优先使用标题作为文件名
+                const originalFilename = photo.path.split('/').pop();
+                const extension = originalFilename.includes('.') ? '.' + originalFilename.split('.').pop() : '.jpg';
+                const smartTitle = title ? title.replace(/[/\\?%*:|"<>]/g, '-') : ''; // 清理标题中的非法字符
+                downloadBtn.download = smartTitle ? `${smartTitle}${extension}` : originalFilename;
+                downloadBtn.style.display = 'flex';
+            }
+
             const prevBtn = document.getElementById('prev-photo-btn');
             const nextBtn = document.getElementById('next-photo-btn');
             const counter = document.getElementById('viewer-counter');
@@ -6280,9 +7310,16 @@ const getDefaultConfig = () => ({
                 counter.style.display = 'none';
             }
         }
+
         function closePhotoViewer() { 
+            document.getElementById('viewer-img-container').classList.remove('zoomed-long'); // 重置缩放状态
             state.viewerContext.items.forEach(item => { if(item.type === 'photoset') delete item.internalIndex; });
             ui.photoViewer.classList.remove('active'); 
+            // [新增] 隐藏下载按钮
+            const downloadBtn = document.getElementById('download-photo-btn');
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none';
+            }
         }
         async function changePhotoInViewer(direction) {
             const { items, index } = state.viewerContext;
@@ -6345,6 +7382,20 @@ const getDefaultConfig = () => ({
                 if (type === 'memo') renderMemoFolders(); else renderAlbumFolders();
                 scheduleSave();
             },
+            // --- 在此下方新增 ---
+            'rename-memo-folder': (target) => {
+                const folderId = parseInt(target.closest('[data-folder-id]').dataset.folderId, 10);
+                const folder = memoryCache.memo.folders.find(f => f.id === folderId);
+                if (folder) {
+                    const newName = prompt('请输入新的文件夹名称：', folder.name);
+                    if (newName && newName.trim() && newName.trim() !== folder.name) {
+                        folder.name = newName.trim();
+                        renderMemoFolders();
+                        scheduleSave();
+                    }
+                }
+            },
+            // --- 新增结束 ---
             'open-memo-folder': (target) => {
                 const folderId = parseInt(target.closest('[data-folder-id]').dataset.folderId, 10);
                 if (state.isMemoManageMode) {
@@ -6391,19 +7442,25 @@ const getDefaultConfig = () => ({
                 showView('note-editor-view', 'memo-section');
             },
 
+         'open-note': (target) => {
+            const noteId = parseInt(target.closest('[data-note-id]').dataset.noteId, 10);
+            if (state.isNoteManageMode) {
+                const index = state.notesToDelete.indexOf(noteId);
+                if (index > -1) state.notesToDelete.splice(index, 1);
+                else state.notesToDelete.push(noteId);
+                renderNotes();
+                return;
+            }
+            const note = memoryCache.memo.notes.find(n => n.id === noteId);
+            if (note) {
+                state.currentNoteId = note.id;
+                document.getElementById('note-title-input').value = note.title;
+                document.getElementById('note-content-editor').innerHTML = note.content; 
+                document.querySelector('[data-action="delete-note"]').style.display = 'inline-block';
+                showView('note-editor-view', 'memo-section');
+            }
+        },
 
-             'open-note': (target) => {
-                const noteId = parseInt(target.closest('[data-note-id]').dataset.noteId, 10);
-                const note = memoryCache.memo.notes.find(n => n.id === noteId);
-                if (note) {
-                    state.currentNoteId = note.id;
-                    document.getElementById('note-title-input').value = note.title;
-                    // 使用 innerHTML 设置内容
-                    document.getElementById('note-content-editor').innerHTML = note.content; 
-                    document.querySelector('[data-action="delete-note"]').style.display = 'inline-block';
-                    showView('note-editor-view', 'memo-section');
-                }
-            },
             'save-note': () => {
                 const title = document.getElementById('note-title-input').value.trim();
                 // 从 contenteditable div 获取 innerHTML
@@ -6520,6 +7577,76 @@ const getDefaultConfig = () => ({
                     scheduleSave();
                 }
             },
+        'toggle-note-manage': (target) => {
+            state.isNoteManageMode = !state.isNoteManageMode;
+            target.textContent = state.isNoteManageMode ? '取消' : '管理';
+            ui.noteManageControls.classList.toggle('active', state.isNoteManageMode);
+            if (!state.isNoteManageMode) state.notesToDelete = [];
+            renderNotes();
+        },
+        'select-all-notes': () => {
+            const currentFolderNotes = memoryCache.memo.notes.filter(n => n.folderId === state.currentMemoFolderId);
+            if (state.notesToDelete.length === currentFolderNotes.length) {
+                state.notesToDelete = [];
+            } else {
+                state.notesToDelete = currentFolderNotes.map(n => n.id);
+            }
+            renderNotes();
+        },
+        'delete-selected-notes': () => {
+            if (state.notesToDelete.length === 0) return;
+            if (confirm(`确定要删除选中的 ${state.notesToDelete.length} 篇笔记吗？`)) {
+                memoryCache.memo.notes = memoryCache.memo.notes.filter(n => !state.notesToDelete.includes(n.id));
+                state.notesToDelete = [];
+                renderNotes();
+                scheduleSave();
+            }
+        },
+        'move-selected-notes': () => {
+            if (state.notesToDelete.length === 0) {
+                alert('请先选择要移动的笔记。');
+                return;
+            }
+            const destSelector = document.getElementById('memo-destination-selector');
+            destSelector.innerHTML = '';
+            memoryCache.memo.folders.forEach(folder => {
+                if (folder.id !== state.currentMemoFolderId) {
+                    const option = document.createElement('option');
+                    option.value = folder.id;
+                    option.textContent = folder.name;
+                    destSelector.appendChild(option);
+                }
+            });
+
+            if (destSelector.options.length === 0) {
+                alert('没有其他文件夹可以移动。');
+                return;
+            }
+            document.getElementById('moveNotesModal').classList.add('show');
+        },
+        'close-move-notes-modal': () => {
+            document.getElementById('moveNotesModal').classList.remove('show');
+        },
+        'confirm-move-notes': () => {
+            const destFolderId = parseInt(document.getElementById('memo-destination-selector').value, 10);
+            if (!destFolderId) {
+                alert('无效的目标文件夹。');
+                return;
+            }
+
+            memoryCache.memo.notes.forEach(note => {
+                if (state.notesToDelete.includes(note.id)) {
+                    note.folderId = destFolderId;
+                }
+            });
+
+            state.notesToDelete = [];
+            renderNotes();
+            scheduleSave();
+            document.getElementById('moveNotesModal').classList.remove('show');
+            showTopToast('笔记移动成功！', 2000);
+        },
+
              'toggle-photo-manage': (target) => {
                 state.isPhotoManageMode = !state.isPhotoManageMode;
                 target.textContent = state.isPhotoManageMode ? '取消' : '管理';
@@ -6645,6 +7772,66 @@ const getDefaultConfig = () => ({
             'close-viewer': () => closePhotoViewer(),
             'prev-photo': () => changePhotoInViewer(-1),
             'next-photo': () => changePhotoInViewer(1),
+
+            'move-selected-photos': () => {
+                if (state.photosToDelete.length === 0) {
+                    alert('请先选择要移动的照片。');
+                    return;
+                }
+                const destSelector = document.getElementById('album-destination-selector');
+                destSelector.innerHTML = '';
+                memoryCache.album.folders.forEach(folder => {
+                    if (folder.id !== state.currentAlbumId) {
+                        const option = document.createElement('option');
+                        option.value = folder.id;
+                        option.textContent = folder.name;
+                        destSelector.appendChild(option);
+                    }
+                });
+
+                if (destSelector.options.length === 0) {
+                    alert('没有其他相册可以移动。');
+                    return;
+                }
+                document.getElementById('movePhotosModal').classList.add('show');
+            },
+            'close-move-modal': () => {
+                document.getElementById('movePhotosModal').classList.remove('show');
+            },
+            'confirm-move-photos': () => {
+                const destAlbumId = parseInt(document.getElementById('album-destination-selector').value, 10);
+                if (!destAlbumId) {
+                    alert('无效的目标相册。');
+                    return;
+                }
+
+                memoryCache.album.items.forEach(item => {
+                    if (state.photosToDelete.includes(item.id)) {
+                        item.albumId = destAlbumId;
+                    }
+                });
+
+                state.photosToDelete = [];
+                renderPhotos();
+                scheduleSave();
+                document.getElementById('movePhotosModal').classList.remove('show');
+                showTopToast('照片移动成功！', 2000);
+            },
+
+            'rename-album': (target) => {
+                const albumId = parseInt(target.closest('[data-album-id]').dataset.albumId, 10);
+                const album = memoryCache.album.folders.find(f => f.id === albumId);
+
+                if (album) {
+                    const newName = prompt('请输入新的相册名称：', album.name);
+                    if (newName && newName.trim() !== '' && newName.trim() !== album.name) {
+                        album.name = newName.trim();
+                        renderAlbumFolders(); // 重新渲染以显示新名称
+                        scheduleSave();
+                    }
+                }
+            },
+
             'wander-global': () => WanderView.start(memoryCache.album.items),
             'wander-local': () => WanderView.start(memoryCache.album.items.filter(p => p.albumId === state.currentAlbumId)),
             'close-wander-view': () => WanderView.close(),
@@ -6835,20 +8022,42 @@ const getDefaultConfig = () => ({
             const selectedCategory = ui.categorySelector.value;
             ui.projectSelector.innerHTML = ''; // 首先清空旧的项目
 
+            // 如果没有选择分类，则隐藏项目选择器
             if (!selectedCategory || selectedCategory === '') {
                 ui.projectSelector.classList.add('hidden');
+                ui.fileList.innerHTML = ''; // 同时清空文件列表
+                ui.fileListStatus.textContent = '请选择一个分类';
+                ui.fileListStatus.style.display = 'block';
                 return;
             }
 
             ui.projectSelector.classList.remove('hidden');
 
-            const category = currentConfig.categories.find(c => c.name === selectedCategory);
-            // 修改核心：不再过滤，获取该分类下的【所有】按钮/项目
-            const allProjects = (category && category.buttons) ? category.buttons : [];
+            let projectsToShow = [];
+            // 如果选择的是"全部"，则合并所有分类下的项目
+            if (selectedCategory === '全部') {
+                 const allButtons = new Map();
+                currentConfig.categories.forEach(cat => {
+                    if (cat.buttons) {
+                        cat.buttons.forEach(btn => {
+                             // 使用 href 作为 key 来去重
+                            if (!allButtons.has(btn.href)) {
+                                allButtons.set(btn.href, btn);
+                            }
+                        });
+                    }
+                });
+                projectsToShow = Array.from(allButtons.values());
+            } else {
+                const category = currentConfig.categories.find(c => c.name === selectedCategory);
+                projectsToShow = (category && category.buttons) ? category.buttons : [];
+            }
 
-            if (allProjects.length > 0) {
+
+            if (projectsToShow.length > 0) {
+                 ui.projectSelector.innerHTML = '<option value="">-- 请选择项目 --</option>'; // 添加一个默认提示选项
                 // 遍历所有项目并添加到选择框
-                allProjects.forEach(btn => {
+                projectsToShow.forEach(btn => {
                     const option = document.createElement('option');
                     // 使用项目的 href 作为唯一标识
                     option.value = btn.href; 
@@ -6863,8 +8072,10 @@ const getDefaultConfig = () => ({
                 option.disabled = true;
                 ui.projectSelector.appendChild(option);
             }
+            
+            // 切换分类后，主动清空文件列表并更新状态提示
+            fetchFilesForSelectedProject();
         }
-
 
         function fetchFilesForSelectedProject() {
             const categoryName = ui.categorySelector.value;
@@ -6913,6 +8124,13 @@ const getDefaultConfig = () => ({
                 }
 
                 async function fetchFilesFromGithubProject(projectHref) {
+                    // [新增] 为本次请求创建一个唯一的令牌
+                    const requestToken = Symbol();
+                    state.cloudDriveRequestToken = requestToken;
+
+                    ui.fileList.innerHTML = '';
+                    ui.fileListStatus.style.display = 'block';
+
                     const projectConfig = findButtonConfigByHref(projectHref);
 
                     if (!projectConfig) {
@@ -6926,6 +8144,13 @@ const getDefaultConfig = () => ({
                     ui.fileListStatus.textContent = "加载中...";
                     
                     const { data: files, error } = await fetchFromGithub(projectPath);
+                    
+                    // [新增] 在处理返回数据前，检查令牌是否仍然有效
+                    if(state.cloudDriveRequestToken !== requestToken) {
+                        console.log("文件夹请求已过期，结果被丢弃。");
+                        return; // 如果令牌不匹配（意味着用户已切换项目），则中止函数
+                    }
+
                     if (error) { 
                         ui.fileListStatus.textContent = `加载失败: ${error}`; 
                         return; 
@@ -6938,17 +8163,18 @@ const getDefaultConfig = () => ({
 
                     ui.fileListStatus.style.display = "none";
                     
-                    // [核心修改] 使用 for...of 循环来正确处理异步操作
                     for (const file of files) {
+                        // [新增] 在每次异步操作（如获取日期）后都检查令牌
+                        if(state.cloudDriveRequestToken !== requestToken) { return; }
+
                         const li = document.createElement("li");
                         
-                        // 1. 格式化文件大小
                         const sizeText = formatFileSize(file.size); 
-                        
-                        // 2. 异步获取日期
                         const dateText = await getFileCommitDate(file.path);
 
-                        // 3. 构建新的元信息字符串
+                        // [新增] 这是最后一个检查点，在渲染到DOM之前再次确认
+                        if(state.cloudDriveRequestToken !== requestToken) { return; }
+
                         const metaText = `${sizeText} • ${dateText}`;
 
                         li.innerHTML = `<div class="file-info"><span class="file-name">${file.name}</span><span class="file-meta" data-path="${file.path}">${metaText}</span></div><button class="delete-btn" data-sha="${file.sha}">&times;</button>`;
@@ -6958,7 +8184,6 @@ const getDefaultConfig = () => ({
                         li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file.path, file.sha, li));
                     }
                 }
-
 
         async function getLatestCommitDate(e){const t=`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${encodeURIComponent(e)}&page=1&per_page=1`;try{const n=await fetch(t,{headers:{"Authorization":`token ${GITHUB_CONFIG.token}`},cache:"no-cache"});if(!n.ok)return(new Date(0)).toISOString().split('T')[0];const o=await n.json();return o[0]?.commit.committer.date.split('T')[0]||(new Date(0)).toISOString().split('T')[0]}catch(n){return console.error(`Error fetching commit date for ${e}:`,n),(new Date(0)).toISOString().split('T')[0]}}async function deleteFile(e,t,n){
     const originalFileName = n.querySelector(".file-name").textContent;
@@ -7246,6 +8471,30 @@ const getDefaultConfig = () => ({
                         actions[target.dataset.action](target);
                     }
                 });
+
+                // [新增] 长图双击缩放逻辑
+                const viewerImg = ui.photoViewer.querySelector('#viewer-img');
+                const viewerImgContainer = ui.photoViewer.querySelector('#viewer-img-container');
+                
+                viewerImgContainer.addEventListener('dblclick', () => {
+                    const isCurrentlyZoomed = viewerImgContainer.classList.contains('zoomed-long');
+                    
+                    if (isCurrentlyZoomed) {
+                        viewerImgContainer.classList.remove('zoomed-long');
+                        viewerImgContainer.scrollTop = 0; 
+                        return;
+                    }
+
+                    const isLongImage = viewerImg.naturalHeight > viewerImg.naturalWidth;
+                    const isTallerThanContainer = viewerImg.naturalHeight > viewerImgContainer.clientHeight;
+
+                    if (isLongImage && isTallerThanContainer) {
+                        viewerImgContainer.classList.add('zoomed-long');
+                    } else {
+                        showTopToast('此图片无需放大', 2000);
+                    }
+                });
+
                 // [新增] 备忘录富文本编辑器逻辑 v2
                 const editor = document.getElementById('note-content-editor');
                 const toolbar = document.querySelector('.memo-toolbar');
@@ -7383,6 +8632,9 @@ const getDefaultConfig = () => ({
                 ui.folderModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 ui.photoDetailsModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 ui.photoViewer.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
+                document.getElementById('movePhotosModal').addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target && actions[target.dataset.action]) actions[target.dataset.action](target); });
+            document.getElementById('moveNotesModal').addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target && actions[target.dataset.action]) actions[target.dataset.action](target); });
+
                 ui.photoUploader.addEventListener('change', e => {
                     if (!e.target.files.length) return;
                     state.photoUploadQueue = Array.from(e.target.files);
@@ -7953,15 +9205,31 @@ const getDefaultConfig = () => ({
     
     async function getSecureFileUrl(path) {
         if (!path) return '';
+
+        // 1. 优先从本次会话的内存缓存中读取 (最快)
         if (secureFileCache.has(path)) {
             const cached = secureFileCache.get(path);
+            // 如果缓存的是一个Promise，等待它完成
             if (typeof cached.then === 'function') {
                 return await cached;
             }
             return cached;
         }
+        
+        // 2. 如果内存中没有，则尝试从 IndexedDB 持久化缓存中读取
+        try {
+            const cachedBlob = await ImageCacheDB.get(path);
+            if (cachedBlob) {
+                const blobUrl = URL.createObjectURL(cachedBlob);
+                secureFileCache.set(path, blobUrl); // 存入内存缓存，方便本次会话后续快速访问
+                return blobUrl;
+            }
+        } catch (e) {
+            console.warn(`从 IndexedDB 读取缓存失败:`, e);
+        }
 
-        const fetchPromise = new Promise(async (resolve, reject) => {
+        // 3. 如果 IndexedDB 中也没有，则发起网络请求
+        const fetchPromise = new Promise(async (resolve) => {
             try {
                 if (!path.startsWith('projects/') && !path.startsWith('memory/')) {
                     resolve(path);
@@ -7974,48 +9242,56 @@ const getDefaultConfig = () => ({
                 }
 
                 const { data: blobData, error: blobError } = await fetchFromGithub(`blobs/${metaData.sha}`, 'git');
-
                 if (blobError || !blobData || !blobData.content) {
                     throw new Error(`Could not get blob content for ${path}. ${blobError || 'No content returned.'}`);
                 }
                 
-                const contentType = path.toLowerCase().endsWith('.html') || path.toLowerCase().endsWith('.htm') ? 'text/html' : metaData.type;
-const blob = b64toBlob(blobData.content, contentType);
+                const contentType = path.toLowerCase().endsWith('.html') || path.toLowerCase().endsWith('.htm') ? 'text/html' : (metaData.type || 'application/octet-stream');
+                const blob = b64toBlob(blobData.content, contentType);
+
+                // 4. [核心] 将获取到的数据存入 IndexedDB
+                ImageCacheDB.set(path, blob).catch(e => console.warn('存入IndexedDB失败:', e));
 
                 const blobUrl = URL.createObjectURL(blob);
-                
-                secureFileCache.set(path, blobUrl);
+                secureFileCache.set(path, blobUrl); // 确保内存缓存也被更新
                 resolve(blobUrl);
 
             } catch (error) {
-                console.error(`Failed to retrieve file: ${path}`, error);
-                secureFileCache.delete(path);
-                resolve('');
+                console.error(`获取安全文件URL失败: ${path}`, error);
+                secureFileCache.delete(path); // 从内存缓存中移除失败的条目
+                resolve(''); // 返回空字符串，防止界面出错
             }
         });
 
+        // 将Promise存入内存缓存，防止对同一资源发起重复网络请求
         secureFileCache.set(path, fetchPromise);
         return await fetchPromise;
     }
 
-
         function checkAppUpdate() {
-        const helpPage = document.getElementById('help-page-2');
-        if (!helpPage) return;
+            const helpPage = document.getElementById('help-page-2');
+            if (!helpPage) return;
 
-        // 1. 计算当前更新公告内容的哈希值
-        const currentUpdateHash = simpleHash(helpPage.innerHTML.trim());
+            const currentUpdateHash = simpleHash(helpPage.innerHTML.trim());
+            const lastSeenUpdateHash = localStorage.getItem('lastSeenUpdateHash');
+            const updateLogIndicator = document.getElementById('update-log-indicator');
 
-        // 2. 获取用户上次看到的哈希值
-        const lastSeenUpdateHash = localStorage.getItem('lastSeenUpdateHash');
-
-        // 3. 比较哈希值，如果不一致则显示红点
-        if (String(currentUpdateHash) !== lastSeenUpdateHash) {
-            document.getElementById('helpBtn').classList.add('has-update');
+            if (String(currentUpdateHash) !== lastSeenUpdateHash) {
+                document.getElementById('helpBtn').classList.add('has-update');
+                if (updateLogIndicator) updateLogIndicator.classList.add('show');
+            } else {
+                if (updateLogIndicator) updateLogIndicator.classList.remove('show');
+            }
         }
-    }
+
 
  window.addEventListener('load', async () => {
+        try {
+            await ImageCacheDB.init();
+        } catch (e) {
+            console.error(e);
+            alert("本地图片缓存功能启动失败，图片加载速度可能会变慢。");
+        }
         loadGithubConfig();
         checkAppUpdate();
         await loadInitialData();
@@ -8049,26 +9325,66 @@ const blob = b64toBlob(blobData.content, contentType);
             FloatingBallManager.create();
         }
 
- function showIosWarning() {
-            // 检查是否为 iOS 设备 (iPhone, iPad, iPod)
+        function showIosWarning() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            // 检查 localStorage 中是否已有标记
             const hasBeenShown = localStorage.getItem('iosWarningShown') === 'true';
             if (isIOS && !hasBeenShown) {
                 const modal = document.getElementById('iosWarningModal');
                 const confirmBtn = document.getElementById('iosWarningConfirmBtn');
-                // 显示模态框
                 modal.classList.add('show');
-                // 为确认按钮绑定点击事件
                 confirmBtn.addEventListener('click', () => {
-                    // 隐藏模态框
                     modal.classList.remove('show');
-                    // 在 localStorage 中设置标记，确保不再显示
                     localStorage.setItem('iosWarningShown', 'true');
-                }, { once: true }); // 使用 once: true 确保事件只触发一次
+                    // [核心修改] 用户确认iOS提示后，再检查是否需要显示首次引导
+                    checkAndShowFirstTimeGuide();
+                }, { once: true });
+            } else {
+                // [核心修改] 如果不是iOS或已经提示过，直接检查首次引导
+                checkAndShowFirstTimeGuide();
             }
         }
+        function checkAndShowFirstTimeGuide() {
+            const isConfigured = GITHUB_CONFIG.owner && GITHUB_CONFIG.repo && GITHUB_CONFIG.token;
+            const guideShown = localStorage.getItem('firstTimeGuideShown') === 'true';
+
+            if (!isConfigured && !guideShown) {
+                const guideModal = document.getElementById('firstTimeGuideModal');
+                const startBtn = document.getElementById('startConfigGuideBtn');
+
+                guideModal.classList.add('show');
+
+                startBtn.addEventListener('click', () => {
+                    guideModal.classList.remove('show');
+                    document.getElementById('helpModal').classList.add('show');
+                    document.getElementById('help-tab-0').click(); // 直接跳转到首次配置标签页
+                    localStorage.setItem('firstTimeGuideShown', 'true');
+                }, { once: true });
+            }
+        }
+
+        // [修改] 调用 showIosWarning，它现在内部会处理后续的 checkAndShowFirstTimeGuide 调用
         showIosWarning();
+
+
+        // [新增] 监听更新公告标签页的点击
+        const updateLogTab = document.querySelector('label[for="help-tab-2"]');
+        if (updateLogTab) {
+            updateLogTab.addEventListener('click', () => {
+                const helpPage = document.getElementById('help-page-2');
+                const updateLogIndicator = document.getElementById('update-log-indicator');
+
+                if (helpPage && updateLogIndicator.classList.contains('show')) {
+                    // 隐藏标签上的红点
+                    if (updateLogIndicator) updateLogIndicator.classList.remove('show');
+                    // 隐藏主按钮上的红点
+                    document.getElementById('helpBtn').classList.remove('has-update');
+                    // 更新“已读”状态到localStorage
+                    const currentUpdateHash = simpleHash(helpPage.innerHTML.trim());
+                    localStorage.setItem('lastSeenUpdateHash', String(currentUpdateHash));
+                }
+            });
+        }
+
         /* =============================================================== */
         /* ============== [新增] 拖拽排序功能核心逻辑 V1.0 ============= */
         /* =============================================================== */
@@ -8323,11 +9639,12 @@ const blob = b64toBlob(blobData.content, contentType);
             };
         })();
 
-                // 初始化拖拽排序功能
+        // 初始化拖拽排序功能
         DragAndSort.init();
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
+        
 
 
          /* =============================================================== */
@@ -9455,8 +10772,13 @@ const blob = b64toBlob(blobData.content, contentType);
                 componentContainer.appendChild(widgetEl);
                 grid.appendChild(componentContainer);
             });
+            
+            // [新增] 检查网格中是否有小组件，并据此显示/隐藏提示
+            const hint = document.getElementById('lockscreen-swipe-hint');
+            if (hint) {
+                hint.style.display = grid.childElementCount === 0 ? 'block' : 'none';
+            }
         }
-
 
         // 初始化手机模式管理器
         MobileModeManager.init();
@@ -9554,156 +10876,30 @@ const blob = b64toBlob(blobData.content, contentType);
         }
 
         /* =============================================================== */
-        /* ================== [新增] 手机收藏馆逻辑 =================== */
+        /* ================== [重构] 手机收藏馆逻辑 v2 (支持筛选) ========== */
         /* =============================================================== */
         const PhoneCollectionManager = (() => {
-            // 在这里集中管理所有手机数据，方便你后续补充
+            // 数据源保持不变
             const phoneData = [
-                {
-                    id: 'eve-phone', // 为EVE手机设置一个唯一的英文ID
-                    name: 'EVE',
-                    authorId: '7551854600',
-                    acquisition: 'QQ群购买',
-                    price: '19.9元', // 将价格单独列出
-                    status: '暂时停售'
-                },
-                {
-                    id: 'jrsy-phone', // 为jrsy手机设置一个唯一的英文ID
-                    name: 'jrsy小手机',
-                    authorId: '6536602273',
-                    acquisition: 'QQ群',
-                    price: '5.2元', // 如果没有明确价格，可以这样写
-                    status: '在售'
-                },
-                {
-                    id: 'threeseven-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '37 Chat',          // 【必填】手机的显示名称
-                    authorId: '26299019345',       // 【必填】作者的小红书或QQ号
-                    acquisition: '小红书购买',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '21.14元',            // 【必填】如：免费、19.9元、未知
-                    status: '内测'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'fruit-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '果咩机',          // 【必填】手机的显示名称
-                    authorId: '26962794223',       // 【必填】作者的小红书或QQ号
-                    acquisition: '小红书进群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'bubble-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '气泡机',          // 【必填】手机的显示名称
-                    authorId: '26962794223',       // 【必填】作者的小红书或QQ号
-                    acquisition: '小红书进群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'glutinousrice-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '糯米机',          // 【必填】手机的显示名称
-                    authorId: '933580405',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'whale-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'WhaleLLT',          // 【必填】手机的显示名称
-                    authorId: '42944921236',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '获取版权，暂关闭'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'koko-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'koko小手机',          // 【必填】手机的显示名称
-                    authorId: '970432882',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '14.9元',            // 【必填】如：免费、19.9元、未知
-                    status: '在售'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'mumu-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '慕慕小手机',          // 【必填】手机的显示名称
-                    authorId: '26211349174',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '19.9元',            // 【必填】如：免费、19.9元、未知
-                    status: '内测，在售'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'raven-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'RavenPhone',          // 【必填】手机的显示名称
-                    authorId: '999988424',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'DC专属社区，需审核',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'threethree-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '33聊天室',          // 【必填】手机的显示名称
-                    authorId: '124491716',       // 【必填】作者的小红书或QQ号
-                    acquisition: '小红书购买',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '9.9元',            // 【必填】如：免费、19.9元、未知
-                    status: '已停售'         // 【必填】如：在售、已停售、群内获取
-                },
-{
-                    id: 'mujian-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '幕间小手机',          // 【必填】手机的显示名称
-                    authorId: '9240783072',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '2.0内测中'         // 【必填】如：在售、已停售、群内获取
-                },
-{
-                    id: 'tuk-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'EPhone-兔K',          // 【必填】手机的显示名称
-                    authorId: 'glacier1024',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'maomaoning-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'EPhone-猫猫宁',          // 【必填】手机的显示名称
-                    authorId: '94903121580',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
-                {
-                    id: 'yique-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'EPhone-以雀',          // 【必填】手机的显示名称
-                    authorId: '571856738',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
- {
-                    id: 'threethreezero-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'EPhone-330',          // 【必填】手机的显示名称
-                    authorId: '（没找到）',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
- {
-                    id: 'jcy-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: 'EPhone-JCY',          // 【必填】手机的显示名称
-                    authorId: '（没找到）',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'DC社区：尾巴镇',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放'         // 【必填】如：在售、已停售、群内获取
-                },
- {
-                    id: 'youzi-phone',    // 【必填】一个全英文、不重复的唯一ID
-                    name: '柚子机',          // 【必填】手机的显示名称
-                    authorId: '5007799940',       // 【必填】作者的小红书或QQ号
-                    acquisition: 'QQ群',   // 【必填】如何获取，如：QQ群号、链接等
-                    price: '无偿',            // 【必填】如：免费、19.9元、未知
-                    status: '开放测试'         // 【必填】如：在售、已停售、群内获取
-                },
-                // 在这里继续添加新的手机对象...
+                { id: 'eve-phone', name: 'EVE', authorId: '7551854600', acquisition: 'QQ群购买', price: '19.9元', status: '暂时停售' },
+                { id: 'jrsy-phone', name: 'jrsy小手机', authorId: '6536602273', acquisition: 'QQ群', price: '5.2元', status: '在售' },
+                { id: 'threeseven-phone', name: '37 Chat', authorId: '26299019345', acquisition: '小红书购买', price: '21.14元', status: '内测' },
+                { id: 'fruit-phone', name: '果咩机', authorId: '26962794223', acquisition: '小红书进群', price: '无偿', status: '开放' },
+                { id: 'bubble-phone', name: '气泡机', authorId: '26962794223', acquisition: '小红书进群', price: '无偿', status: '开放' },
+                { id: 'glutinousrice-phone', name: '糯米机', authorId: '933580405', acquisition: 'QQ群', price: '无偿', status: '开放' },
+                { id: 'whale-phone', name: 'WhaleLLT', authorId: '42944921236', acquisition: 'QQ群', price: '无偿', status: '获取版权，暂关闭' },
+                { id: 'koko-phone', name: 'koko小手机', authorId: '970432882', acquisition: 'QQ群', price: '14.9元', status: '在售' },
+                { id: 'mumu-phone', name: '慕慕小手机', authorId: '26211349174', acquisition: 'QQ群', price: '19.9元', status: '内测，在售' },
+                { id: 'raven-phone', name: 'RavenPhone', authorId: '999988424', acquisition: 'DC专属社区，需审核', price: '无偿', status: '开放' },
+                { id: 'threethree-phone', name: '33聊天室', authorId: '124491716', acquisition: '小红书购买', price: '9.9元', status: '已停售' },
+                { id: 'mujian-phone', name: '幕间小手机', authorId: '9240783072', acquisition: 'QQ群', price: '无偿', status: '2.0内测中' },
+                { id: 'tuk-phone', name: 'EPhone-兔K', authorId: 'glacier1024', acquisition: 'DC社区：尾巴镇', price: '无偿', status: '开放' },
+                { id: 'maomaoning-phone', name: 'EPhone-猫猫宁', authorId: '94903121580', acquisition: 'DC社区：尾巴镇', price: '无偿', status: '开放' },
+                { id: 'yique-phone', name: 'EPhone-以雀', authorId: '571856738', acquisition: 'DC社区：尾巴镇', price: '无偿', status: '开放' },
+                { id: 'threethreezero-phone', name: 'EPhone-330', authorId: '（没找到）', acquisition: 'DC社区：尾巴镇', price: '无偿', status: '开放' },
+                { id: 'jcy-phone', name: 'EPhone-JCY', authorId: '（没找到）', acquisition: 'DC社区：尾巴镇', price: '无偿', status: '开放' },
+                { id: 'youzi-phone', name: '柚子机', authorId: '5007799940', acquisition: 'QQ群', price: '无偿', status: '开放测试' },
+                { id: 'jing-phone', name: '镜', authorId: 'il_057', acquisition: 'QQ群', price: '无偿', status: '开放' },
             ];
 
             const ui = {
@@ -9712,105 +10908,141 @@ const blob = b64toBlob(blobData.content, contentType);
                 listContainer: document.getElementById('phone-list-container'),
                 detailContainer: document.getElementById('phone-detail-content'),
                 detailTitle: document.getElementById('phone-detail-title'),
-                pinBtn: document.getElementById('pinPhoneBtn'), // 新增
-                searchInput: document.getElementById('phoneSearchInput'), // 新增
+                searchInput: document.getElementById('phoneSearchInput'),
+                // 新增筛选相关UI元素
+                filterBtn: document.getElementById('phoneFilterBtn'),
+                filterModal: document.getElementById('phoneFilterModal'),
+                selectedFiltersContainer: document.getElementById('selected-filters-container'),
+                applyFiltersBtn: document.getElementById('apply-filters-btn'),
+                clearFiltersBtn: document.getElementById('clear-filters-btn'),
+            };
+
+            const filterOptions = {
+                status: [ '开放', '在售', '停售', '内测', '关闭' ],
+                price: [ '有偿', '无偿' ],
+                user: [
+                    { text: '已拥有', value: 'owned' },
+                    { text: '愿望单', value: 'wishlist' },
+                    { text: '未拥有', value: 'not_owned' }
+                ]
             };
             
-            // ★★★ 新增：获取置顶列表的函数
-            function getPinnedPhones() {
-                try {
-                    return JSON.parse(localStorage.getItem('pinnedPhones') || '[]');
-                } catch (e) {
-                    return [];
-                }
-            }
-            
-            // ★★★ 新增：保存置顶列表的函数
-            function savePinnedPhones(pinnedIds) {
-                localStorage.setItem('pinnedPhones', JSON.stringify(pinnedIds));
-            }
+            let activeFilters = []; // 存储结构: { group: 'status', value: '在售' }
 
-            function getGiscusTheme() {
-                const isDarkMode = document.body.classList.contains('dark-mode');
-                const isGlassTheme = document.body.classList.contains('theme-glass');
-                if (isGlassTheme) {
-                    return isDarkMode ? 'transparent_dark' : 'light';
+            // 状态管理函数保持不变
+            function getCollectionStatus() { try { return JSON.parse(localStorage.getItem('phoneCollectionStatus') || '{}'); } catch (e) { return {}; } }
+            function saveCollectionStatus(statusData) { localStorage.setItem('phoneCollectionStatus', JSON.stringify(statusData)); }
+            function getRandomMacaronColor() { const p = ['#FFD1DC','#C5E0F2','#D9C7F5','#D5ECD9','#FFEDCC','#FBBEAD','#FFF4F4','#D6F0E6','#F0D6E8','#E5F2BC','#A5E1D4','#F8F5F0','#F7E0B3']; const u = new Set(Object.values(getCollectionStatus()).map(s=>s.color)); const a = p.filter(c=>!u.has(c)); return a.length>0?a[Math.floor(Math.random()*a.length)]:p[Math.floor(Math.random()*p.length)]; }
+            function getPinnedPhones() { try { return JSON.parse(localStorage.getItem('pinnedPhones') || '[]'); } catch (e) { return []; } }
+            function savePinnedPhones(pinnedIds) { localStorage.setItem('pinnedPhones', JSON.stringify(pinnedIds)); }
+            // Giscus 相关函数保持不变
+            function getGiscusTheme() { const i=document.body.classList.contains('dark-mode'),g=document.body.classList.contains('theme-glass'); return g?(i?'transparent_dark':'light'):(i?'dark':'light'); }
+            function showGiscusComments(phoneId, phoneName) { const m=document.getElementById('phoneCommentsModal'),c=m.querySelector('.giscus');c.innerHTML='';const s=document.createElement('script'),a={'src':'https://giscus.app/client.js','data-repo':'Yeexein/Jellyfish-Comments','data-repo-id':'R_kgDOQBfb-w','data-category':'Announcements','data-category-id':'DIC_kwDOQBfb-84CwlT0','data-mapping':'specific','data-term':`手机安利区: ${phoneName} (${phoneId})`,'data-strict':'0','data-reactions-enabled':'1','data-emit-metadata':'0','data-input-position':'top','data-theme':getGiscusTheme(),'data-lang':'zh-CN','crossorigin':'anonymous','async':''};Object.entries(a).forEach(([k,v])=>s.setAttribute(k,v));c.appendChild(s);document.getElementById('phone-comments-title').textContent=`${phoneName} - 安利区`;m.classList.add('show');}
+
+            
+            // ★★★ 新增：核心标签映射逻辑 ★★★
+            function getPhoneTags(phone) {
+                const tags = [];
+                // 价格标签
+                if (phone.price.includes('无偿') || phone.price.includes('免费')) {
+                    tags.push({ group: 'price', value: '无偿' });
                 } else {
-                    return isDarkMode ? 'dark' : 'light';
+                    tags.push({ group: 'price', value: '有偿' });
+                }
+                // 状态标签 (简化逻辑)
+                if (phone.status.includes('开放')) tags.push({ group: 'status', value: '开放' });
+                else if (phone.status.includes('在售')) tags.push({ group: 'status', value: '在售'});
+                else if (phone.status.includes('停售')) tags.push({ group: 'status', value: '停售' });
+                else if (phone.status.includes('内测')) tags.push({ group: 'status', value: '内测' });
+                else tags.push({ group: 'status', value: '关闭' });
+                
+                return tags;
+            }
+
+            // ★★★ 新增：检查手机是否匹配筛选条件的函数 ★★★
+            function checkPhoneFilter(phone, filter) {
+                switch(filter.group) {
+                    case 'status':
+                    case 'price':
+                        return getPhoneTags(phone).some(tag => tag.group === filter.group && tag.value === filter.value);
+                    case 'user':
+                        const userStatusData = getCollectionStatus()[phone.id];
+                        const userStatus = userStatusData ? userStatusData.status : 'not_owned';
+                        return userStatus === filter.value;
+                    default:
+                        return true;
                 }
             }
-
-            function showGiscusComments(phoneId, phoneName) {
-                // ... (此函数保持不变，无需修改)
-                const commentsModal = document.getElementById('phoneCommentsModal');
-                const giscusContainer = commentsModal.querySelector('.giscus');
-                giscusContainer.innerHTML = '';
-                const giscusScript = document.createElement('script');
-                const attributes = {
-                    'src': 'https://giscus.app/client.js',
-                    'data-repo': 'Yeexein/Jellyfish-Comments',
-                    'data-repo-id': 'R_kgDOQBfb-w',
-                    'data-category': 'Announcements',
-                    'data-category-id': 'DIC_kwDOQBfb-84CwlT0',
-                    'data-mapping': 'specific',
-                    'data-term': `手机安利区: ${phoneName} (${phoneId})`,
-                    'data-strict': '0',
-                    'data-reactions-enabled': '1',
-                    'data-emit-metadata': '0',
-                    'data-input-position': 'top',
-                    'data-theme': getGiscusTheme(),
-                    'data-lang': 'zh-CN',
-                    'crossorigin': 'anonymous',
-                    'async': ''
-                };
-                Object.entries(attributes).forEach(([key, value]) => {
-                    giscusScript.setAttribute(key, value);
-                });
-                giscusContainer.appendChild(giscusScript);
-                document.getElementById('phone-comments-title').textContent = `${phoneName} - 安利区`;
-                commentsModal.classList.add('show');
-            }
-
-
             
-            // ★★★ 核心修改：渲染函数现在接受一个数据数组作为参数
-            function renderPhoneList(phonesToRender) {
-                 ui.listContainer.innerHTML = '';
-                if (phonesToRender.length === 0) {
-                    ui.listContainer.innerHTML = '<p class="empty-list-placeholder" style="grid-column: 1 / -1;">未找到匹配的手机</p>';
-                    return;
-                }
-                phonesToRender.forEach(phone => {
-                    const item = document.createElement('div');
-                    item.className = 'phone-partition-item';
-                    item.dataset.phoneId = phone.id;
-                    item.innerHTML = `
-                        <div class="phone-partition-icon">${phone.icon || ''}</div>
-                        <div class="phone-partition-name">${phone.name}</div>
-                    `;
-
-                    // ★ 新增：为每个泡泡设置一个随机的动画延迟时间
-                    // 负延迟会让动画从周期中的一个随机点立即开始，看起来更自然
-                    item.style.animationDelay = `${Math.random() * -6}s`;
-
-                    item.addEventListener('click', () => renderPhoneDetail(phone.id));
-                    ui.listContainer.appendChild(item);
+            // ★★★ 新增：填充筛选模态框的选项 ★★★
+            function populateFilterOptions() {
+                Object.keys(filterOptions).forEach(group => {
+                    const container = document.getElementById(`filter-options-${group}`);
+                    if (!container) return;
+                    container.innerHTML = '';
+                    filterOptions[group].forEach(option => {
+                        const text = typeof option === 'string' ? option : option.text;
+                        const value = typeof option === 'string' ? option : option.value;
+                        const optionEl = document.createElement('button');
+                        optionEl.className = 'filter-tag-option';
+                        optionEl.textContent = text;
+                        optionEl.dataset.group = group;
+                        optionEl.dataset.value = value;
+                        container.appendChild(optionEl);
+                    });
                 });
             }
 
+            // ★★★ 新增：更新筛选器UI的函数 ★★★
+            function updateFilterSelectionUI() {
+                // 更新已选中的标签区域
+                ui.selectedFiltersContainer.innerHTML = '';
+                activeFilters.forEach(filter => {
+                    const text = filterOptions[filter.group].find(opt => (typeof opt === 'string' ? opt : opt.value) === filter.value)?.text || filter.value;
+                    const tagEl = document.createElement('div');
+                    tagEl.className = 'selected-filter-tag';
+                    tagEl.innerHTML = `<span>${text}</span><span class="remove-tag-btn" data-group="${filter.group}" data-value="${filter.value}">&times;</span>`;
+                    ui.selectedFiltersContainer.appendChild(tagEl);
+                });
 
-            // ★★★ 新增：主列表的入口函数，处理排序和过滤
+                // 更新可选标签的 .selected 状态
+                ui.filterModal.querySelectorAll('.filter-tag-option').forEach(optionEl => {
+                    const isSelected = activeFilters.some(f => f.group === optionEl.dataset.group && f.value === optionEl.dataset.value);
+                    optionEl.classList.toggle('selected', isSelected);
+                });
+            }
+            
+            // ★★★ 重构：主列表渲染函数 ★★★
             function displayPhoneList() {
                 const searchTerm = ui.searchInput.value.toLowerCase().trim();
                 const pinnedIds = getPinnedPhones();
 
+                // 1. 文本搜索过滤
                 let filteredPhones = phoneData.filter(phone => 
-                    phone.name.toLowerCase().includes(searchTerm)
+                    phone.name.toLowerCase().includes(searchTerm) ||
+                    phone.authorId.toLowerCase().includes(searchTerm)
                 );
+
+                // 2. 标签筛选
+                if (activeFilters.length > 0) {
+                    const groupedFilters = activeFilters.reduce((acc, filter) => {
+                        if (!acc[filter.group]) acc[filter.group] = [];
+                        acc[filter.group].push(filter);
+                        return acc;
+                    }, {});
+
+                    filteredPhones = filteredPhones.filter(phone => {
+                        // AND logic between groups
+                        return Object.values(groupedFilters).every(group => {
+                            // OR logic within a group
+                            return group.some(filter => checkPhoneFilter(phone, filter));
+                        });
+                    });
+                }
                 
+                // 3. 置顶和排序逻辑 (保持不变)
                 const pinnedPhones = [];
                 const unpinnedPhones = [];
-
                 filteredPhones.forEach(phone => {
                     if (pinnedIds.includes(phone.id)) {
                         pinnedPhones.push(phone);
@@ -9818,50 +11050,106 @@ const blob = b64toBlob(blobData.content, contentType);
                         unpinnedPhones.push(phone);
                     }
                 });
-
-                // 随机打乱未置顶的部分
                 for (let i = unpinnedPhones.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [unpinnedPhones[i], unpinnedPhones[j]] = [unpinnedPhones[j], unpinnedPhones[i]];
                 }
-
-                // 组合最终列表：置顶的在前，随机的在后
-                const finalPhoneList = [...pinnedPhones, ...unpinnedPhones];
-                renderPhoneList(finalPhoneList);
+                
+                renderPhoneList([...pinnedPhones, ...unpinnedPhones]);
             }
 
+            // ★★★ 重构：列表项渲染函数 (保持不变，因为状态是在CSS中应用的) ★★★
+             function renderPhoneList(phonesToRender) {
+                ui.listContainer.innerHTML = '';
+                if (phonesToRender.length === 0) {
+                    ui.listContainer.innerHTML = '<p class="empty-list-placeholder" style="grid-column: 1 / -1;">未找到匹配的手机</p>';
+                    return;
+                }
+                const allStatuses = getCollectionStatus();
+                phonesToRender.forEach(phone => {
+                    const item = document.createElement('div');
+                    item.className = 'phone-partition-item';
+                    item.dataset.phoneId = phone.id;
+                    item.innerHTML = `<div class="phone-partition-icon">${phone.icon || ''}</div><div class="phone-partition-name">${phone.name}</div>`;
+                    item.style.animationDelay = `${Math.random() * -6}s`;
+                    const statusData = allStatuses[phone.id];
+                    if (statusData) {
+                        item.classList.add(`status-${statusData.status}`);
+                        item.style.setProperty('--status-color', statusData.color);
+                    }
+                    item.addEventListener('click', () => renderPhoneDetail(phone.id));
+                    ui.listContainer.appendChild(item);
+                });
+            }
+
+            // ★★★ 重构：详情页渲染函数 v2 (恢复独立售价和状态) ★★★
             function renderPhoneDetail(phoneId) {
                 const phone = phoneData.find(p => p.id === phoneId);
                 if (!phone) return;
 
-                ui.detailTitle.textContent = phone.name;
-                
-                // 更新置顶按钮状态 (逻辑不变)
-                const pinnedIds = getPinnedPhones();
-                const isPinned = pinnedIds.includes(phoneId);
-                ui.pinBtn.textContent = '★';
-                ui.pinBtn.style.color = isPinned ? '#ffc107' : '#ccc';
-                ui.pinBtn.title = isPinned ? '取消置顶' : '置顶';
+                const statusBtn = document.getElementById('phoneStatusBtn');
+                const statusMenu = document.getElementById('phoneStatusMenu');
 
-                ui.pinBtn.onclick = () => {
-                    let currentPinned = getPinnedPhones();
-                    if (currentPinned.includes(phoneId)) {
-                        currentPinned = currentPinned.filter(id => id !== phoneId);
-                        ui.pinBtn.style.color = '#ccc';
-                        ui.pinBtn.title = '置顶';
-                    } else {
-                        currentPinned.unshift(phoneId);
-                        ui.pinBtn.style.color = '#ffc107';
-                        ui.pinBtn.title = '取消置顶';
+                // 核心：更新状态按钮的UI
+                function updateStatusButtonUI() {
+                    const currentStatus = getCollectionStatus()[phoneId];
+                    if (!currentStatus) {
+                        statusBtn.innerHTML = '◌';
+                        statusBtn.style.color = 'inherit';
+                    } else if (currentStatus.status === 'owned') {
+                        statusBtn.innerHTML = '★';
+                        statusBtn.style.color = '#ffc107'; // 黄色
+                    } else if (currentStatus.status === 'wishlist') {
+                        statusBtn.innerHTML = '♥';
+                        statusBtn.style.color = '#ff85a2'; // 粉色
                     }
-                    savePinnedPhones(currentPinned);
-                };
+                }
+                
+                ui.detailTitle.textContent = phone.name;
+                updateStatusButtonUI();
 
-                // [核心修改] 移除了包含 giscusFeedback 容器的HTML部分
+                // 移除并重新绑定事件，防止重复监听
+                if (statusMenu.handler) statusMenu.removeEventListener('click', statusMenu.handler);
+                if (statusBtn.handler) statusBtn.removeEventListener('click', statusBtn.handler);
+                if (window.currentHideMenuHandler) document.body.removeEventListener('click', window.currentHideMenuHandler);
+
+                statusBtn.handler = (e) => { e.stopPropagation(); statusMenu.classList.toggle('show'); };
+                statusBtn.addEventListener('click', statusBtn.handler);
+
+                statusMenu.handler = (e) => {
+                    const button = e.target.closest('.status-option-btn');
+                    if (button) {
+                        const newStatus = button.dataset.status;
+                        const allStatuses = getCollectionStatus();
+                        if (newStatus === 'none') {
+                            delete allStatuses[phoneId];
+                            showTopToast(`已将 "${phone.name}" 恢复为未拥有`, 2000);
+                        } else {
+                            const currentColor = allStatuses[phoneId]?.color || getRandomMacaronColor();
+                            allStatuses[phoneId] = { status: newStatus, color: currentColor };
+                            const statusText = newStatus === 'owned' ? '已拥有' : '已加入愿望单';
+                            showTopToast(`已将 "${phone.name}" 标记为 ${statusText}`, 2000);
+                        }
+                        saveCollectionStatus(allStatuses);
+                        statusMenu.classList.remove('show');
+                        updateStatusButtonUI();
+                        displayPhoneList(); // 刷新主列表以同步状态颜色
+                    }
+                };
+                statusMenu.addEventListener('click', statusMenu.handler);
+
+                window.currentHideMenuHandler = (e) => {
+                    if (!statusBtn.contains(e.target) && !statusMenu.contains(e.target)) {
+                        statusMenu.classList.remove('show');
+                    }
+                };
+                document.body.addEventListener('click', window.currentHideMenuHandler);
+                
+                // ★★★ 核心修改：恢复独立的售价和状态展示 ★★★
                 ui.detailContainer.innerHTML = `
                     <div class="detail-info-group">
                         <label>作者ID</label>
-                        <div class="detail-info-value copyable" id="copyAuthorId" data-id="${phone.authorId}">
+                        <div class="detail-info-value copyable" data-id="${phone.authorId}">
                             <span>${phone.authorId}</span>
                             <span>❏</span>
                         </div>
@@ -9871,7 +11159,7 @@ const blob = b64toBlob(blobData.content, contentType);
                         <div class="detail-info-value">${phone.acquisition}</div>
                     </div>
                     <div class="detail-info-group">
-                        <label>价格</label>
+                        <label>售价</label>
                         <div class="detail-info-value">${phone.price}</div>
                     </div>
                     <div class="detail-info-group">
@@ -9881,18 +11169,18 @@ const blob = b64toBlob(blobData.content, contentType);
                     <button id="enterCommentsBtn" class="modal-button" data-phone-id="${phone.id}" style="margin-top: 10px;">进入安利区</button>
                     `;
                 
-                // 绑定常规事件 (逻辑不变)
-                ui.detailContainer.querySelector('#copyAuthorId').addEventListener('click', function() {
+                // 为复制和评论按钮绑定事件
+                ui.detailContainer.querySelector('.copyable').addEventListener('click', function() {
                     navigator.clipboard.writeText(this.dataset.id).then(() => showTopToast(`已复制作者ID: ${this.dataset.id}`, 2000));
                 });
                 
                 ui.detailContainer.querySelector('#enterCommentsBtn').addEventListener('click', function() {
-                    const phone = phoneData.find(p => p.id === this.dataset.phoneId);
-                    if(!phone) return;
+                    const phoneForComment = phoneData.find(p => p.id === this.dataset.phoneId);
+                    if (!phoneForComment) return;
                     const hasSeenNotice = localStorage.getItem('communityNoticeSeen') === 'true';
                     if (hasSeenNotice) {
                         ui.detailModal.classList.remove('show');
-                        setTimeout(() => showGiscusComments(phone.id, phone.name), 200);
+                        setTimeout(() => showGiscusComments(phoneForComment.id, phoneForComment.name), 200);
                     } else {
                         const noticeModal = document.getElementById('communityNoticeModal');
                         noticeModal.classList.add('show');
@@ -9906,48 +11194,70 @@ const blob = b64toBlob(blobData.content, contentType);
                             }
                             noticeModal.classList.remove('show');
                             ui.detailModal.classList.remove('show');
-                            setTimeout(() => showGiscusComments(phone.id, phone.name), 200);
+                            setTimeout(() => showGiscusComments(phoneForComment.id, phoneForComment.name), 200);
                         });
                     }
                 });
-
-                // [核心修改] 移除了整个 fetchGiscusStats 的调用和渲染逻辑
 
                 ui.detailModal.classList.add('show');
             }
 
 
-            return {
+             return {
                 init() {
-                    document.getElementById('phoneCollectionBtn').addEventListener('click', () => {
-                        ui.searchInput.value = ''; // 清空搜索框
-                        displayPhoneList(); 
-                        ui.collectionModal.classList.add('show');
-                        toggleFabMenu(false);
+                    // ★★★ 新增：清除筛选条件的函数 ★★★
+                    const clearAllFilters = () => {
+                        activeFilters = [];
+                        ui.searchInput.value = '';
+                        updateFilterSelectionUI();
+                    };
 
-                        // 检查是否需要显示铃铛图标
-                        const bell = document.getElementById('showNoticeBell');
-                        if (localStorage.getItem('communityNoticeSeen') === 'true') {
-                            bell.style.display = 'block';
-                        } else {
-                            bell.style.display = 'none';
+                    document.getElementById('phoneCollectionBtn').addEventListener('click', () => {
+                        clearAllFilters(); // 打开时先清除旧的
+                        displayPhoneList(); 
+                        ui.collectionModal.classList.add('show'); 
+                        toggleFabMenu(false);
+                        document.getElementById('showNoticeBell').style.display = localStorage.getItem('communityNoticeSeen') === 'true' ? 'block' : 'none';
+                    });
+
+                    // ★★★ 新增：为主模态框的关闭按钮和背景点击添加清除筛选的逻辑 ★★★
+                    const closeBtn = ui.collectionModal.querySelector('.close-btn');
+                    if(closeBtn) closeBtn.addEventListener('click', clearAllFilters);
+                    ui.collectionModal.addEventListener('click', (e) => {
+                        if (e.target === ui.collectionModal) {
+                            clearAllFilters();
                         }
                     });
-                    
+
+                    document.getElementById('showNoticeBell').addEventListener('click', () => document.getElementById('communityNoticeModal').classList.add('show'));
                     ui.searchInput.addEventListener('input', displayPhoneList);
                     
-                    // 为铃铛按钮添加点击事件
-                    document.getElementById('showNoticeBell').addEventListener('click', () => {
-                        const noticeModal = document.getElementById('communityNoticeModal');
-                        noticeModal.classList.add('show');
+                    // 初始化筛选器
+                    populateFilterOptions();
+                    
+                    ui.filterBtn.addEventListener('click', () => ui.filterModal.classList.add('show'));
+                    ui.applyFiltersBtn.addEventListener('click', () => { displayPhoneList(); ui.filterModal.classList.remove('show'); });
+                    ui.clearFiltersBtn.addEventListener('click', () => { activeFilters = []; updateFilterSelectionUI(); });
+                    
+                    // 筛选模态框内的点击事件委托
+                    ui.filterModal.addEventListener('click', (e) => {
+                        const option = e.target.closest('.filter-tag-option');
+                        const removeBtn = e.target.closest('.remove-tag-btn');
+                        
+                        if (option && !option.classList.contains('selected')) {
+                            // 增加 text 属性，方便在“已选”区域显示
+                            activeFilters.push({ group: option.dataset.group, value: option.dataset.value, text: option.textContent });
+                        } else if (removeBtn) {
+                            activeFilters = activeFilters.filter(f => !(f.group === removeBtn.dataset.group && f.value === removeBtn.dataset.value));
+                        } else {
+                            return;
+                        }
+                        updateFilterSelectionUI();
                     });
                 },
                 getGiscusTheme: getGiscusTheme
             };
         })();
-
-
-
 
         // 初始化手机收藏馆
         PhoneCollectionManager.init();
@@ -10146,10 +11456,18 @@ const blob = b64toBlob(blobData.content, contentType);
         // 初始化字体管理器
         FontManager.init();
         
+        // [核心修正] 初始化备份提醒管理器
+        // 1. 先调用 initUI() 找到所有HTML元素
+        BackupReminderManager.initUI();
+        // 2. 再调用 init() 为这些元素绑定事件
+        BackupReminderManager.init();
+
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
     });
+
+
 
             // [新增] 锁屏组件交互事件监听
             document.getElementById('lockscreenGrid').addEventListener('click', (e) => {
@@ -10208,5 +11526,102 @@ const blob = b64toBlob(blobData.content, contentType);
             </div>
         </div>
     </div>
+    <!-- [新增] 数据恢复确认模态框 V2 -->
+    <div class="modal-overlay" id="dataRecoveryModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span>🛡️ 选择要恢复的版本</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p>检测到云端数据为空！我们在您的历史记录中找到了以下几个最近的有效版本：</p>
+                
+                <div id="recovery-versions-list">
+                    <!-- JS 动态填充版本列表 -->
+                </div>
+                
+                <p style="margin-top: 15px;"><strong>请选择一个版本进行恢复。</strong></p>
+                <div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;">
+                    <p>此操作将恢复您的主配置和“记忆”功能的数据，并覆盖云端的空数据。操作不可撤销。</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button id="cancelRecoveryBtn" class="modal-button">取消</button>
+                <button id="confirmRecoveryBtn" class="modal-button primary" disabled>恢复选中版本</button>
+            </div>
+        </div>
+    </div>
+        <!-- [新增] 首次使用引导模态框 -->
+    <div class="modal-overlay" id="firstTimeGuideModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <div class="modal-title-group">欢迎使用 Jellyfish Island</div>
+            </div>
+            <div class="modal-body" id="welcome-modal-content">
+                <p>为了同步和备份您的所有个性化数据，您需要先完成一个简单的云端配置。</p>
+                <p>配置步骤：</p>
+                <ul>
+                    <li>✔ 创建一个安全的GitHub“钥匙”</li>
+                    <li>✔ 创建一个私密的云端“仓库”</li>
+                    <li>✔ 在本应用中填入信息</li>
+                </ul>
+                <p>我们将引导您完成每一步。</p>
+                <button id="startConfigGuideBtn" class="modal-button" style="margin-top: 15px;">开始配置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [CORE-ADD] 自定义备份提醒设置弹窗 V2 -->
+    <div class="modal-overlay" id="backupReminderSettingsModal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <div class="modal-title-group"><span>备份提醒设置</span></div>
+                <button class="close-btn" data-modal-id="backupReminderSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- [MODIFIED] 提醒文字移到顶部并作为标题 -->
+                <div class="form-section">
+                    <h4 style="margin-bottom: 8px; text-align: left; font-size: 1em; color: #5a6778;">自定义提醒弹窗文字</h4>
+                    <textarea id="backupMessageTextarea" class="modal-textarea" rows="2" placeholder="例如：该备份啦！"></textarea>
+                </div>
+
+                <!-- [MODIFIED] 自定义提醒时间部分重构 -->
+                <div class="toggle-section" style="margin-top:20px; flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span>启用定时提醒</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="backupTimeBasedToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div id="backupTimeContainer" style="width: 100%; display: none; flex-direction: column; gap: 10px; margin-top: 10px;">
+                        <!-- JS动态增加时间输入行 -->
+                        <div id="backupTimeListContainer"></div>
+                    </div>
+                </div>
+
+                <!-- [UNCHANGED] 关闭项目时提醒部分 -->
+                <div class="toggle-section" style="margin-top: 15px;">
+                    <span>退出项目时弹出提醒</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="backupOnExitToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- [UNCHANGED] 选择需要提醒的项目 (条件显示) -->
+                <div id="backupProjectsSection" class="form-section" style="display: none; border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-top: 15px;">
+                    <label>选择需要提醒的项目 (不选则全部提醒)</label>
+                    <div id="backupProjectList" style="max-height: 150px; overflow-y: auto; display:flex; flex-direction:column; gap:8px; padding: 10px; border-radius: 10px; background:var(--bg-day-element); box-shadow: inset 2px 2px 4px var(--shadow-dark-day), inset -2px -2px 4px var(--shadow-light-day);">
+                        <!-- JS动态填充项目列表 -->
+                    </div>
+                </div>
+                
+                <button id="saveBackupSettingsBtn" class="modal-button" style="margin-top: 20px;">保存设置</button>
+            </div>
+        </div>
+    </div>
+    <!-- [CORE-ADD END] -->
 </body>
 </html>
