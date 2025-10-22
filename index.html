@@ -5652,7 +5652,7 @@ const getDefaultConfig = () => ({
     /* =============================================================== */
     const CodebergManager = (() => {
         // [⚠️ 重要] 请在此处填写你在 Codeberg 申请的客户端 ID
-        const CLIENT_ID = '44041218-171a-40d1-b8ab-206d5ff4eb75';
+        const CLIENT_ID = '83a6cb6e-f745-4821-b2e1-b7c8ec21ac56';
         const REDIRECT_URI = window.location.origin + window.location.pathname;
         const STORAGE_KEY_ACCOUNTS = 'codeberg_accounts';
         const STORAGE_KEY_ACTIVE = 'codeberg_active_account_username';
@@ -5772,17 +5772,10 @@ const getDefaultConfig = () => ({
             if (!savedState || savedState !== state) { alert('OAuth 状态校验失败，请重试。'); return; }
             if (!codeVerifier) { alert('OAuth code_verifier 丢失，请重试。'); return; }
             try {
-                const body = new URLSearchParams();
-                body.append('client_id', CLIENT_ID);
-                body.append('grant_type', 'authorization_code');
-                body.append('code', code);
-                body.append('redirect_uri', REDIRECT_URI);
-                body.append('code_verifier', codeVerifier);
-
                 const tokenResponse = await fetch('https://codeberg.org/login/oauth/access_token', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: body,
+                    body: new URLSearchParams({ client_id: CLIENT_ID, grant_type: 'authorization_code', code: code, redirect_uri: REDIRECT_URI, code_verifier: codeVerifier }),
                 });
                 if (!tokenResponse.ok) throw new Error(`获取 Token 失败: ${tokenResponse.statusText}`);
                 const tokenData = await tokenResponse.json();
