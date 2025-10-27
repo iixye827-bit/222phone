@@ -8482,7 +8482,7 @@ const getDefaultConfig = () => ({
                     }
                 }
 
-                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v4 (修复时间排序 & 调整图标)
+                // [修改] fetchFilesForSelectedProject v5 (修复日期 & 增加账号显示)
                 async function fetchFilesForSelectedProject() {
                     const requestToken = Symbol();
                     state.cloudDriveRequestToken = requestToken;
@@ -8502,19 +8502,18 @@ const getDefaultConfig = () => ({
                     // --- 1. 并行获取所有来源的文件 ---
                     const promises = [];
 
-                    // 1a. 添加获取 GitHub 文件的 Promise (已修改，增加了日期获取)
+                    // 1a. 添加获取 GitHub 文件的 Promise
                     if (checkConfig(false)) {
                         const githubPath = `jellyfish_drive/${repoNamePart}`;
                         const githubPromise = fetchFromGithub(githubPath).then(async ({ data }) => {
                             if (!data) return [];
-                            // 对每个文件异步获取提交日期
                             const enrichedFiles = await Promise.all(data.map(async file => {
                                 const commitDate = await getFileCommitDate(file.path);
                                 return { 
                                     ...file, 
                                     storage: 'github', 
                                     owner: GITHUB_CONFIG.owner,
-                                    last_commit: { created_at: commitDate } // 关键: 附加日期信息
+                                    last_commit: { created_at: commitDate }
                                 };
                             }));
                             return enrichedFiles;
@@ -8525,8 +8524,7 @@ const getDefaultConfig = () => ({
                         promises.push(githubPromise);
                     }
 
-
-                    // 1b. 为每个 Codeberg 账户添加获取文件的 Promise
+                    // 1b. 添加获取 Codeberg 文件的 Promise
                     const allCodebergAccounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
                     for (const cbAccount of allCodebergAccounts) {
                         const codebergRepoName = repoNamePart || `drive-project-${projectConfig.href.length}`;
@@ -8540,6 +8538,8 @@ const getDefaultConfig = () => ({
                                 ...f, 
                                 storage: 'codeberg', 
                                 owner: cbAccount.username,
+                                // [BUG修复] 保持 last_modified 以便排序和显示
+                                // 同时为了结构统一，也放入 last_commit 对象中
                                 last_commit: { created_at: f.last_modified } 
                             })))
                             .catch(e => {
@@ -8554,8 +8554,9 @@ const getDefaultConfig = () => ({
                     if (state.cloudDriveRequestToken !== requestToken) { return; }
 
                     const allFiles = results
-                        .flat() // 使用 flat() 代替 filter + flatMap，更简洁
-                        .sort((a,b) => new Date(b.last_commit?.created_at || 0) - new Date(a.last_commit?.created_at || 0));
+                        .flat()
+                        // [BUG修复] 恢复对 a.last_modified 的兼容，确保Codeberg文件也能正确排序
+                        .sort((a,b) => new Date(b.last_commit?.created_at || b.last_modified || 0) - new Date(a.last_commit?.created_at || a.last_modified || 0));
 
                     // --- 3. 渲染UI ---
                     if (allFiles.length === 0) {
@@ -8567,21 +8568,21 @@ const getDefaultConfig = () => ({
                     allFiles.forEach(file => {
                         const li = document.createElement("li");
                         
-                        // [需求 2] 根据文件归属显示不同的图标和标签
+                        // 图标显示逻辑保持不变
                         let storageInfo = '';
                         if (file.storage === 'codeberg') {
                             storageInfo = `☁️ `;
-                        } else {
-                            // 对于 GitHub 文件，不显示任何图标
-                            storageInfo = ``;
                         }
-
-                        const sizeText = formatFileSize(file.size);
-                        // [需求 1] 使用我们刚刚获取到的正确日期
-                        const dateText = file.last_commit?.created_at ? new Date(file.last_commit.created_at).toISOString().split('T')[0] : '日期未知';
-                        const metaText = `${sizeText} • ${dateText}`;
                         
-                        // Pass file.owner to the data-attribute of the .file-info element for later use in download check
+                        const sizeText = formatFileSize(file.size);
+                        // [BUG修复 & 增强] 优先用 created_at，然后用 last_modified，确保日期总能显示
+                        const dateText = (file.last_commit?.created_at || file.last_modified) 
+                                         ? new Date(file.last_commit.created_at || file.last_modified).toISOString().split('T')[0] 
+                                         : '日期未知';
+                        
+                        // [需求2] 在元信息中添加用户名
+                        const metaText = `${file.owner} • ${sizeText} • ${dateText}`;
+                        
                         li.innerHTML = `
                             <div class="file-info" data-storage="${file.storage}" data-owner="${file.owner}">
                                 <span class="file-name">${storageInfo}${file.name}</span>
@@ -8595,7 +8596,6 @@ const getDefaultConfig = () => ({
                         li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file, li));
                     });
                 }
-
 
                  async function forceDownload(file, el) {
                     // [需求3] 如果是Codeberg文件，先检查账号所有权
