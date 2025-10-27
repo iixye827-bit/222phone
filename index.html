@@ -8534,14 +8534,14 @@ const getDefaultConfig = () => ({
                                 headers: { 'Authorization': `token ${cbAccount.accessToken}` },
                                 cache: 'no-cache'
                             }).then(res => res.ok ? res.json() : [])
-                            .then(files => files.map(f => ({ 
-                                ...f, 
-                                storage: 'codeberg', 
-                                owner: cbAccount.username,
-                                // [BUG修复] 保持 last_modified 以便排序和显示
-                                // 同时为了结构统一，也放入 last_commit 对象中
-                                last_commit: { created_at: f.last_modified } 
-                            })))
+                .then(files => files.map(f => ({
+                    ...f,
+                    storage: 'codeberg',
+                    owner: cbAccount.username,
+                    // [核心修复] 优先使用 f.last_commit.created 作为日期来源，并保留 f.last_modified 作为备用方案，
+                    // 以确保能稳定获取到Codeberg文件的上传日期，并统一数据结构。
+                    last_commit: { created_at: f.last_commit?.created || f.last_modified }
+                })))
                             .catch(e => {
                                 console.warn(`加载 Codeberg 账户 ${cbAccount.username} 的文件列表失败:`, e);
                                 return [];
