@@ -8576,15 +8576,9 @@ const getDefaultConfig = () => ({
                         
                         const sizeText = formatFileSize(file.size);
                         // [BUG修复 & 增强] 优先用 created_at，然后用 last_modified，确保日期总能显示
-                        let dateText = '日期未知';
-                        const dateStrToParse = file.last_commit?.created_at || file.last_modified;
-                        if (dateStrToParse) {
-                            const d = new Date(dateStrToParse);
-                            if (!isNaN(d.getTime())) {
-                                dateText = d.toISOString().split('T')[0];
-                            }
-                        }
-
+                        const dateText = (file.last_commit?.created_at || file.last_modified) 
+                                         ? new Date(file.last_commit.created_at || file.last_modified).toISOString().split('T')[0] 
+                                         : '日期未知';
                         
                         // [需求2] 在元信息中添加用户名
                         const metaText = `${file.owner} • ${sizeText} • ${dateText}`;
@@ -9226,6 +9220,68 @@ const getDefaultConfig = () => ({
                     processPhotoUploadQueue();
                     e.target.value = '';
                 });
+
+                // [新增] 为照片下载按钮添加分享功能
+                document.getElementById('download-photo-btn').addEventListener('click', async (e) => {
+                    // 检查浏览器是否支持 Web Share API 的文件分享功能
+                    if (!navigator.share || !navigator.canShare) {
+                        // 如果不支持，则不执行任何操作，让 a 标签的默认下载行为发生
+                        return;
+                    }
+
+                    // 如果支持，则阻止 a 标签的默认下载行为
+                    e.preventDefault();
+
+                    const downloadBtn = e.currentTarget;
+                    const imageUrl = downloadBtn.href;
+                    const title = downloadBtn.download || '分享的图片';
+
+                    try {
+                        // 显示加载提示，提升用户体验
+                        showTopToast('正在准备图片...', 60000); 
+
+                        // 使用 fetch API 获取图片数据
+                        const response = await fetch(imageUrl);
+                        if (!response.ok) {
+                            throw new Error('下载图片失败，无法分享。');
+                        }
+                        const blob = await response.blob();
+                        
+                        // 创建一个 File 对象，这是 navigator.share 所需的格式
+                        const file = new File([blob], title, { type: blob.type });
+
+                        // 移除加载提示
+                        const existingToast = document.querySelector('.top-toast');
+                        if (existingToast) existingToast.remove();
+
+                        // 再次确认浏览器能分享此类文件
+                        if (navigator.canShare({ files: [file] })) {
+                            // 调用原生分享
+                            await navigator.share({
+                                files: [file],
+                                title: title,
+                                text: '来自 Jellyfish Island 的分享'
+                            });
+                        } else {
+                             // 如果文件类型由于某些原因无法分享，则回退到传统下载
+                            alert('您的浏览器不支持分享此类型的文件，将尝试直接下载。');
+                            const link = document.createElement('a');
+                            link.href = imageUrl;
+                            link.download = title;
+                            link.click();
+                        }
+                    } catch (error) {
+                        // 移除加载提示
+                        const existingToast = document.querySelector('.top-toast');
+                        if (existingToast) existingToast.remove();
+                        // 如果用户手动关闭分享面板，会触发 AbortError，我们不应将其视为错误
+                        if (error.name !== 'AbortError') {
+                            console.error('分享图片时出错:', error);
+                            alert('无法分享图片: ' + error.message);
+                        }
+                    }
+                });
+
                 ui.photosetToggle.addEventListener('change', e => {
                     const isSet = e.target.checked;
                     const button = ui.photoDetailsModal.querySelector('[data-action="save-photo-details"]');
