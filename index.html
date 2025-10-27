@@ -5812,11 +5812,12 @@ const getDefaultConfig = () => ({
         function _handleAccountSwitch(username) {
             _setActiveUser(username);
             _renderAll();
-            // 在切换后，立刻刷新当前项目的文件列表
+            // [核心修改] 检查 "记忆" 模态框是否处于 "文件夹" 视图，如果是，则立即刷新文件列表
             if (document.getElementById('memoryModal').classList.contains('show') && 
                 document.getElementById('cloud-drive-section').classList.contains('active'))
             {
                 showTopToast(`活动账户已切换为 "${username}"，正在刷新文件列表...`, 2000);
+                // 延迟一小段时间确保UI更新完成，然后获取文件
                 setTimeout(MemoryApp.fetchFilesForSelectedProject, 100);
             } else {
                  showTopToast(`活动账户已切换为 "${username}"。`, 2000);
@@ -8481,12 +8482,13 @@ const getDefaultConfig = () => ({
                     }
                 }
 
-                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v2 (增加容错)
+                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v4 (修复时间排序 & 调整图标)
                 async function fetchFilesForSelectedProject() {
                     const requestToken = Symbol();
                     state.cloudDriveRequestToken = requestToken;
                     ui.fileList.innerHTML = '';
                     ui.fileListStatus.style.display = 'block';
+                    ui.fileListStatus.textContent = "加载中...";
 
                     const projectHref = ui.projectSelector.value;
                     const projectConfig = findButtonConfigByHref(projectHref);
@@ -8494,47 +8496,68 @@ const getDefaultConfig = () => ({
                         ui.fileListStatus.textContent = "请选择一个项目以查看文件";
                         return;
                     }
-
-                    ui.fileListStatus.textContent = "加载中...";
-
-                    let githubFiles = [];
-                    let codebergFiles = [];
-
-                    // --- 1. 获取 GitHub 文件 (增加容错) ---
-                    try {
-                        if (checkConfig(false)) { // 检查 GitHub 是否配置
-                            const githubFolderName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-                            const githubPath = `jellyfish_drive/${githubFolderName}`;
-                            const { data } = await fetchFromGithub(githubPath);
-                            if (data) githubFiles = data;
-                        }
-                    } catch (e) {
-                         console.error("加载 GitHub 文件列表时出错:", e);
-                    }
-                    if (state.cloudDriveRequestToken !== requestToken) { return; }
-
-                    // --- 2. 获取 Codeberg 文件 (增加容错) ---
-                    try {
-                        const activeCbAccount = CodebergManager.getActiveAccount();
-                        if (activeCbAccount) {
-                            const codebergRepoName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `drive-${Date.now()}`;
-                            const cbUrl = `https://codeberg.org/api/v1/repos/${activeCbAccount.username}/${codebergRepoName}/contents/`;
-                            const res = await fetch(cbUrl, { headers: { 'Authorization': `token ${activeCbAccount.accessToken}` } });
-                            if (res.ok) {
-                                codebergFiles = await res.json();
-                            }
-                        }
-                    } catch (e) {
-                        console.warn("加载 Codeberg 文件列表失败 (这可能是正常的，比如仓库还未创建):", e);
-                    }
-                    if (state.cloudDriveRequestToken !== requestToken) { return; }
                     
-                    // --- 3. 合并和渲染 ---
-                    const allFiles = [
-                        ...githubFiles.map(f => ({ ...f, storage: 'github' })),
-                        ...codebergFiles.map(f => ({ ...f, storage: 'codeberg', last_commit: { created_at: f.last_modified } }))
-                    ].sort((a,b) => new Date(b.last_commit?.created_at || b.last_modified || 0) - new Date(a.last_commit?.created_at || a.last_modified || 0));
+                    const repoNamePart = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
 
+                    // --- 1. 并行获取所有来源的文件 ---
+                    const promises = [];
+
+                    // 1a. 添加获取 GitHub 文件的 Promise (已修改，增加了日期获取)
+                    if (checkConfig(false)) {
+                        const githubPath = `jellyfish_drive/${repoNamePart}`;
+                        const githubPromise = fetchFromGithub(githubPath).then(async ({ data }) => {
+                            if (!data) return [];
+                            // 对每个文件异步获取提交日期
+                            const enrichedFiles = await Promise.all(data.map(async file => {
+                                const commitDate = await getFileCommitDate(file.path);
+                                return { 
+                                    ...file, 
+                                    storage: 'github', 
+                                    owner: GITHUB_CONFIG.owner,
+                                    last_commit: { created_at: commitDate } // 关键: 附加日期信息
+                                };
+                            }));
+                            return enrichedFiles;
+                        }).catch(e => {
+                            console.error("加载 GitHub 文件列表时出错:", e);
+                            return [];
+                        });
+                        promises.push(githubPromise);
+                    }
+
+
+                    // 1b. 为每个 Codeberg 账户添加获取文件的 Promise
+                    const allCodebergAccounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
+                    for (const cbAccount of allCodebergAccounts) {
+                        const codebergRepoName = repoNamePart || `drive-project-${projectConfig.href.length}`;
+                        const cbUrl = `https://codeberg.org/api/v1/repos/${cbAccount.username}/${codebergRepoName}/contents/`;
+                        promises.push(
+                            fetch(cbUrl, { 
+                                headers: { 'Authorization': `token ${cbAccount.accessToken}` },
+                                cache: 'no-cache'
+                            }).then(res => res.ok ? res.json() : [])
+                            .then(files => files.map(f => ({ 
+                                ...f, 
+                                storage: 'codeberg', 
+                                owner: cbAccount.username,
+                                last_commit: { created_at: f.last_modified } 
+                            })))
+                            .catch(e => {
+                                console.warn(`加载 Codeberg 账户 ${cbAccount.username} 的文件列表失败:`, e);
+                                return [];
+                            })
+                        );
+                    }
+                    
+                    // --- 2. 等待所有请求完成并合并、排序结果 ---
+                    const results = await Promise.all(promises);
+                    if (state.cloudDriveRequestToken !== requestToken) { return; }
+
+                    const allFiles = results
+                        .flat() // 使用 flat() 代替 filter + flatMap，更简洁
+                        .sort((a,b) => new Date(b.last_commit?.created_at || 0) - new Date(a.last_commit?.created_at || 0));
+
+                    // --- 3. 渲染UI ---
                     if (allFiles.length === 0) {
                         ui.fileListStatus.textContent = "该项目下暂无文件";
                         return;
@@ -8543,14 +8566,25 @@ const getDefaultConfig = () => ({
                     ui.fileListStatus.style.display = "none";
                     allFiles.forEach(file => {
                         const li = document.createElement("li");
-                        const storageIcon = file.storage === 'codeberg' ? '📦 ' : '';
-                        const sizeText = formatFileSize(file.size);
-                        const dateText = new Date(file.last_commit?.created_at || file.last_modified || Date.now()).toISOString().split('T')[0];
-                        const metaText = `${sizeText} • ${dateText}`;
+                        
+                        // [需求 2] 根据文件归属显示不同的图标和标签
+                        let storageInfo = '';
+                        if (file.storage === 'codeberg') {
+                            storageInfo = `☁️ `;
+                        } else {
+                            // 对于 GitHub 文件，不显示任何图标
+                            storageInfo = ``;
+                        }
 
+                        const sizeText = formatFileSize(file.size);
+                        // [需求 1] 使用我们刚刚获取到的正确日期
+                        const dateText = file.last_commit?.created_at ? new Date(file.last_commit.created_at).toISOString().split('T')[0] : '日期未知';
+                        const metaText = `${sizeText} • ${dateText}`;
+                        
+                        // Pass file.owner to the data-attribute of the .file-info element for later use in download check
                         li.innerHTML = `
-                            <div class="file-info" data-storage="${file.storage}">
-                                <span class="file-name">${storageIcon}${file.name}</span>
+                            <div class="file-info" data-storage="${file.storage}" data-owner="${file.owner}">
+                                <span class="file-name">${storageInfo}${file.name}</span>
                                 <span class="file-meta" data-path="${file.path}">${metaText}</span>
                             </div>
                             <button class="delete-btn" data-sha="${file.sha}">&times;</button>
@@ -8563,7 +8597,26 @@ const getDefaultConfig = () => ({
                 }
 
 
-                async function forceDownload(file, el) {
+                 async function forceDownload(file, el) {
+                    // [需求3] 如果是Codeberg文件，先检查账号所有权
+                    if (file.storage === 'codeberg') {
+                        const activeAccount = CodebergManager.getActiveAccount();
+                        const fileOwner = el.querySelector('.file-info').dataset.owner;
+
+                        if (activeAccount?.username !== fileOwner) {
+                            promptToSwitchCodebergAccount(fileOwner, () => {
+                                // 切换成功后，延迟一小段时间以确保状态更新，然后重新触发下载
+                                setTimeout(() => {
+                                    // 模拟一次新的点击事件，以重新开始整个下载流程
+                                    // 这可以确保所有状态（如 activeAccount）都是最新的
+                                    el.querySelector(".file-info").click();
+                                }, 200);
+                            });
+                            return; // 中断当前下载流程，等待用户操作
+                        }
+                    }
+
+                    // --- 如果账号正确或不是Codeberg文件，则执行原下载逻辑 ---
                     const fileNameSpan = el.querySelector(".file-name");
                     const originalText = fileNameSpan.textContent;
                     el.style.pointerEvents = "none";
@@ -8575,9 +8628,9 @@ const getDefaultConfig = () => ({
                     if (file.storage === 'codeberg') {
                         const activeAccount = CodebergManager.getActiveAccount();
                         const repoName = findButtonConfigByHref(ui.projectSelector.value).text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-                        url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/media/${file.path}`; // 使用 media API
+                        url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/media/${file.path}`;
                         authToken = `token ${activeAccount.accessToken}`;
-                        acceptHeader = 'application/octet-stream'; // Codeberg raw content
+                        acceptHeader = 'application/octet-stream';
                     } else { // GitHub
                         url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${file.path}`;
                         authToken = `token ${GITHUB_CONFIG.token}`;
@@ -8611,7 +8664,7 @@ const getDefaultConfig = () => ({
                                 fileNameSpan.textContent = "下载完成";
                             } else {
                                 fileNameSpan.textContent = "下载失败";
-                                alert(`下载失败: ${xhr.statusText}`);
+                                alert(`下载失败: ${xhr.status} ${xhr.statusText}`);
                             }
                             setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
                         };
@@ -8626,6 +8679,56 @@ const getDefaultConfig = () => ({
                         alert("准备下载时出错: " + error.message);
                         fileNameSpan.textContent = originalText;
                         el.style.pointerEvents = "auto";
+                    }
+                }
+
+                async function deleteFile(file, el) {
+                    // ============ [核心修正 V2] 新增权限检查 ============
+                    const activeCbAccount = CodebergManager.getActiveAccount();
+                    const currentActiveUsername = activeCbAccount ? activeCbAccount.username : null;
+
+                    if (file.storage === 'codeberg' && file.owner !== currentActiveUsername) {
+                        alert(`删除失败！\n\n此文件属于账户【${file.owner}】。\n请先将活动账户切换为【${file.owner}】后再尝试删除。`);
+                        return;
+                    }
+                    // ========================= [修正结束] =========================
+
+                    const confirmation = confirm(`确定要永久删除文件 "${file.name}" 吗？`);
+                    if (!confirmation) return;
+
+                    el.style.opacity = '0.5';
+                    el.style.pointerEvents = 'none';
+                    let success = false;
+
+                    try {
+                        if (file.storage === 'codeberg' && activeCbAccount) {
+                            const repoName = findButtonConfigByHref(ui.projectSelector.value).text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+                            const url = `https://codeberg.org/api/v1/repos/${currentActiveUsername}/${repoName}/contents/${file.path}`;
+                            const res = await fetch(url, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `token ${activeCbAccount.accessToken}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ message: `Delete file: ${file.name}`, sha: file.sha })
+                            });
+                            success = res.ok;
+                            if (!success) throw new Error(await res.text());
+                        } else { // GitHub
+                            success = await deleteFromGithub(file.path, `Delete file: ${file.name}`, file.sha);
+                        }
+
+                        if (success) {
+                            el.remove();
+                            showTopToast(`文件 "${file.name}" 已删除。`, 2000);
+                            if (ui.fileList.children.length === 0) {
+                                ui.fileListStatus.textContent = "该项目下暂无文件";
+                                ui.fileListStatus.style.display = 'block';
+                            }
+                        } else {
+                           throw new Error('API request failed');
+                        }
+                    } catch (error) {
+                        alert(`删除失败: ${error.message}`);
+                        el.style.opacity = '1';
+                        el.style.pointerEvents = 'auto';
                     }
                 }
 
@@ -8657,22 +8760,120 @@ const getDefaultConfig = () => ({
                 }
                 
                 // [新增] Codeberg 上传函数
+                async function uploadToCodecodebergRepoExists(repoName, authToken) {
+                    const activeAccount = CodebergManager.getActiveAccount();
+                    if (!activeAccount) return false;
+                
+                    const url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}`;
+                    try {
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: { 'Authorization': authToken },
+                            cache: 'no-cache' // <-- 核心修改：禁止缓存
+                        });
+                        return response.ok; // 如果仓库存在，API会返回200 OK
+                    } catch (error) {
+                        console.error('检查Codeberg仓库是否存在时出错:', error);
+                        return false;
+                    }
+                }
+                // [新增] Codeberg 账号切换确认弹窗
+                function promptToSwitchCodebergAccount(targetUsername, onSwitchCallback) {
+                    // 防止重复创建
+                    document.getElementById('codeberg-switch-prompt')?.remove();
+
+                    const promptOverlay = document.createElement('div');
+                    promptOverlay.id = 'codeberg-switch-prompt';
+                    promptOverlay.className = 'modal-overlay show';
+                    promptOverlay.style.zIndex = '3000'; // 确保在最上层
+                    
+                    const activeUsername = CodebergManager.getActiveAccount()?.username || '未登录';
+
+                    promptOverlay.innerHTML = `
+                        <div class="modal-content" style="max-width: 400px;">
+                            <div class="modal-header"><div class="modal-title-group">⚠️ 账号不匹配</div></div>
+                            <div class="modal-body">
+                                <p>此文件属于账户 <strong>${targetUsername}</strong>。</p>
+                                <p>您当前的活动账户是 <strong>${activeUsername}</strong>。</p>
+                                <p>您是否要切换到 <strong>${targetUsername}</strong> 并继续下载？</p>
+                            </div>
+                            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                                <button id="cancel-switch-btn" class="modal-button">取消</button>
+                                <button id="confirm-switch-btn" class="modal-button primary">切换并下载</button>
+                            </div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(promptOverlay);
+                    
+                    const closeModal = () => promptOverlay.remove();
+                    
+                    promptOverlay.querySelector('#cancel-switch-btn').addEventListener('click', closeModal);
+                    promptOverlay.querySelector('#confirm-switch-btn').addEventListener('click', () => {
+                        // 在CodebergManager中找到对应的事件处理函数并调用
+                        const accounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
+                        const targetAccount = accounts.find(acc => acc.username === targetUsername);
+                        if (targetAccount) {
+                            localStorage.setItem('codeberg_active_account_username', targetUsername);
+                            showTopToast(`活动账户已切换为 "${targetUsername}"。`, 2000);
+
+                            // 如果提供了回调函数，则执行它
+                            if (typeof onSwitchCallback === 'function') {
+                                onSwitchCallback();
+                            }
+                        } else {
+                            alert(`切换失败，未在本地找到账户 ${targetUsername} 的授权信息。`);
+                        }
+                        closeModal();
+                    });
+                     promptOverlay.addEventListener('click', (e) => { if(e.target === promptOverlay) closeModal(); });
+                }
+
+                // [新增] Codeberg 上传函数
                 async function uploadToCodeberg(file, fileName, projectHref) {
                     const activeAccount = CodebergManager.getActiveAccount();
                     if (!activeAccount) {
-                        alert("请先在 Codeberg 设置中连接并激活一个账户！");
+                        alert("检测到文件大于50MB，需要使用Codeberg存储。\n\n请先在 Codeberg 设置中连接并激活一个账户！");
                         document.getElementById('codebergSettingsBtn').click();
                         return;
                     }
-
+                
                     const projectConfig = findButtonConfigByHref(projectHref);
                     if (!projectConfig) { return alert("项目配置无效。"); }
                     const repoName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `drive-${Date.now()}`;
+                    const authToken = `token ${activeAccount.accessToken}`;
+                
+                    showTopToast(`文件将上传至Codeberg账户: ${activeAccount.username}`, 3000);
+                    
+                    const repoExists = await uploadToCodecodebergRepoExists(repoName, authToken);
+
+                    // 如果仓库不存在，则尝试创建
+                    if (!repoExists) {
+                        showTopToast(`正在为项目 "${projectConfig.text}" 创建Codeberg仓库...`, 3000);
+                        const repoCreateUrl = 'https://codeberg.org/api/v1/user/repos';
+                        try {
+                            const repoCreateRes = await fetch(repoCreateUrl, {
+                                method: 'POST',
+                                headers: { 'Authorization': authToken, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ name: repoName, "private": true, "description": `Jellyfish Island drive for project: ${projectConfig.text}` })
+                            });
+                
+                            if (!repoCreateRes.ok && repoCreateRes.status !== 422) {
+                                const errorData = await repoCreateRes.json();
+                                throw new Error(errorData.message || `创建仓库失败, 状态码: ${repoCreateRes.status}`);
+                            }
+                        } catch (e) {
+                            alert(`创建Codeberg仓库失败: ${e.message}`);
+                            return;
+                        }
+                    }
+                
                     const path = `${fileName}`;
                     const url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/contents/${path}`;
 
-                    setupAndRunUpload(file, url, `token ${activeAccount.accessToken}`, repoName, activeAccount.username);
+                    setupAndRunUpload(file, url, authToken);
                 }
+
                 
                 // [新增] GitHub 上传函数 (从原 uploadFile 逻辑中提取)
                 async function uploadToGithub(file, fileName, projectHref) {
@@ -8687,7 +8888,7 @@ const getDefaultConfig = () => ({
                 }
 
                 // [新增] 通用上传逻辑函数
-                async function setupAndRunUpload(file, url, authToken, cbRepoName = null, cbOwner = null) {
+                async function setupAndRunUpload(file, url, authToken) {
                     let progressToast = null;
                     const manageProgressToast = (status, isFinal = false, duration = 3000) => {
                         if (isFinal && !progressToast) { showTopToast(status, duration); return; }
@@ -8726,40 +8927,52 @@ const getDefaultConfig = () => ({
                         const contentB64 = reader.result.split(',')[1];
                         
                         let existingFileSha = null;
-                        
-                        // 动态获取 sha
                         try {
-                            const shaRes = await fetch(url, { method: 'GET', headers: { 'Authorization': authToken } });
+                            const shaRes = await fetch(url, { 
+                                method: 'GET', 
+                                headers: { 'Authorization': authToken },
+                                cache: 'no-cache'
+                            });
                             if (shaRes.ok) {
                                 const fileData = await shaRes.json();
                                 existingFileSha = fileData.sha;
                             }
                         } catch(e) { console.warn("Could not fetch existing file sha, proceeding with create.", e); }
 
-                        // 只有 Codeberg 上传新文件时才需要创建仓库
-                        if (cbRepoName && !existingFileSha) {
-                            try {
-                                  const repoCreateUrl = 'https://codeberg.org/api/v1/user/repos';
-                                  const repoCreateRes = await fetch(repoCreateUrl, {
-                                        method: 'POST',
-                                        headers: { 'Authorization': authToken, 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ name: cbRepoName, "private": true })
-                                  });
-                               
-                                 // 如果仓库已存在(422)或创建成功(201)，都算成功
-                                 if (!repoCreateRes.ok && repoCreateRes.status !== 422) {
-                                     throw new Error(`创建Codeberg仓库失败: ${repoCreateRes.statusText}`);
-                                 }
-                            } catch(e) {
-                                alert(e.message);
-                                return; // 创建失败则中断上传
+                        // ============ [核心修正 V2] 根据上传目标服务，决定请求方法 ============
+                        const isGithubUpload = url.includes('api.github.com');
+                        let body;
+                        let method;
+
+                        if (isGithubUpload) {
+                            method = 'PUT'; // GitHub 强制使用 PUT
+                            body = {
+                                message: `Upload file via Jellyfish: ${file.name}`,
+                                content: contentB64,
+                            };
+                            if (existingFileSha) {
+                                body.sha = existingFileSha; // 仅在更新时添加 sha
+                            }
+                        } else { // 假定为 Codeberg/Gitea 逻辑
+                            if (existingFileSha) {
+                                method = 'PUT'; // 更新使用 PUT
+                                body = {
+                                    message: `Update file: ${file.name}`,
+                                    content: contentB64,
+                                    sha: existingFileSha
+                                };
+                            } else {
+                                method = 'POST'; // 创建使用 POST
+                                body = {
+                                    message: `Create file: ${file.name}`,
+                                    content: contentB64
+                                };
                             }
                         }
-
-                        const body = { message: `Upload file: ${file.name}`, content: contentB64, sha: existingFileSha };
+                        // ========================= [修正结束] =========================
                         
                         activeUploadXHR = new XMLHttpRequest();
-                        activeUploadXHR.open('PUT', url, true);
+                        activeUploadXHR.open(method, url, true); 
                         activeUploadXHR.setRequestHeader('Authorization', authToken);
                         activeUploadXHR.setRequestHeader('Content-Type', 'application/json');
                         
@@ -8806,6 +9019,7 @@ const getDefaultConfig = () => ({
                     };
                     reader.onerror = () => { alert("读取文件失败！"); };
                 }
+
 
         return {
             open: () => {
