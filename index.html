@@ -8576,9 +8576,15 @@ const getDefaultConfig = () => ({
                         
                         const sizeText = formatFileSize(file.size);
                         // [BUG修复 & 增强] 优先用 created_at，然后用 last_modified，确保日期总能显示
-                        const dateText = (file.last_commit?.created_at || file.last_modified) 
-                                         ? new Date(file.last_commit.created_at || file.last_modified).toISOString().split('T')[0] 
-                                         : '日期未知';
+                        let dateText = '日期未知';
+                        const dateStrToParse = file.last_commit?.created_at || file.last_modified;
+                        if (dateStrToParse) {
+                            const d = new Date(dateStrToParse);
+                            if (!isNaN(d.getTime())) {
+                                dateText = d.toISOString().split('T')[0];
+                            }
+                        }
+
                         
                         // [需求2] 在元信息中添加用户名
                         const metaText = `${file.owner} • ${sizeText} • ${dateText}`;
