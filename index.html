@@ -8618,60 +8618,54 @@ const getDefaultConfig = () => ({
 
 
 
+                // [V2 修复] 重构 forceDownload 函数，整合账户检查逻辑
                 async function forceDownload(file, el) {
-                    // [需求3] 如果是Codeberg文件，先检查账号所有权
-                    if (file.storage === 'codeberg') {
-                        const activeAccount = CodebergManager.getActiveAccount();
-                        const fileOwner = el.querySelector('.file-info').dataset.owner;
-
-                        if (activeAccount?.username !== fileOwner) {
-                            promptToSwitchCodebergAccount(fileOwner, () => {
-                                // 切换成功后，延迟一小段时间以确保状态更新，然后重新触发下载
-                                setTimeout(() => {
-                                    // 模拟一次新的点击事件，以重新开始整个下载流程
-                                    // 这可以确保所有状态（如 activeAccount）都是最新的
-                                    el.querySelector(".file-info").click();
-                                }, 200);
-                            });
-                            return; // 中断当前下载流程，等待用户操作
-                        }
-                    }
-
-                    // --- 如果账号正确或不是Codeberg文件，则执行原下载逻辑 ---
                     const fileNameSpan = el.querySelector(".file-name");
                     const originalText = fileNameSpan.textContent;
                     el.style.pointerEvents = "none";
-
-                    let url;
-                    let authToken;
-                    let acceptHeader = 'application/vnd.github.v3.raw';
-
-                    if (file.storage === 'codeberg') {
-                        const activeAccount = CodebergManager.getActiveAccount();
-                        const repoName = findButtonConfigByHref(ui.projectSelector.value).text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-                        url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/media/${file.path}`;
-                        authToken = `token ${activeAccount.accessToken}`;
-                        acceptHeader = 'application/octet-stream';
-                    } else { // GitHub
-                        url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${file.path}`;
-                        authToken = `token ${GITHUB_CONFIG.token}`;
-                    }
-                    
+                    fileNameSpan.textContent = "准备中...";
+                
                     try {
+                        let url, authToken, acceptHeader;
+                        
+                        // [核心修复] 根据文件来源动态设置认证和URL
+                        if (file.storage === 'codeberg') {
+                            const activeAccount = CodebergManager.getActiveAccount();
+                            const fileOwner = file.owner; // 直接从文件对象获取所有者
+                
+                            if (!activeAccount || activeAccount.username !== fileOwner) {
+                                promptToSwitchCodebergAccount(fileOwner, () => {
+                                    setTimeout(() => el.querySelector(".file-info").click(), 200);
+                                });
+                                // 恢复UI状态并中断
+                                fileNameSpan.textContent = originalText;
+                                el.style.pointerEvents = "auto";
+                                return;
+                            }
+                
+                            const repoName = findButtonConfigByHref(ui.projectSelector.value).text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+                            url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/media/${file.path}`;
+                            authToken = `token ${activeAccount.accessToken}`;
+                            acceptHeader = 'application/octet-stream';
+                        } else { // GitHub
+                            url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${file.path}`;
+                            authToken = `token ${GITHUB_CONFIG.token}`;
+                            acceptHeader = 'application/vnd.github.v3.raw';
+                        }
+                
                         const xhr = new XMLHttpRequest();
                         xhr.open('GET', url, true);
                         xhr.setRequestHeader('Authorization', authToken);
                         xhr.setRequestHeader('Accept', acceptHeader);
                         xhr.responseType = 'blob';
-
+                
                         let lastProgressText = '';
                         xhr.onprogress = (event) => {
                             let newProgressText = '正在下载...';
-                            if (event.lengthComputable) {
-                                newProgressText = `下载中... ${Math.round((event.loaded / event.total) * 100)}%`;
-                            }
+                            if (event.lengthComputable) { newProgressText = `下载中... ${Math.round((event.loaded / event.total) * 100)}%`; }
                             if (newProgressText !== lastProgressText) { fileNameSpan.textContent = newProgressText; lastProgressText = newProgressText;}
                         };
+                
                         xhr.onload = () => {
                             if (xhr.status === 200) {
                                 const blobUrl = URL.createObjectURL(xhr.response);
@@ -8687,15 +8681,18 @@ const getDefaultConfig = () => ({
                                 fileNameSpan.textContent = "下载失败";
                                 alert(`下载失败: ${xhr.status} ${xhr.statusText}`);
                             }
-                            setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
+                             setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
                         };
-                        xhr.onerror = async () => {
+                
+                        xhr.onerror = () => {
                             fileNameSpan.textContent = "下载错误";
                             alert("下载时发生网络错误");
-                            setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
+                              setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
                         };
+                        
                         fileNameSpan.textContent = "准备下载...";
                         xhr.send();
+                
                     } catch (error) {
                         alert("准备下载时出错: " + error.message);
                         fileNameSpan.textContent = originalText;
@@ -8780,8 +8777,8 @@ const getDefaultConfig = () => ({
                     }
                 }
                 
-                // [新增] Codeberg 上传函数
-                async function uploadToCodecodebergRepoExists(repoName, authToken) {
+                // [V2 修复] 重命名并再次确认缓存策略，确保检查仓库存在的请求不会被缓存
+                async function doesCodebergRepoExist(repoName, authToken) {
                     const activeAccount = CodebergManager.getActiveAccount();
                     if (!activeAccount) return false;
                 
@@ -8790,7 +8787,7 @@ const getDefaultConfig = () => ({
                         const response = await fetch(url, {
                             method: 'GET',
                             headers: { 'Authorization': authToken },
-                            cache: 'no-cache' // <-- 核心修改：禁止缓存
+                            cache: 'no-cache' // [核心修复] 强制不使用缓存，确保获取最新状态
                         });
                         return response.ok; // 如果仓库存在，API会返回200 OK
                     } catch (error) {
@@ -8798,6 +8795,7 @@ const getDefaultConfig = () => ({
                         return false;
                     }
                 }
+
                 // [新增] Codeberg 账号切换确认弹窗
                 function promptToSwitchCodebergAccount(targetUsername, onSwitchCallback) {
                     // 防止重复创建
@@ -8901,7 +8899,7 @@ const getDefaultConfig = () => ({
                      promptOverlay.addEventListener('click', (e) => { if(e.target === promptOverlay) closeModal(); });
                 }
 
-                // [新增] Codeberg 上传函数
+                // [V2 修复] Codeberg 上传函数
                 async function uploadToCodeberg(file, fileName, projectHref) {
                     const activeAccount = CodebergManager.getActiveAccount();
                     if (!activeAccount) {
@@ -8912,12 +8910,13 @@ const getDefaultConfig = () => ({
                 
                     const projectConfig = findButtonConfigByHref(projectHref);
                     if (!projectConfig) { return alert("项目配置无效。"); }
-                    const repoName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `drive-${Date.now()}`;
+                    const repoName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `drive-project-${projectConfig.href.length}`; // [修复] 为无名称按钮提供更稳定的仓库名
                     const authToken = `token ${activeAccount.accessToken}`;
                 
                     showTopToast(`文件将上传至Codeberg账户: ${activeAccount.username}`, 3000);
                     
-                    const repoExists = await uploadToCodecodebergRepoExists(repoName, authToken);
+                    // [核心修复] 调用重命名后的函数
+                    const repoExists = await doesCodebergRepoExist(repoName, authToken);
 
                     // 如果仓库不存在，则尝试创建
                     if (!repoExists) {
@@ -8930,6 +8929,7 @@ const getDefaultConfig = () => ({
                                 body: JSON.stringify({ name: repoName, "private": true, "description": `Jellyfish Island drive for project: ${projectConfig.text}` })
                             });
                 
+                            // [修复] 422 状态码通常是 "仓库已存在" 的错误，我们应该接受它
                             if (!repoCreateRes.ok && repoCreateRes.status !== 422) {
                                 const errorData = await repoCreateRes.json();
                                 throw new Error(errorData.message || `创建仓库失败, 状态码: ${repoCreateRes.status}`);
