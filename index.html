@@ -8492,7 +8492,7 @@ const getDefaultConfig = () => ({
                     }
                 }
 
-                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v4 (修复时间、排序和样式问题)
+                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v5 (修复Codeberg时间)
                 async function fetchFilesForSelectedProject() {
                     const requestToken = Symbol();
                     state.cloudDriveRequestToken = requestToken;
@@ -8516,7 +8516,6 @@ const getDefaultConfig = () => ({
                     if (checkConfig(false)) {
                         const githubPath = `jellyfish_drive/${repoNamePart}`;
                         promises.push(
-                            // [新增] 在获取文件列表的同时，获取每次提交的详细信息以获得准确日期
                             (async () => {
                                 const { data: files } = await fetchFromGithub(githubPath);
                                 if (!files) return [];
@@ -8538,14 +8537,34 @@ const getDefaultConfig = () => ({
                     const allCodebergAccounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
                     for (const cbAccount of allCodebergAccounts) {
                         const codebergRepoName = repoNamePart || `drive-project-${projectConfig.href.length}`;
-                        const cbUrl = `https://codeberg.org/api/v1/repos/${cbAccount.username}/${codebergRepoName}/contents/`;
+                        const cbRepoUrl = `https://codeberg.org/api/v1/repos/${cbAccount.username}/${codebergRepoName}`;
+                        
+                        // [核心修复] 对 Codeberg 文件也采用先获取列表，再获取每个文件精确日期的策略 
                         promises.push(
-                            fetch(cbUrl, { 
-                                headers: { 'Authorization': `token ${cbAccount.accessToken}` },
-                                cache: 'no-cache'
-                            }).then(res => res.ok ? res.json() : [])
-                            .then(files => files.map(f => ({ ...f, storage: 'codeberg', owner: cbAccount.username, last_commit_date: f.last_modified })))
-                            .catch(e => {
+                            (async () => {
+                                // Step 1: Get file list
+                                const listRes = await fetch(`${cbRepoUrl}/contents/`, { 
+                                    headers: { 'Authorization': `token ${cbAccount.accessToken}` }, cache: 'no-cache' 
+                                });
+                                if (!listRes.ok) return [];
+                                const files = await listRes.json();
+                                
+                                // Step 2: Get detailed commit date for each file
+                                const detailedFiles = await Promise.all(files.map(async f => {
+                                    try {
+                                        const commitRes = await fetch(`${cbRepoUrl}/commits?path=${encodeURIComponent(f.path)}&limit=1`, {
+                                            headers: { 'Authorization': `token ${cbAccount.accessToken}` }, cache: 'no-cache'
+                                        });
+                                        if (!commitRes.ok) return { ...f, last_commit_date: f.last_modified }; // Fallback
+                                        const commits = await commitRes.json();
+                                        const commitDate = commits?.[0]?.created;
+                                        return { ...f, storage: 'codeberg', owner: cbAccount.username, last_commit_date: commitDate || f.last_modified };
+                                    } catch (e) {
+                                        return { ...f, storage: 'codeberg', owner: cbAccount.username, last_commit_date: f.last_modified }; // Fallback on error
+                                    }
+                                }));
+                                return detailedFiles;
+                            })().catch(e => {
                                 console.warn(`加载 Codeberg 账户 ${cbAccount.username} 的文件列表失败:`, e);
                                 return [];
                             })
@@ -8559,9 +8578,9 @@ const getDefaultConfig = () => ({
                     const allFiles = results
                         .filter(result => result.status === 'fulfilled' && Array.isArray(result.value))
                         .flatMap(result => result.value)
-                        .sort((a, b) => new Date(b.last_commit_date || 0) - new Date(a.last_commit_date || 0)); // [修复] 按新日期字段排序
+                        .sort((a, b) => new Date(b.last_commit_date || 0) - new Date(a.last_commit_date || 0)); // [修复] 按统一的 last_commit_date 字段排序
                 
-                    // --- 3. 渲染UI ---
+                    // --- 3. 渲染UI (此部分无需修改) ---
                     if (allFiles.length === 0) {
                         ui.fileListStatus.textContent = "该项目下暂无文件";
                         return;
@@ -8570,13 +8589,10 @@ const getDefaultConfig = () => ({
                     ui.fileListStatus.style.display = "none";
                     allFiles.forEach(file => {
                         const li = document.createElement("li");
-                
-                        // [样式修改] 根据需求重新组织显示内容
                         const ownerName = file.owner || '未知用户';
-                        const ownerSpan = `<span class="file-owner">${ownerName}</span>`; // 使用 class 方便CSS控制
-                        const icon = file.storage === 'codeberg' ? '📦 ' : '';
-                        
+                        const ownerSpan = `<span class="file-owner">${ownerName}</span>`;
                         const sizeText = formatFileSize(file.size);
+                        // [修复] 统一使用 last_commit_date
                         const dateText = new Date(file.last_commit_date || Date.now()).toISOString().split('T')[0];
                         const metaText = `${dateText} • ${sizeText}`;
                 
@@ -8587,20 +8603,19 @@ const getDefaultConfig = () => ({
                             </div>
                             <button class="delete-btn" data-sha="${file.sha}">&times;</button>
                         `;
-                        // [样式修改] Codeberg 文件保留图标，通过JS插入
                         if (file.storage === 'codeberg') {
                             const fileNameSpan = li.querySelector('.file-name');
                             fileNameSpan.textContent = " " + fileNameSpan.textContent; 
                             const iconNode = document.createTextNode('📦 ');
                             fileNameSpan.prepend(iconNode);
                         }
-                        
                         ui.fileList.appendChild(li);
                 
                         li.querySelector(".file-info").addEventListener("click", () => forceDownload(file, li));
                         li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file, li));
                     });
                 }
+
 
 
                 async function forceDownload(file, el) {
