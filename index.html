@@ -3573,6 +3573,16 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+        /* ===== [新增] 文件夹列表项样式优化 ===== */
+        .file-info .file-owner {
+            color: #889; /* 保持灰色字体 */
+            font-size: 1.1em; /* 比父元素(.file-meta)的字体稍大 */
+            font-weight: 500;
+        }
+        .file-meta .file-owner {
+             margin-right: 5px; /* 与后面的时间保持一点间距 */
+        }
+        /* ======================================= */
 
     </style>
 
@@ -8482,39 +8492,48 @@ const getDefaultConfig = () => ({
                     }
                 }
 
-                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v3 (支持多账户聚合)
+                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v4 (修复时间、排序和样式问题)
                 async function fetchFilesForSelectedProject() {
                     const requestToken = Symbol();
                     state.cloudDriveRequestToken = requestToken;
                     ui.fileList.innerHTML = '';
                     ui.fileListStatus.style.display = 'block';
                     ui.fileListStatus.textContent = "加载中...";
-
+                
                     const projectHref = ui.projectSelector.value;
                     const projectConfig = findButtonConfigByHref(projectHref);
                     if (!projectConfig) {
                         ui.fileListStatus.textContent = "请选择一个项目以查看文件";
                         return;
                     }
-                    
+                
                     const repoNamePart = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-
+                
                     // --- 1. 并行获取所有来源的文件 ---
                     const promises = [];
-
+                
                     // 1a. 添加获取 GitHub 文件的 Promise
                     if (checkConfig(false)) {
                         const githubPath = `jellyfish_drive/${repoNamePart}`;
                         promises.push(
-                            fetchFromGithub(githubPath).then(({ data }) => 
-                                data ? data.map(f => ({ ...f, storage: 'github', owner: GITHUB_CONFIG.owner })) : []
-                            ).catch(e => {
+                            // [新增] 在获取文件列表的同时，获取每次提交的详细信息以获得准确日期
+                            (async () => {
+                                const { data: files } = await fetchFromGithub(githubPath);
+                                if (!files) return [];
+                                
+                                const detailedFiles = await Promise.all(files.map(async f => {
+                                    const { data: commits } = await fetchFromGithub(`../commits?path=${encodeURIComponent(f.path)}&per_page=1`);
+                                    const commitDate = commits?.[0]?.commit?.author?.date;
+                                    return { ...f, storage: 'github', owner: GITHUB_CONFIG.owner, last_commit_date: commitDate };
+                                }));
+                                return detailedFiles;
+                            })().catch(e => {
                                 console.error("加载 GitHub 文件列表时出错:", e);
-                                return []; // 出错时返回空数组
+                                return [];
                             })
                         );
                     }
-
+                
                     // 1b. 为每个 Codeberg 账户添加获取文件的 Promise
                     const allCodebergAccounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
                     for (const cbAccount of allCodebergAccounts) {
@@ -8525,63 +8544,64 @@ const getDefaultConfig = () => ({
                                 headers: { 'Authorization': `token ${cbAccount.accessToken}` },
                                 cache: 'no-cache'
                             }).then(res => res.ok ? res.json() : [])
-                            .then(files => files.map(f => ({ 
-                                ...f, 
-                                storage: 'codeberg', 
-                                owner: cbAccount.username, // [!!!] 核心：为文件打上所有者标签
-                                last_commit: { created_at: f.last_modified } 
-                            })))
+                            .then(files => files.map(f => ({ ...f, storage: 'codeberg', owner: cbAccount.username, last_commit_date: f.last_modified })))
                             .catch(e => {
                                 console.warn(`加载 Codeberg 账户 ${cbAccount.username} 的文件列表失败:`, e);
-                                return []; // 出错时返回空数组
+                                return [];
                             })
                         );
                     }
-                    
+                
                     // --- 2. 等待所有请求完成并合并结果 ---
                     const results = await Promise.allSettled(promises);
-                    if (state.cloudDriveRequestToken !== requestToken) { return; }
-
+                    if (state.cloudDriveRequestToken !== requestToken) return;
+                
                     const allFiles = results
                         .filter(result => result.status === 'fulfilled' && Array.isArray(result.value))
                         .flatMap(result => result.value)
-                        .sort((a,b) => new Date(b.last_commit?.created_at || b.last_modified || 0) - new Date(a.last_commit?.created_at || a.last_modified || 0));
-
+                        .sort((a, b) => new Date(b.last_commit_date || 0) - new Date(a.last_commit_date || 0)); // [修复] 按新日期字段排序
+                
                     // --- 3. 渲染UI ---
                     if (allFiles.length === 0) {
                         ui.fileListStatus.textContent = "该项目下暂无文件";
                         return;
                     }
-
+                
                     ui.fileListStatus.style.display = "none";
                     allFiles.forEach(file => {
                         const li = document.createElement("li");
+                
+                        // [样式修改] 根据需求重新组织显示内容
+                        const ownerName = file.owner || '未知用户';
+                        const ownerSpan = `<span class="file-owner">${ownerName}</span>`; // 使用 class 方便CSS控制
+                        const icon = file.storage === 'codeberg' ? '📦 ' : '';
                         
-                        // [新增] 根据文件归属显示不同的图标和标签
-                        let storageInfo = '';
-                        if (file.storage === 'codeberg') {
-                            storageInfo = `📦 <span style="font-size: 0.8em; color: #aaa; margin-left: 4px;">${file.owner}</span> `;
-                        } else {
-                            storageInfo = `☁️ `;
-                        }
-
                         const sizeText = formatFileSize(file.size);
-                        const dateText = new Date(file.last_commit?.created_at || file.last_modified || Date.now()).toISOString().split('T')[0];
-                        const metaText = `${sizeText} • ${dateText}`;
-
+                        const dateText = new Date(file.last_commit_date || Date.now()).toISOString().split('T')[0];
+                        const metaText = `${dateText} • ${sizeText}`;
+                
                         li.innerHTML = `
-                            <div class="file-info" data-storage="${file.storage}">
-                                <span class="file-name">${storageInfo}${file.name}</span>
-                                <span class="file-meta" data-path="${file.path}">${metaText}</span>
+                            <div class="file-info" data-storage="${file.storage}" data-owner="${file.owner}">
+                                <span class="file-name">${file.name}</span>
+                                <span class="file-meta" data-path="${file.path}">${ownerSpan} ${metaText}</span>
                             </div>
                             <button class="delete-btn" data-sha="${file.sha}">&times;</button>
                         `;
+                        // [样式修改] Codeberg 文件保留图标，通过JS插入
+                        if (file.storage === 'codeberg') {
+                            const fileNameSpan = li.querySelector('.file-name');
+                            fileNameSpan.textContent = " " + fileNameSpan.textContent; 
+                            const iconNode = document.createTextNode('📦 ');
+                            fileNameSpan.prepend(iconNode);
+                        }
+                        
                         ui.fileList.appendChild(li);
-
+                
                         li.querySelector(".file-info").addEventListener("click", () => forceDownload(file, li));
                         li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file, li));
                     });
                 }
+
 
                 async function forceDownload(file, el) {
                     // [需求3] 如果是Codeberg文件，先检查账号所有权
