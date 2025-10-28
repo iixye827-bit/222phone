@@ -8482,7 +8482,7 @@ const getDefaultConfig = () => ({
                     }
                 }
 
-                // [修改] fetchFilesForSelectedProject v5 (修复日期 & 增加账号显示)
+                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v3 (支持多账户聚合)
                 async function fetchFilesForSelectedProject() {
                     const requestToken = Symbol();
                     state.cloudDriveRequestToken = requestToken;
@@ -8505,26 +8505,17 @@ const getDefaultConfig = () => ({
                     // 1a. 添加获取 GitHub 文件的 Promise
                     if (checkConfig(false)) {
                         const githubPath = `jellyfish_drive/${repoNamePart}`;
-                        const githubPromise = fetchFromGithub(githubPath).then(async ({ data }) => {
-                            if (!data) return [];
-                            const enrichedFiles = await Promise.all(data.map(async file => {
-                                const commitDate = await getFileCommitDate(file.path);
-                                return { 
-                                    ...file, 
-                                    storage: 'github', 
-                                    owner: GITHUB_CONFIG.owner,
-                                    last_commit: { created_at: commitDate }
-                                };
-                            }));
-                            return enrichedFiles;
-                        }).catch(e => {
-                            console.error("加载 GitHub 文件列表时出错:", e);
-                            return [];
-                        });
-                        promises.push(githubPromise);
+                        promises.push(
+                            fetchFromGithub(githubPath).then(({ data }) => 
+                                data ? data.map(f => ({ ...f, storage: 'github', owner: GITHUB_CONFIG.owner })) : []
+                            ).catch(e => {
+                                console.error("加载 GitHub 文件列表时出错:", e);
+                                return []; // 出错时返回空数组
+                            })
+                        );
                     }
 
-                    // 1b. 添加获取 Codeberg 文件的 Promise
+                    // 1b. 为每个 Codeberg 账户添加获取文件的 Promise
                     const allCodebergAccounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
                     for (const cbAccount of allCodebergAccounts) {
                         const codebergRepoName = repoNamePart || `drive-project-${projectConfig.href.length}`;
@@ -8534,28 +8525,26 @@ const getDefaultConfig = () => ({
                                 headers: { 'Authorization': `token ${cbAccount.accessToken}` },
                                 cache: 'no-cache'
                             }).then(res => res.ok ? res.json() : [])
-                .then(files => files.map(f => ({
-                    ...f,
-                    storage: 'codeberg',
-                    owner: cbAccount.username,
-                    // [核心修复] 优先使用 f.last_commit.created 作为日期来源，并保留 f.last_modified 作为备用方案，
-                    // 以确保能稳定获取到Codeberg文件的上传日期，并统一数据结构。
-                    last_commit: { created_at: f.last_commit?.created || f.last_modified }
-                })))
+                            .then(files => files.map(f => ({ 
+                                ...f, 
+                                storage: 'codeberg', 
+                                owner: cbAccount.username, // [!!!] 核心：为文件打上所有者标签
+                                last_commit: { created_at: f.last_modified } 
+                            })))
                             .catch(e => {
                                 console.warn(`加载 Codeberg 账户 ${cbAccount.username} 的文件列表失败:`, e);
-                                return [];
+                                return []; // 出错时返回空数组
                             })
                         );
                     }
                     
-                    // --- 2. 等待所有请求完成并合并、排序结果 ---
-                    const results = await Promise.all(promises);
+                    // --- 2. 等待所有请求完成并合并结果 ---
+                    const results = await Promise.allSettled(promises);
                     if (state.cloudDriveRequestToken !== requestToken) { return; }
 
                     const allFiles = results
-                        .flat()
-                        // [BUG修复] 恢复对 a.last_modified 的兼容，确保Codeberg文件也能正确排序
+                        .filter(result => result.status === 'fulfilled' && Array.isArray(result.value))
+                        .flatMap(result => result.value)
                         .sort((a,b) => new Date(b.last_commit?.created_at || b.last_modified || 0) - new Date(a.last_commit?.created_at || a.last_modified || 0));
 
                     // --- 3. 渲染UI ---
@@ -8568,23 +8557,20 @@ const getDefaultConfig = () => ({
                     allFiles.forEach(file => {
                         const li = document.createElement("li");
                         
-                        // 图标显示逻辑保持不变
+                        // [新增] 根据文件归属显示不同的图标和标签
                         let storageInfo = '';
                         if (file.storage === 'codeberg') {
+                            storageInfo = `📦 <span style="font-size: 0.8em; color: #aaa; margin-left: 4px;">${file.owner}</span> `;
+                        } else {
                             storageInfo = `☁️ `;
                         }
-                        
+
                         const sizeText = formatFileSize(file.size);
-                        // [BUG修复 & 增强] 优先用 created_at，然后用 last_modified，确保日期总能显示
-                        const dateText = (file.last_commit?.created_at || file.last_modified) 
-                                         ? new Date(file.last_commit.created_at || file.last_modified).toISOString().split('T')[0] 
-                                         : '日期未知';
-                        
-                        // [需求2] 在元信息中添加用户名
-                        const metaText = `${file.owner} • ${sizeText} • ${dateText}`;
-                        
+                        const dateText = new Date(file.last_commit?.created_at || file.last_modified || Date.now()).toISOString().split('T')[0];
+                        const metaText = `${sizeText} • ${dateText}`;
+
                         li.innerHTML = `
-                            <div class="file-info" data-storage="${file.storage}" data-owner="${file.owner}">
+                            <div class="file-info" data-storage="${file.storage}">
                                 <span class="file-name">${storageInfo}${file.name}</span>
                                 <span class="file-meta" data-path="${file.path}">${metaText}</span>
                             </div>
@@ -8597,7 +8583,7 @@ const getDefaultConfig = () => ({
                     });
                 }
 
-                 async function forceDownload(file, el) {
+                async function forceDownload(file, el) {
                     // [需求3] 如果是Codeberg文件，先检查账号所有权
                     if (file.storage === 'codeberg') {
                         const activeAccount = CodebergManager.getActiveAccount();
@@ -8776,6 +8762,57 @@ const getDefaultConfig = () => ({
                         console.error('检查Codeberg仓库是否存在时出错:', error);
                         return false;
                     }
+                }
+                // [新增] Codeberg 账号切换确认弹窗
+                function promptToSwitchCodebergAccount(targetUsername, onSwitchCallback) {
+                    // 防止重复创建
+                    document.getElementById('codeberg-switch-prompt')?.remove();
+
+                    const promptOverlay = document.createElement('div');
+                    promptOverlay.id = 'codeberg-switch-prompt';
+                    promptOverlay.className = 'modal-overlay show';
+                    promptOverlay.style.zIndex = '3000'; // 确保在最上层
+                    
+                    const activeUsername = CodebergManager.getActiveAccount()?.username || '未登录';
+
+                    promptOverlay.innerHTML = `
+                        <div class="modal-content" style="max-width: 400px;">
+                            <div class="modal-header"><div class="modal-title-group">⚠️ 账号不匹配</div></div>
+                            <div class="modal-body">
+                                <p>此文件属于账户 <strong>${targetUsername}</strong>。</p>
+                                <p>您当前的活动账户是 <strong>${activeUsername}</strong>。</p>
+                                <p>您是否要切换到 <strong>${targetUsername}</strong> 并继续下载？</p>
+                            </div>
+                            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                                <button id="cancel-switch-btn" class="modal-button">取消</button>
+                                <button id="confirm-switch-btn" class="modal-button primary">切换并下载</button>
+                            </div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(promptOverlay);
+                    
+                    const closeModal = () => promptOverlay.remove();
+                    
+                    promptOverlay.querySelector('#cancel-switch-btn').addEventListener('click', closeModal);
+                    promptOverlay.querySelector('#confirm-switch-btn').addEventListener('click', () => {
+                        // 在CodebergManager中找到对应的事件处理函数并调用
+                        const accounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
+                        const targetAccount = accounts.find(acc => acc.username === targetUsername);
+                        if (targetAccount) {
+                            localStorage.setItem('codeberg_active_account_username', targetUsername);
+                            showTopToast(`活动账户已切换为 "${targetUsername}"。`, 2000);
+
+                            // 如果提供了回调函数，则执行它
+                            if (typeof onSwitchCallback === 'function') {
+                                onSwitchCallback();
+                            }
+                        } else {
+                            alert(`切换失败，未在本地找到账户 ${targetUsername} 的授权信息。`);
+                        }
+                        closeModal();
+                    });
+                     promptOverlay.addEventListener('click', (e) => { if(e.target === promptOverlay) closeModal(); });
                 }
                 // [新增] Codeberg 账号切换确认弹窗
                 function promptToSwitchCodebergAccount(targetUsername, onSwitchCallback) {
