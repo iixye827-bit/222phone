@@ -657,9 +657,6 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         /* =============================================================== */
 
 
-        /* ===== [START] FROSTED GLASS THEME ===== */
-        body.theme-glass .modal-overlay,
-        /* ... */
 
 
         /* ===== [START] FROSTED GLASS THEME ===== */
@@ -667,7 +664,6 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass #memoryPhotoViewerOverlay {
             background: transparent;
         }
-        body.theme-glass .nav-btn,
         body.theme-glass .title-card,
         body.theme-glass .fab-main,
         body.theme-glass .fab-drawer-item,
@@ -676,7 +672,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass .player-content,
         body.theme-glass .player-popover,
         body.theme-glass #memoryModal .hub-btn,
-        body.theme-glass .phone-partition-item, /* ★★★ 新增此行 ★★★ */
+        body.theme-glass .phone-partition-item, 
         body.theme-glass #memoryModal .folder-item,
         body.theme-glass #memoryModal .note-item,
         body.e-glass #memoryModal .album-item,
@@ -685,15 +681,26 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass #memoryModal #note-editor-view,
         body.theme-glass .management-controls,
         body.theme-glass #returnConfirmationToast {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.25); /* 透明度降低 */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15); /* 边框更柔和 */
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
-        body.theme-glass.dark-mode .nav-btn,
-        body.theme-glass.dark-mode .title-card,
+
+        /* ★★★ [修改] 磨砂玻璃主题下项目按钮的高斯磨砂样式 ★★★ */
+        body.theme-glass .nav-btn {
+            background-color: rgba(255, 255, 255, 0.18); /* 半透明白色背景，与参考对齐 */
+            backdrop-filter: blur(12px);                  /* 核心模糊效果，与参考对齐 */
+            -webkit-backdrop-filter: blur(12px);          /* 兼容性前缀，与参考对齐 */
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);    /* 柔和阴影，与参考对齐 */
+            border: 1px solid rgba(255, 255, 255, 0.25);   /* 亮色轮廓边框，与参考对齐 */
+            color: #1a1a1a;                                /* 深色文字保证可读性，与参考对齐 */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* 文字光晕效果，与参考对齐 */
+        }
+
+         body.theme-glass.dark-mode .title-card,
         body.theme-glass.dark-mode .fab-main,
         body.theme-glass.dark-mode .fab-drawer-item,
         body.theme-glass.dark-mode .modal-content,
@@ -709,8 +716,20 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass.dark-mode #memoryModal #note-editor-view,
         body.theme-glass.dark-mode .management-controls,
         body.theme-glass.dark-mode #returnConfirmationToast {
-            background: rgba(20, 20, 20, 0.25);
+            background: rgba(20, 20, 20, 0.3); /* 透明度降低 */
             border-color: rgba(255, 255, 255, 0.1);
+        }
+
+
+        /* ★★★ [修改] 磨砂玻璃主题 & 夜间模式下项目按钮的专属磨砂样式 ★★★ */
+        body.theme-glass.dark-mode .nav-btn {
+            background-color: rgba(40, 45, 55, 0.18);      /* 夜间模式：使用更深的半透明背景 */
+            backdrop-filter: blur(12px);                  /* 保持相同的模糊度 */
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);     /* 夜间模式：阴影更深以突显层次 */
+            border: 1px solid rgba(255, 255, 255, 0.15);   /* 夜间模式：边框透明度降低，更柔和 */
+            color: #e0e6f0;                               /* 适配夜间模式的亮色文字 */
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);      /* 文字阴影改为深色，增加对比度 */
         }
 
         body.theme-glass .modal-input,
@@ -2318,6 +2337,84 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
 /* =============================================================== */
 
 /* =============================================================== */
+/* ============= [新增] 百度网盘集成专属样式 V1.0 =========== */
+/* =============================================================== */
+
+/* 文件夹页面右上角的设置按钮 */
+#memoryModal .page-header .baidu-settings-btn {
+    font-size: 22px; /* 设置一个合适的大小 */
+    padding: 6px;
+    margin-left: auto; /* 核心：将按钮推到最右侧 */
+}
+
+/* 百度网盘设置弹窗内的账户列表 */
+#baidu-account-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    border-radius: 10px;
+    padding: 10px;
+    background: var(--bg-day-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+}
+body.dark-mode #baidu-account-list {
+    background: var(--bg-night-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+
+.baidu-account-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    gap: 15px;
+}
+
+.baidu-account-item:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+body.dark-mode .baidu-account-item:hover {
+    background-color: rgba(255,255,255,0.08);
+}
+
+.baidu-account-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0; /* 防止长用户名撑开布局 */
+}
+
+.baidu-account-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #ccc;
+    flex-shrink: 0;
+}
+
+.baidu-account-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#baidu-auth-status {
+    font-size: 14px;
+    color: #889;
+    text-align: center;
+    margin-top: 15px;
+    min-height: 20px;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
+/* =============================================================== */
 /* ============= [新增] 备忘录编辑器 v2.0 样式 ============= */
 /* =============================================================== */
 #memoryModal #note-editor-view {
@@ -2385,18 +2482,17 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 10px 25px; /* 优化：增加左右内边距，让工具按钮与边缘保持距离 */
+    justify-content: space-around; /* 核心修复：使用 space-around 自动均分间距，取代固定的 gap */
+    padding: 10px 15px; /* 优化：减少左右内边距，给按钮更多空间 */
     background: var(--bg-day-element);
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
     border-top: 1px solid rgba(0,0,0,0.08);
-
-    /* --- 核心修改 --- */
-    width: calc(100% + 20px); /* 让宽度等于父容器宽度 + 两侧各10px的内边距 */
-    margin: 0 -10px -10px -10px; /* 上右下左外边距，抵消父容器所有方向的内边距 */
-    border-radius: 0 0 16px 16px; /* 美化：让工具栏的下圆角匹配弹窗的圆角 */
-    box-sizing: border-box; /* 确保 padding 包含在 width 计算内 */
+    width: calc(100% + 20px);
+    margin: 0 -10px -10px -10px;
+    border-radius: 0 0 16px 16px;
+    box-sizing: border-box;
 }
+
 
 body.dark-mode .memo-toolbar {
     background: var(--bg-night-element);
@@ -3439,150 +3535,242 @@ body.dark-mode .folder-item .sort-handle.memo-sort-handle {
     cursor: grabbing;
 }
 /* =============================================================== */
-/* ============= [新增] Codeberg 设置模态框专属样式 ============== */
+/* ============= [新增] 百度网盘集成专属样式 V1.0 =========== */
 /* =============================================================== */
-#codebergSettingsModal .modal-body label {
-    font-size: 14px;
-    color: #5a6778;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-body.dark-mode #codebergSettingsModal .modal-body label {
-    color: #c0c6cc;
+
+/* 文件夹页面右上角的设置按钮 */
+#memoryModal .page-header .baidu-settings-btn {
+    font-size: 22px; /* 设置一个合适的大小 */
+    padding: 6px;
+    margin-left: auto; /* 核心：将按钮推到最右侧 */
 }
 
-.codeberg-account-display {
-    padding: 12px 18px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    background: var(--bg-day-element);
-    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
-    transition: all .3s ease;
-}
-body.dark-mode .codeberg-account-display {
-    background: var(--bg-night-element);
-    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
-}
-
-.codeberg-account-display.inactive {
-    color: #e53e3e;
-}
-.codeberg-account-display.active {
-    color: var(--hold-border);
-}
-
-
-.codeberg-account-list-container {
-    padding: 10px;
-    min-height: 100px;
-    max-height: 200px;
+/* 百度网盘设置弹窗内的账户列表 */
+#baidu-account-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 250px;
     overflow-y: auto;
-    border-radius: 12px;
+    border-radius: 10px;
+    padding: 10px;
     background: var(--bg-day-element);
     box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
-    display: flex;
-    flex-direction: column;
 }
-body.dark-mode .codeberg-account-list-container {
+body.dark-mode #baidu-account-list {
     background: var(--bg-night-element);
     box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
 }
 
-.codeberg-empty-list {
-    margin: auto;
-    color: #889;
-    font-size: 15px;
-}
-
-.codeberg-account-item {
+.baidu-account-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 12px 15px;
     border-radius: 8px;
-    transition: background-color .2s;
+    transition: background-color 0.2s;
+    gap: 15px;
 }
-.codeberg-account-item:hover {
+
+.baidu-account-item:hover {
     background-color: rgba(0,0,0,0.05);
 }
-body.dark-mode .codeberg-account-item:hover {
+body.dark-mode .baidu-account-item:hover {
     background-color: rgba(255,255,255,0.08);
 }
 
-.codeberg-account-item span {
-    flex-grow: 1;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.codeberg-account-item .account-actions {
+.baidu-account-info {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
 }
 
-.codeberg-account-item .account-actions button {
-    padding: 6px 12px;
-    font-size: 13px;
+.baidu-account-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #ccc;
+}
+
+.baidu-account-name {
     font-weight: 600;
 }
-/* 主题蓝色按钮的特殊样式 */
-.codeberg-auth-button {
-    color: white !important;
-    background: var(--hold-border) !important;
-    box-shadow: 0 4px 12px rgba(91, 153, 226, 0.4);
-}
-.codeberg-auth-button:active {
-    background: #4a8ad4 !important;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
-}
 
-.codeberg-guidance-section {
-    text-align: center;
-    font-size: 13px;
+#baidu-auth-status {
+    font-size: 14px;
     color: #889;
-    line-height: 1.6;
-    border-top: 1px solid rgba(128,128,128,0.2);
-    padding-top: 20px;
-    margin-top: 5px;
+    text-align: center;
+    margin-top: 15px;
+    min-height: 20px;
 }
-.codeberg-guidance-section a {
-    color: var(--hold-border);
-    font-weight: 600;
-    text-decoration: none;
-}
-.codeberg-guidance-section a:hover {
-    text-decoration: underline;
-}
-
-/* 磨砂玻璃主题适配 */
-body.theme-glass .codeberg-account-display,
-body.theme-glass .codeberg-account-list-container {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: none;
-}
-body.theme-glass.dark-mode .codeberg-account-display,
-body.theme-glass.dark-mode .codeberg-account-list-container {
-    background: rgba(10, 10, 10, 0.2);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
-        /* ===== [新增] 文件夹列表项样式优化 ===== */
-        .file-info .file-owner {
-            color: #889; /* 保持灰色字体 */
-            font-size: 1.1em; /* 比父元素(.file-meta)的字体稍大 */
-            font-weight: 500;
-        }
-        .file-meta .file-owner {
-             margin-right: 5px; /* 与后面的时间保持一点间距 */
-        }
-        /* ======================================= */
+/* ========================================================================= */
+/* ============= [重构] 备忘录工具栏 & 字号滑块 V3.0 最终样式 ===== */
+/* ========================================================================= */
+
+
+/* 2. 统一所有按钮样式 */
+.memo-toolbar .toolbar-btn {
+    font-size: 20px;
+    font-weight: 600; /* 统一字重为 600，视觉效果更和谐 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-style: normal;
+    text-decoration: none;
+    padding: 8px; /* 增加点击热区，确保图标显示完整 */
+    flex-shrink: 0; /* 防止按钮在空间不足时被压缩 */
+}
+
+/* 3. 特殊按钮样式微调 */
+.toolbar-btn.strikethrough {
+    text-decoration: line-through;
+}
+.toolbar-btn[data-command="italic"] {
+    font-style: italic; /* 恢复斜体按钮的视觉样式 */
+}
+.toolbar-btn.font-size-icon {
+    line-height: 1; /* 确保AA图标垂直居中 */
+}
+.font-size-icon small {
+    font-size: 0.7em;
+    vertical-align: 1px;
+    margin-left: -2px;
+}
+
+/* 4. 全新设计的字号滑块弹窗 */
+#fontSizeSliderPopup {
+    position: absolute;
+    bottom: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    z-index: 250;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+body.dark-mode #fontSizeSliderPopup {
+    background: rgba(30, 30, 30, 0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 5. 美化滑块本身 */
+#fontSizeSliderPopup input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(128, 128, 128, 0.2);
+    border-radius: 3px;
+    outline: none;
+    padding: 0;
+    margin: 5px 0;
+}
+
+#fontSizeSliderPopup input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+body.dark-mode #fontSizeSliderPopup input[type="range"]::-webkit-slider-thumb {
+    background: #e0e6f0;
+    border-color: transparent;
+}
+/* =============================================================== */
+/* ============= [最终修正] 备忘录一键回顶按钮样式 V6.0 ========= */
+/* =============================================================== */
+.memo-fab-back-to-top {
+    position: absolute;
+    right: 25px;
+    bottom: 75px;
+    z-index: 210;
+
+    width: 20px;
+    height: 20px;
+    
+    background: var(--bg-day-element);
+    color: var(--hold-border); /* 图标颜色将传递给内部的span */
+    box-shadow: 4px 4px 8px var(--shadow-dark-day), -4px -4px 8px var(--shadow-light-day);
+    
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    transform: scale(0.8) translateY(10px); /* 恢复按钮本身的动画，移除旋转 */
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ★★★ 新增：只旋转图标本身 ★★★ */
+.back-to-top-icon {
+    display: inline-block; /* 使 transform 生效 */
+    transform: rotate(-90deg); /* 核心：只将图标逆时针旋转90度 */
+    font-size: 13px;
+    line-height: 1;
+    padding-left: 1px; /* 旋转后微调位置 */
+}
+
+/* ★★★ 修正：按钮显示时的动画（移除旋转） ★★★ */
+.memo-fab-back-to-top.show {
+    opacity: 1;
+    transform: scale(1) translateY(0); /* 恢复正确的显示动画 */
+    pointer-events: auto;
+}
+
+.memo-fab-back-to-top.show {
+    opacity: 1;
+    transform: scale(1) translateY(0); /* 显示时恢复正常大小和位置 */
+    pointer-events: auto;
+}
+
+.memo-fab-back-to-top:active {
+    box-shadow: inset 2px 2px 4px var(--shadow-dark-day), inset -2px -2px 4px var(--shadow-light-day);
+    transform: scale(0.95) !important;
+}
+
+/* 夜间模式适配 */
+body.dark-mode .memo-fab-back-to-top {
+    background: var(--bg-night-element);
+    color: var(--text-night);
+    box-shadow: 4px 4px 8px var(--shadow-dark-night), -4px -4px 8px var(--shadow-light-night);
+}
+
+body.dark-mode .memo-fab-back-to-top:active {
+    box-shadow: inset 2px 2px 4px var(--shadow-dark-night), inset -2px -2px 4px var(--shadow-light-night);
+}
+
+/* 磨砂玻璃主题适配 */
+body.theme-glass .memo-fab-back-to-top {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px 0 rgba(0, 0, 0, 0.1);
+}
+
+body.theme-glass.dark-mode .memo-fab-back-to-top {
+    background: rgba(20, 20, 20, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+}
 
     </style>
 
@@ -4061,7 +4249,8 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
     <!-- [新增结束] -->
     
     <div class="segmented-control two-segments"><input type="radio" id="type-link" name="nav-type" value="link" checked hidden><label for="type-link">外部链接</label><input type="radio" id="type-upload" name="nav-type" value="upload" hidden><label for="type-upload">上传项目</label><div class="slider-indicator"></div></div><div class="form-section"><label for="newButtonCategoryInput">分类名称</label><input type="text" id="newButtonCategoryInput" class="modal-input" placeholder="选择或创建分类" list="category-datalist"><datalist id="category-datalist"></datalist></div><div id="category-management-section" style="display: none;"><button id="deleteCategoryBtn" class="modal-button" style="color:#e53e3e;">删除当前分类</button></div><div class="form-section"><label for="newButtonNameInput">按钮名称</label><input type="text" id="newButtonNameInput" class="modal-input" placeholder="例如: 我的博客"></div><div id="link-section"><div class="form-section"><label for="newButtonUrlInput">网址链接</label><input type="text" id="newButtonUrlInput" class="modal-input" placeholder="https://example.com"></div><div class="toggle-section" style="margin-top: 10px;"><span>在新标签页中打开</span><label class="toggle-switch"><input type="checkbox" id="openExternallyToggle"><span class="slider"></span></label></div></div><div id="upload-section" class="form-section" style="display: none;"><label>选择项目的主HTML文件</label><div class="file-select-wrapper"><input type="file" id="projectHtmlPicker" accept=".html,.htm" style="display: none;"><button id="filePickerBtn" class="modal-button">选择文件</button><span id="file-picker-status" class="status-text">未选择任何文件</span></div><div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;"><p>上传的项目无法编辑链接，如需更新请删除后重新上传。</p></div></div><button id="createNavBtn" class="modal-button">加入新项目</button><div class="status-text" id="upload-status"></div></div></div></div>
-    <div class="modal-overlay" id="settingsModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span>数据同步</span></div><button class="close-btn" data-modal-id="settingsModal">&times;</button></div><div class="modal-body"><div class="form-section"><label for="githubRepoInput">仓库 (格式: 用户名/仓库名)</label><input type="text" id="githubRepoInput" class="modal-input" placeholder="例如: my-username/JellyfishPhones"></div><div class="form-section"><label for="githubTokenInput">Personal Access Token</label><input type="password" id="githubTokenInput" class="modal-input" placeholder="ghp_xxxxxxxxxx"></div><button id="saveSettingsBtn" class="modal-button">保存配置</button><button id="manualSyncBtn" class="modal-button" style="color:#5a6778; margin-top: 10px;">手动同步与修复</button><div class="nuke-section"><button id="nukeDataBtn" class="modal-button">清空所有云端及本地数据</button></div></div></div></div>
+    <div class="modal-overlay" id="settingsModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span>数据同步</span></div><button class="close-btn" data-modal-id="settingsModal">&times;</button></div><div class="modal-body"><div class="form-section"><label for="githubRepoInput">仓库 (格式: 用户名/仓库名)</label><input type="text" id="githubRepoInput" class="modal-input" placeholder="例如: my-username/JellyfishPhones"></div><div class="form-section"><label for="githubTokenInput">Personal Access Token</label><input type="password" id="githubTokenInput" class="modal-input" placeholder="ghp_xxxxxxxxxx"></div><button id="saveSettingsBtn" class="modal-button">保存配置</button><button id="manualSyncBtn" class="modal-button" style="color:#5a6778; margin-top: 10px;">手动同步与修复</button><!-- [修改] 将"清空所有数据"按钮改为"高级数据清理"，链接到新的选择性清理弹窗 -->
+<div class="nuke-section"><button id="openClearDataModalBtn" class="modal-button" style="color: #e53e3e;">清空所有云端及本地数据</button></div></div></div></div>
     <div class="modal-overlay" id="colorPaletteModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -4179,78 +4368,197 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
     <div class="modal-overlay" id="jelly-css-help-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title-group"><span>💡 悬浮球 CSS 自定义向导</span></div>
+                <div class="modal-title-group"><span>💡 悬浮球 CSS 自定义模板</span></div>
                 <button class="close-btn" data-modal-id="jelly-css-help-modal">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="css-help-section">
-                    <h3>欢迎使用！</h3>
-                    <p>本向导能帮助你轻松创建漂亮的自定义悬浮球CSS主题，即使你完全不懂代码也没关系。</p>
-                    <p>只需按照以下步骤操作，就能让AI成为你的专属设计师。</p>
+            <div class="modal-body" style="gap: 15px;">
+                <div class="css-help-section" style="padding: 10px 15px;">
+                    <h3 style="color:#777; border-bottom: none; margin-bottom: 0;">悬浮球样式自定义模板</h3>
+                    <p style="font-size: 0.95em; color: #889; text-align: center; margin-top: 5px;">
+                        选择一个模板，点击“复制”，然后粘贴到下方的输入框内即可。
+                    </p>
                 </div>
+
+                <!-- 模板 1: 有背景 + 图床链接 -->
                 <div class="css-help-section">
-    <h4>方案 A：自定义双环辉光悬浮球</h4>
-    <p style="margin-bottom: 12px; font-size: 0.9em; color: #889;">此方案保留悬浮球默认的“内圈球体 + 外圈辉光”结构，适合进行颜色和风格的深度定制。</p>
-    
-    <h5 style="margin-top: 15px; margin-bottom: 5px;">AI 提示词模板 (方案 A)</h5>
-    <div class="css-help-text-block" id="css-prompt-template-A">
-        <button class="copy-btn">复制</button>
-请为我创建一个双环辉光悬浮球的CSS主题。要求如下：<br><br>
-1. <strong>整体风格描述</strong>: [例如：宇宙星云、魔法水晶、金属核心]<br>
-2. <strong>内圈球体样式 (<code>#floating-jellyfish-ball</code>)</strong>:<br>
-&nbsp;&nbsp;&nbsp;• 背景: [例如：深蓝色带有亮片，或紫色到蓝色的渐变]<br>
-&nbsp;&nbsp;&nbsp;• 内部图标(🪼)颜色: [例如：白色]<br>
-&nbsp;&nbsp;&nbsp;• 边框: [例如：1像素银色边框]<br>
-3. <strong>外圈辉光样式 (<code>.jelly-ball-wrapper</code>)</strong>:<br>
-&nbsp;&nbsp;&nbsp;• 辉光颜色: [例如：亮紫色]<br><br>
-请为以上要求生成CSS代码。外圈辉光颜色通过修改 <code>--hold-border</code> 变量实现。
-    </div>
+                    <h4>方案一: 图片图标 (有背景)</h4>
+                    <p style="font-size: 0.9em; color: #889; margin-top: -5px; margin-bottom: 10px;">保留半透明圆形背景，内部显示带辉光的图片。</p>
+                    <div class="css-help-text-block">
+                        <button class="copy-btn">复制</button>
+<pre><code>/* 步骤 1: 自定义辉光动画 */
+@keyframes icon-glow {
+  0%, 100% {
+    /* 修改颜色和范围 (初始/结束状态) */
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7));
+  }
+  50% {
+    /* 修改颜色和范围 (最亮状态) */
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
+  }
+}
 
-    <h5 style="margin-top: 15px; margin-bottom: 5px;">示例：宇宙星云</h5>
-    <div class="css-help-text-block" id="css-prompt-example-A">
-        <button class="copy-btn">复制</button>
-请为我创建一个双环辉光悬浮球的CSS主题。要求如下：<br><br>
-1. <strong>整体风格描述</strong>: 宇宙星云，深邃的太空感。<br>
-2. <strong>内圈球体样式 (<code>#floating-jellyfish-ball</code>)</strong>:<br>
-&nbsp;&nbsp;&nbsp;• 背景: 深邃的星空背景，可以使用深蓝到黑色的渐变。<br>
-&nbsp;&nbsp;&nbsp;• 内部图标(🪼)颜色: 明亮的白色，像一颗恒星。<br>
-&nbsp;&nbsp;&nbsp;• 边框: 不需要边框。<br>
-3. <strong>外圈辉光样式 (<code>.jelly-ball-wrapper</code>)</strong>:<br>
-&nbsp;&nbsp;&nbsp;• 辉光颜色: 梦幻的紫色 (<code>#8a2be2</code>)。<br><br>
-请为以上要求生成CSS代码。外圈辉光颜色通过修改 <code>--hold-border</code> 变量实现。
-    </div>
-</div>
+/* 步骤 2: (可选) 自定义球体背景 */
+#floating-jellyfish-ball {
+  background: rgba(0, 0, 0, 0.4); /* 半透明黑色背景 */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+body.dark-mode #floating-jellyfish-ball {
+  background: rgba(255, 255, 255, 0.2); /* 夜间模式半透明白色背景 */
+  border-color: rgba(255, 255, 255, 0.3);
+}
 
-<div class="css-help-section" style="margin-top: 20px;">
-    <h4>方案 B：替换为自定义图标</h4>
-    <p style="margin-bottom: 12px; font-size: 0.9em; color: #889;">此方案会完全隐藏默认的球体和辉光，将其替换为您指定的任意图片，适合追求极致个性化的用户。</p>
-    
-    <h5 style="margin-top: 15px; margin-bottom: 5px;">AI 提示词模板 (方案 B)</h5>
-    <div class="css-help-text-block" id="css-prompt-template-B">
-        <button class="copy-btn">复制</button>
-请为我生成一段CSS代码，将悬浮球替换为自定义图片。要求如下：<br><br>
-1. <strong>图片地址</strong>: [请在此处粘贴一个公开的图片URL，建议使用透明背景的.png格式图片]<br>
-2. <strong>可选样式</strong>:<br>
-&nbsp;&nbsp;&nbsp;• 边框: [例如：不需要边框，或 2像素金色边框]<br>
-&nbsp;&nbsp;&nbsp;• 鼠标悬停效果: [例如：放大1.1倍]<br><br>
-代码需要做到:<br>
-&nbsp;&nbsp;&nbsp;- 隐藏原来的内外圈辉光和图标。<br>
-&nbsp;&nbsp;&nbsp;- 将背景设置为我提供的图片地址。
-    </div>
+/* 步骤 3: 将图标设为图片并应用动画 */
+#floating-jellyfish-ball span {
+  display: block;
+  width: 65%; /* 调整图标占球体的比例 */
+  height: 65%;
+  font-size: 0; /* 隐藏原始的 🪼 */
+  
+  /* 在这里替换为你的图片链接 (推荐透明背景 .png) */
+  background-image: url('在这里替换为你的图片链接');
+  
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  
+  /* 关键：将辉光动画应用到有图片的 span 上 */
+  animation: icon-glow 2.5s infinite ease-in-out;
+}</code></pre>
+                    </div>
+                </div>
 
-    <h5 style="margin-top: 15px; margin-bottom: 5px;">示例：精灵球</h5>
-    <div class="css-help-text-block" id="css-prompt-example-B">
-        <button class="copy-btn">复制</button>
-请为我生成一段CSS代码，将悬浮球替换为自定义图片。要求如下：<br><br>
-1. <strong>图片地址</strong>: <code>https://www.freeiconspng.com/uploads/pok-mon-go-pokeball-png-10.png</code><br>
-2. <strong>可选样式</strong>:<br>
-&nbsp;&nbsp;&nbsp;• 边框: 不需要边框。<br>
-&nbsp;&nbsp;&nbsp;• 鼠标悬停效果: 旋转15度。<br><br>
-代码需要做到:<br>
-&nbsp;&nbsp;&nbsp;- 隐藏原来的内外圈辉光和图标。<br>
-&nbsp;&nbsp;&nbsp;- 将背景设置为我提供的图片地址。
-    </div>
-</div>
+                <!-- 模板 2: 有背景 + Emoji -->
+                <div class="css-help-section">
+                    <h4>方案二: Emoji 图标 (有背景)</h4>
+                    <p style="font-size: 0.9em; color: #889; margin-top: -5px; margin-bottom: 10px;">保留半透明圆形背景，内部显示带辉光的Emoji。</p>
+                    <div class="css-help-text-block">
+                        <button class="copy-btn">复制</button>
+<pre><code>/* 步骤 1: 自定义辉光动画 */
+@keyframes emoji-glow {
+  0%, 100% {
+    /* Emoji使用text-shadow来发光 (初始/结束状态) */
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 105, 180, 0.6);
+  }
+  50% {
+    /* (最亮状态) */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 105, 180, 1);
+  }
+}
+
+/* 步骤 2: (可选) 自定义球体背景 */
+#floating-jellyfish-ball {
+  background: rgba(255, 182, 193, 0.5); /* 粉色背景 */
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 182, 193, 0.8);
+  font-size: 0; /* 隐藏原始图标 */
+}
+
+/* 步骤 3: 使用伪元素显示Emoji并应用动画 */
+#floating-jellyfish-ball::before {
+  content: '🌸'; /* 在这里替换为你想要的 Emoji */
+  font-size: 28px; /* 在这里调整 Emoji 的大小 */
+  
+  /* 关键：将辉光动画应用到显示Emoji的伪元素上 */
+  animation: emoji-glow 3s infinite ease-in-out;
+}</code></pre>
+                    </div>
+                </div>
+
+                <!-- 模板 3: 无背景 + 图床链接 -->
+                <div class="css-help-section">
+                    <h4>方案三: 图片图标 (无背景)</h4>
+                    <p style="font-size: 0.9em; color: #889; margin-top: -5px; margin-bottom: 10px;">隐藏背景，仅显示发光的图片图标 (此方案完全复刻您提供的参考代码)。</p>
+                    <div class="css-help-text-block">
+                        <button class="copy-btn">复制</button>
+<pre><code>/* 步骤 1: 让球体容器完全透明 */
+#floating-jellyfish-ball {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+
+  /* 在这里设定图标的尺寸 */
+  width: 48px;
+  height: 48px;
+  font-size: 0;
+}
+
+/* 步骤 2: 定义辉光动画 */
+@keyframes icon-glow {
+  0%, 100% {
+    /* 修改颜色和范围 (初始/结束状态) */
+    filter: drop-shadow(0 0 4px rgba(255, 105, 180, 0.7));
+  }
+  50% {
+    /* 修改颜色和范围 (最亮状态) */
+    filter: drop-shadow(0 0 14px rgba(255, 20, 147, 1));
+  }
+}
+
+/* 步骤 3: 将图标设为图片并应用动画 */
+#floating-jellyfish-ball span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  
+  /* 在这里替换为你的图片链接 (推荐透明背景 .png) */
+  background-image: url('在这里替换为你的图片链接');
+  
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  
+  /* 关键: 将辉光动画应用到 span 上 */
+  animation: icon-glow 2.5s infinite ease-in-out;
+}</code></pre>
+                    </div>
+                </div>
+                
+                <!-- 模板 4: 无背景 + Emoji -->
+                <div class="css-help-section">
+                    <h4>方案四: Emoji 图标 (无背景)</h4>
+                    <p style="font-size: 0.9em; color: #889; margin-top: -5px; margin-bottom: 10px;">隐藏背景，仅显示发光的Emoji图标。</p>
+                    <div class="css-help-text-block">
+                        <button class="copy-btn">复制</button>
+<pre><code>/* 步骤 1: 让球体容器完全透明 */
+#floating-jellyfish-ball {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  /* 在这里设定图标的点击区域大小 */
+  width: 48px;
+  height: 48px;
+  font-size: 0; /* 隐藏原始图标 */
+}
+
+/* 步骤 2: 定义Emoji的辉光动画 */
+@keyframes emoji-glow {
+  0%, 100% {
+    /* Emoji使用text-shadow来发光 (初始/结束状态) */
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(0, 255, 255, 0.6);
+  }
+  50% {
+    /* (最亮状态) */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(0, 255, 255, 1);
+  }
+}
+
+/* 步骤 3: 使用伪元素显示Emoji并应用动画 */
+#floating-jellyfish-ball::before {
+  content: '💎'; /* 在这里替换为你想要的 Emoji */
+  font-size: 36px; /* 在这里调整 Emoji 的大小 */
+  
+  /* 关键：将辉光动画应用到伪元素上 */
+  animation: emoji-glow 2.5s infinite ease-in-out;
+}</code></pre>
+                    </div>
+                </div>
                 </div>
 
             </div>
@@ -4349,15 +4657,27 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
                             <input type="text" id="note-title-input" placeholder="标题">
                             <div id="note-content-editor" contenteditable="true" placeholder="在这里输入内容..."></div>
                         </div>
+                        <!-- [V3] 最终版工具栏布局：所有按钮平铺，由 Flexbox 自动均分间距 -->
                         <div class="memo-toolbar">
                             <button class="toolbar-btn" data-command="todo" title="待办清单">✓</button>
-                            <div class="toolbar-separator"></div>
                             <button class="toolbar-btn" data-command="bold" title="加粗">B</button>
-                            <button class="toolbar-btn" data-command="italic" title="斜体" style="font-style: italic;">I</button>
-                            <button class="toolbar-btn" data-command="underline" title="下划线" style="text-decoration: underline;">U</button>
+                            <button class="toolbar-btn" data-command="italic" title="斜体">I</button>
+                            <button class="toolbar-btn" data-command="underline" title="下划线">U</button>
                             <button class="toolbar-btn strikethrough" data-command="strikeThrough" title="删除线">S</button>
-                            <button class="toolbar-btn" data-command="createCodeBlock" title="代码块" style="margin-left: auto;">&lt;/&gt;</button>
+                            <button class="toolbar-btn font-size-icon" data-command="fontSize" title="调整字号">A<small>A</small></button>
+                            <button class="toolbar-btn" data-command="createCodeBlock" title="代码块">&lt;/&gt;</button>
+                            <button class="toolbar-btn" data-command="copyContent" title="复制备忘录正文">❏</button>
                         </div>
+
+                        <!-- [V2] 重新设计的、更小巧的字号滑块弹窗 -->
+                        <div id="fontSizeSliderPopup" style="display: none;">
+                            <input type="range" id="fontSizeSlider" min="12" max="28" value="16">
+                        </div>
+
+                        <!-- ★★★ [最终修正] 一键回顶按钮 (仅旋转图标) V6 ★★★ -->
+                        <button id="memo-back-to-top" class="memo-fab-back-to-top" title="回到顶部">
+                            <span class="back-to-top-icon">➤</span>
+                        </button>
                     </div>
                 </div>
                 <!-- ALBUM / 相册部分 -->
@@ -4402,11 +4722,8 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
                     <div class="page-header">
                         <button data-action="back-to-hub" class="header-btn back-btn">&#10094;</button>
                         <h1 class="title">文件夹</h1>
-                        <!-- ============ [新增] Codeberg 设置入口 ============ -->
-                        <div class="header-controls">
-                            <button id="codebergSettingsBtn" class="header-btn" title="Codeberg 大文件存储设置" style="font-size: 22px;">&#9881;</button>
-                        </div>
-                        <!-- ============ [新增结束] ============ -->
+                        <!-- [新增] 百度网盘设置按钮 -->
+                        <button data-action="open-baidu-settings" class="header-btn baidu-settings-btn" title="百度网盘设置">⚙️</button>
                     </div>
                     <div class="list-container">
                         <select id="categorySelector" class="modal-select"></select>
@@ -4418,13 +4735,13 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
                                 <span id="selectedFileName" class="status-text">未选择任何文件</span>
                             </div>
                             <input type="text" id="fileNameInput" class="modal-input" placeholder="可修改文件名（可选）"/>
-                            <button id="uploadBtn" class="modal-button">上传文件</button>
-                            <div id="progressContainer" class="progress-container">
-                                <div class="progress-bar-wrapper">
-                                    <div id="uploadProgressBar" class="progress-bar"></div>
-                                </div>
-                                <button id="upload-cancel-btn" title="终止上传">✖</button>
-                            </div>
+<button id="uploadBtn" class="modal-button">上传文件</button>
+<div id="progressContainer" class="progress-container">
+    <div class="progress-bar-wrapper">
+        <div id="uploadProgressBar" class="progress-bar"></div>
+    </div>
+    <button id="upload-cancel-btn" title="终止上传">✖</button>
+</div>
                         </div>
                         <div id="file-list-container">
                             <ul id="fileList"></ul>
@@ -4461,9 +4778,12 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
                 <input type="text" id="photo-title-input" class="modal-input" placeholder="标题 (选填)">
                 <textarea id="photo-desc-input" class="modal-textarea" placeholder="描述 (选填)"></textarea>
             </div>
-            <div class="modal-footer">
-                <button data-action="skip-photo-details" class="modal-button">跳过</button>
-                <button data-action="save-photo-details" class="modal-button primary">保存</button>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button data-action="cancel-photo-upload" class="modal-button" style="color:#f56565;">取消</button>
+                <div>
+                    <button data-action="skip-photo-details" class="modal-button">跳过</button>
+                    <button data-action="save-photo-details" class="modal-button primary">保存</button>
+                </div>
             </div>
         </div>
     </div>
@@ -4576,7 +4896,7 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
                 <div class="music-upload-section">
                     <h4>上传新歌曲</h4>
                     <div class="file-select-wrapper">
-                        <button id="upload-music-btn" class="modal-button">选择音乐 (.mp3)</button>
+                        <button id="upload-music-btn" class="modal-button">选择音乐 (.mp3, .m4a)</button>
                         <span id="upload-music-status" class="status-text"></span>
                     </div>
                      <input type="text" id="music-rename-input" class="modal-input" placeholder="歌曲名称 (自动填充)">
@@ -4587,7 +4907,7 @@ body.theme-glass.dark-mode .codeberg-account-list-container {
                     <div class="confirm-upload-wrapper">
                         <button id="confirm-upload-btn" class="modal-button">确认上传</button>
                     </div>
-                    <input type="file" id="music-file-picker" accept=".mp3" hidden>
+                    <input type="file" id="music-file-picker" accept=".mp3,.m4a" hidden>
                     <input type="file" id="lrc-file-picker" accept=".lrc" hidden>
                 </div>
                 <div class="music-playlist-section">
@@ -5301,14 +5621,20 @@ const getDefaultConfig = () => ({
                             </div>
                             <div style="display: flex; gap: 15px; width:100%; align-items: center;">
                                 <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="5" placeholder="在此粘贴CSS代码，或清空以恢复默认样式" style="flex: 1;"></textarea>
-                                <div id="jelly-css-preview-container">
-                                    <div class="jelly-ball-wrapper">
-                                        <div class="jelly-ball-glow"></div>
-                                        <div id="floating-jellyfish-ball"><span>🪼</span></div>
+                                <!-- [修改] 将预览框和预览按钮包裹在一个垂直布局的容器中 -->
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                    <div id="jelly-css-preview-container">
+                                        <div class="jelly-ball-wrapper">
+                                            <div class="jelly-ball-glow"></div>
+                                            <div id="floating-jellyfish-ball"><span>🪼</span></div>
+                                        </div>
                                     </div>
+                                    <!-- [新增] “预览”按钮 -->
+                                    <button id="previewJellyBallCssBtn" class="modal-button" style="padding: 5px 10px; font-size: 12px; width: auto;">预览</button>
                                 </div>
                             </div>
-                            <button id="applyJellyBallCssBtn" class="modal-button" style="width: 100%;">应用并保存样式</button>
+                            <!-- [修改] 按钮文本改为“应用并刷新” -->
+                            <button id="applyJellyBallCssBtn" class="modal-button" style="width: 100%;">应用并刷新</button>
                         </div>
                     </div>
                 `;
@@ -5358,16 +5684,53 @@ const getDefaultConfig = () => ({
                 }
                 populateCssPresetDropdown();
 
-                function updatePreview() { /* ... (此函数保持不变) ... */ }
-                updatePreview(); // 省略了预览函数的代码，因为它无需改动
+                // ★ 修复：为预览功能提供正确的实现
+                function updatePreview() {
+                    // 获取用于应用自定义CSS的style标签
+                    const customStyleTag = document.getElementById('custom-jelly-ball-styles');
+                    // 确保style标签和css文本框都存在
+                    // cssTextarea 变量是在这个函数外部定义的，在当前作用域中可用
+                    if (customStyleTag && cssTextarea) {
+                        // 将文本框中的CSS内容直接写入style标签，浏览器会自动应用
+                        customStyleTag.innerHTML = cssTextarea.value;
+                    }
+                }
+                // 在弹窗打开时立即调用一次，以显示当前已保存的CSS效果
+                updatePreview(); 
+
+
+                // 获取新按钮
+                const previewCssBtn = modalContent.querySelector('#previewJellyBallCssBtn');
 
                 // 事件监听 (通用部分)
-                cssTextarea.addEventListener('input', updatePreview);
+                
+                // cssTextarea.addEventListener('input', updatePreview); // 1. [修改] 移除或注释掉此行，以关闭实时预览
+                
+                // 2. [新增] 为新添加的“预览”按钮绑定点击事件，调用原有的 updatePreview 函数
+                if (previewCssBtn) {
+                    previewCssBtn.addEventListener('click', updatePreview);
+                }
+
+                // 其他监听器保持不变
                 swipeBackToggle.addEventListener('change', () => { settings.swipeBack = swipeBackToggle.checked; saveGlobalConfig('Update Jellyfish Ball settings'); });
                 randomCssToggle.addEventListener('change', () => { localStorage.setItem('jellyRandomCssEnabled', randomCssToggle.checked); });
                 checkboxContainer.addEventListener('change', e => { if (e.target.dataset.functionId) { if (!settings.functions) settings.functions = {}; settings.functions[e.target.dataset.functionId] = e.target.checked; _renderMenuButtons(); saveGlobalConfig('Update Jellyfish Ball settings'); } });
-                applyCssBtn.addEventListener('click', () => { settings.customCSS = cssTextarea.value; customStyleTag.innerHTML = settings.customCSS; if(ball) { _destroy(); _create(); } saveGlobalConfig('Update Jellyfish Ball CSS'); showTopToast('自定义样式已应用！', 2000); });
+                
+                // 3. [修改] “应用并刷新”按钮的功能
+                applyCssBtn.addEventListener('click', async () => {
+                    // ★ 修复：立即弹出提示，然后再执行保存和刷新操作
+                    showTopToast("设置已保存，正在刷新...", 2000);
+                    
+                    settings.customCSS = cssTextarea.value;
+                    await saveGlobalConfig('Update Jellyfish Ball CSS');
+                    
+                    // 延迟刷新以确保用户能看到提示
+                    setTimeout(() => location.reload(), 500);
+                });
+
+
                 modalContent.querySelector('#show-jelly-css-help').addEventListener('click', () => document.getElementById('jelly-css-help-modal').classList.add('show'));
+
 
                 // ★ 新增：修改预设的弹窗函数 ★
                 function _createModifyPresetModal(preset, index) {
@@ -5444,9 +5807,6 @@ const getDefaultConfig = () => ({
                     updatePreview();
                 });
             }
-
-
-
 
             // 主开关的UI和逻辑控制
             const updateUIVisibility = () => {
@@ -5657,227 +6017,6 @@ const getDefaultConfig = () => ({
             };
 
         })();
-    /* =============================================================== */
-    /* ============== [新增] Codeberg 管理器 V1.1 (修正版) ========== */
-    /* =============================================================== */
-    const CodebergManager = (() => {
-        // [⚠️ 重要] 请在此处填写你在 Codeberg 申请的客户端 ID
-        const CLIENT_ID = '83a6cb6e-f745-4821-b2e1-b7c8ec21ac56';
-        const REDIRECT_URI = window.location.origin + window.location.pathname;
-        const STORAGE_KEY_ACCOUNTS = 'codeberg_accounts';
-        const STORAGE_KEY_ACTIVE = 'codeberg_active_account_username';
-
-        // [核心修正] 将 ui 对象声明为一个空对象，延迟初始化
-        let ui = {};
-
-        // --- 内部辅助函数 ---
-        const _getAccounts = () => JSON.parse(localStorage.getItem(STORAGE_KEY_ACCOUNTS)) || [];
-        const _saveAccounts = (accounts) => localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accounts));
-        const _getActiveUser = () => localStorage.getItem(STORAGE_KEY_ACTIVE);
-        const _setActiveUser = (username) => localStorage.setItem(STORAGE_KEY_ACTIVE, username);
-
-        const _generateRandomString = (length) => {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-            let result = '';
-            const randomValues = new Uint8Array(length);
-            window.crypto.getRandomValues(randomValues);
-            for (let i = 0; i < length; i++) {
-                result += chars[randomValues[i] % chars.length];
-            }
-            return result;
-        };
-
-        const _generateCodeVerifier = () => _generateRandomString(128);
-
-        async function _generateCodeChallenge(verifier) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(verifier);
-            const digest = await window.crypto.subtle.digest('SHA-256', data);
-            return window.btoa(String.fromCharCode(...new Uint8Array(digest)))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=/g, '');
-        }
-
-        // --- UI 渲染函数 ---
-        function _renderActiveAccount() {
-            const activeUser = _getActiveUser();
-            const accounts = _getAccounts();
-            const activeAccount = accounts.find(acc => acc.username === activeUser);
-
-            if (activeAccount) {
-                ui.activeAccountDisplay.textContent = activeAccount.username;
-                ui.activeAccountDisplay.classList.remove('inactive');
-                ui.activeAccountDisplay.classList.add('active');
-            } else {
-                ui.activeAccountDisplay.textContent = '未连接';
-                ui.activeAccountDisplay.classList.add('inactive');
-                ui.activeAccountDisplay.classList.remove('active');
-            }
-        }
-
-        function _renderAuthorizedList() {
-            const accounts = _getAccounts();
-            const activeUser = _getActiveUser();
-            ui.authorizedList.innerHTML = ''; // 清空列表
-
-            if (accounts.length === 0) {
-                ui.authorizedList.innerHTML = '<div class="codeberg-empty-list">暂无已授权的账户</div>';
-                return;
-            }
-
-            accounts.forEach(account => {
-                const item = document.createElement('div');
-                item.className = 'codeberg-account-item';
-                const isActive = account.username === activeUser;
-
-                item.innerHTML = `
-                    <span>${account.username}</span>
-                    <div class="account-actions">
-                        ${isActive ? '' : '<button class="modal-button" data-action="set-active">设为活动</button>'}
-                        <button class="modal-button" data-action="delete" style="color: #e53e3e;">删除</button>
-                    </div>
-                `;
-                item.querySelector('[data-action="delete"]').addEventListener('click', () => _handleAccountDelete(account.username));
-                if (!isActive) {
-                    item.querySelector('[data-action="set-active"]').addEventListener('click', () => _handleAccountSwitch(account.username));
-                }
-                ui.authorizedList.appendChild(item);
-            });
-        }
-        
-        function _renderAll() {
-            _renderActiveAccount();
-            _renderAuthorizedList();
-        }
-
-        // --- 事件处理与逻辑 ---
-        async function _handleAuthorizeClick() {
-            if (CLIENT_ID.startsWith('在此处')) {
-                alert('开发者尚未配置 Codeberg 客户端 ID！');
-                return;
-            }
-            const state = _generateRandomString(43);
-            sessionStorage.setItem('codeberg_oauth_state', state);
-            const codeVerifier = _generateCodeVerifier();
-            sessionStorage.setItem('codeberg_code_verifier', codeVerifier);
-            const codeChallenge = await _generateCodeChallenge(codeVerifier);
-            const params = new URLSearchParams({
-                client_id: CLIENT_ID,
-                redirect_uri: REDIRECT_URI,
-                response_type: 'code',
-                scope: 'repository',
-                state: state,
-                code_challenge: codeChallenge,
-                code_challenge_method: 'S256',
-            });
-            window.location.href = `https://codeberg.org/login/oauth/authorize?${params.toString()}`;
-        }
-        
-        async function _handleOAuthCallback(code, state) {
-            const savedState = sessionStorage.getItem('codeberg_oauth_state');
-            const codeVerifier = sessionStorage.getItem('codeberg_code_verifier');
-            sessionStorage.removeItem('codeberg_oauth_state');
-            sessionStorage.removeItem('codeberg_code_verifier');
-            if (!savedState || savedState !== state) { alert('OAuth 状态校验失败，请重试。'); return; }
-            if (!codeVerifier) { alert('OAuth code_verifier 丢失，请重试。'); return; }
-            try {
-                const tokenResponse = await fetch('https://codeberg.org/login/oauth/access_token', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ client_id: CLIENT_ID, grant_type: 'authorization_code', code: code, redirect_uri: REDIRECT_URI, code_verifier: codeVerifier }),
-                });
-                if (!tokenResponse.ok) throw new Error(`获取 Token 失败: ${tokenResponse.statusText}`);
-                const tokenData = await tokenResponse.json();
-                const userResponse = await fetch('https://codeberg.org/api/v1/user', { headers: { 'Authorization': `token ${tokenData.access_token}` } });
-                if (!userResponse.ok) throw new Error(`获取用户信息失败: ${userResponse.statusText}`);
-                const userData = await userResponse.json();
-                const username = userData.login;
-                let accounts = _getAccounts();
-                const existingAccountIndex = accounts.findIndex(acc => acc.username === username);
-                const newAccount = { username, accessToken: tokenData.access_token };
-                if (existingAccountIndex > -1) { accounts[existingAccountIndex] = newAccount; } 
-                else { accounts.push(newAccount); }
-                _saveAccounts(accounts);
-                _setActiveUser(username);
-                showTopToast(`Codeberg 账户 "${username}" 已成功连接！`, 3000);
-            } catch (error) {
-                console.error("Codeberg OAuth 处理失败:", error);
-                alert(`Codeberg 认证失败: ${error.message}`);
-            }
-        }
-        
-        function _handleAccountDelete(username) {
-            if (!confirm(`确定要删除账户 "${username}" 吗？此操作将移除应用的授权。`)) return;
-            let accounts = _getAccounts();
-            accounts = accounts.filter(acc => acc.username !== username);
-            _saveAccounts(accounts);
-            if (_getActiveUser() === username) {
-                _setActiveUser(accounts.length > 0 ? accounts[0].username : '');
-            }
-            _renderAll();
-            showTopToast(`账户 "${username}" 已删除。`, 2000);
-        }
-
-        function _handleAccountSwitch(username) {
-            _setActiveUser(username);
-            _renderAll();
-            // [核心修改] 检查 "记忆" 模态框是否处于 "文件夹" 视图，如果是，则立即刷新文件列表
-            if (document.getElementById('memoryModal').classList.contains('show') && 
-                document.getElementById('cloud-drive-section').classList.contains('active'))
-            {
-                showTopToast(`活动账户已切换为 "${username}"，正在刷新文件列表...`, 2000);
-                // 延迟一小段时间确保UI更新完成，然后获取文件
-                setTimeout(MemoryApp.fetchFilesForSelectedProject, 100);
-            } else {
-                 showTopToast(`活动账户已切换为 "${username}"。`, 2000);
-            }
-        }
-
-        // --- 公开接口 ---
-        return {
-            getActiveAccount: () => {
-                const activeUser = _getActiveUser();
-                if (!activeUser) return null;
-                return _getAccounts().find(acc => acc.username === activeUser) || null;
-            },
-            init: async () => {
-                // [核心修正] 在 init 函数内部进行 UI 元素的选择，确保DOM已加载
-                ui = {
-                    modal: document.getElementById('codebergSettingsModal'),
-                    openBtn: document.getElementById('codebergSettingsBtn'),
-                    addAccountBtn: document.getElementById('add-codeberg-account-btn'),
-                    activeAccountDisplay: document.getElementById('codeberg-active-account-display'),
-                    authorizedList: document.getElementById('codeberg-authorized-list'),
-                };
-                
-                if (!ui.openBtn) { console.error("CodebergManager: openBtn not found!"); return; }
-
-                ui.openBtn.addEventListener('click', () => {
-                    _renderAll();
-                    ui.modal.classList.add('show');
-                });
-                ui.addAccountBtn.addEventListener('click', (e) => { e.preventDefault(); _handleAuthorizeClick(); });
-                
-                const params = new URLSearchParams(window.location.search);
-                const code = params.get('code');
-                const state = params.get('state');
-                if (code && state) {
-                    document.getElementById('memoryModal').classList.add('show');
-                    document.querySelector('[data-action="goto-cloud"]').click();
-                    await _handleOAuthCallback(code, state);
-                    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                    window.history.replaceState({}, document.title, cleanUrl);
-                    setTimeout(() => { _renderAll(); ui.modal.classList.add('show'); }, 300);
-                }
-            },
-        };
-    })();
-
-
-    /* =============================================================== */
-    /* ========================= [新增结束] ========================== */
-    /* =============================================================== */
 
 
     const utf8_to_b64 = (str) => btoa(unescape(encodeURIComponent(str)));
@@ -7311,7 +7450,345 @@ const getDefaultConfig = () => ({
             }, 3000);
         }
     }
-    document.getElementById('nukeDataBtn').addEventListener('click', nukeAllData);
+// [新增] 用于处理选择性数据清理的函数
+async function selectiveClearData() {
+    const modal = document.getElementById('selectiveClearModal');
+    const checkboxes = modal.querySelectorAll('#clear-options-container input[type="checkbox"]:checked');
+    if (checkboxes.length === 0) {
+        alert('请至少选择一个要清理的项目。');
+        return;
+    }
+
+    const targets = Array.from(checkboxes).map(cb => cb.dataset.clearTarget);
+    const targetNames = {
+        config: '主配置和按钮',
+        memory: '记忆数据',
+        photos: '相册照片文件',
+        music: '漫游音乐文件',
+        projects: '上传的项目文件',
+        drive: '文件夹(云盘)文件',
+        local: '浏览器本地缓存'
+    };
+    const selectedNames = targets.map(t => targetNames[t]).join('、');
+
+    if (!confirm(`⚠️ 再次确认！\n\n您确定要永久删除以下数据吗？\n\n【${selectedNames}】\n\n此操作不可逆！`)) {
+        return;
+    }
+
+    const btn = document.getElementById('confirmSelectiveClearBtn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '正在删除...';
+    showTopToast('正在执行清理操作...', 60000); // 长期提示
+
+    try {
+        if (targets.includes('photos')) {
+            btn.textContent = '删除相册照片...';
+            await deleteGithubFolder('memory/photos');
+        }
+        if (targets.includes('music')) {
+            btn.textContent = '删除音乐文件...';
+            await deleteGithubFolder('memory/music');
+            const musicData = await fetchFromGithub('memory/music_data.json');
+            if (musicData.data) await deleteFromGithub('memory/music_data.json', 'NUKE: Deleting music data', musicData.data.sha, true);
+        }
+        if (targets.includes('memory')) {
+            btn.textContent = '删除记忆数据...';
+            const memoryData = await fetchFromGithub('memory/data.json');
+            if (memoryData.data) await deleteFromGithub('memory/data.json', 'NUKE: Deleting memory data', memoryData.data.sha, true);
+        }
+        if (targets.includes('projects')) {
+            btn.textContent = '删除项目文件...';
+            await deleteGithubFolder('projects');
+        }
+        if (targets.includes('drive')) {
+            btn.textContent = '删除云盘文件...';
+            await deleteGithubFolder('jellyfish_drive');
+        }
+        if (targets.includes('config')) {
+            btn.textContent = '删除主配置...';
+            const configData = await fetchFromGithub('config.json');
+            if (configData.data) await deleteFromGithub('config.json', 'NUKE: Deleting config file', configData.data.sha, true);
+        }
+        if (targets.includes('local')) {
+            btn.textContent = '清空本地缓存...';
+            localStorage.clear();
+        }
+
+        alert('选定的数据已清理。页面将刷新。');
+        location.reload();
+
+    } catch (error) {
+        const userMessage = await handleApiError("数据清理操作", error);
+        alert(`清理失败: ${userMessage}`);
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+// [新增 V2] 为 "高级数据清理" 弹窗添加完整的交互逻辑
+document.addEventListener('DOMContentLoaded', () => {
+    const openClearModalBtn = document.getElementById('openClearDataModalBtn');
+    const confirmClearBtn = document.getElementById('confirmSelectiveClearBtn');
+    const selectAllCheckbox = document.getElementById('selectAllClearOptions');
+    const optionsContainer = document.getElementById('clear-options-container');
+
+    // 打开高级清理弹窗
+    openClearModalBtn?.addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.remove('show');
+        document.getElementById('selectiveClearModal').classList.add('show');
+    });
+
+    // 确认执行清理
+    confirmClearBtn?.addEventListener('click', selectiveClearData);
+
+    // "一键全选" 的核心逻辑
+    if (selectAllCheckbox && optionsContainer) {
+        // 监听 "一键全选" 复选框的变化
+        selectAllCheckbox.addEventListener('change', () => {
+            const isChecked = selectAllCheckbox.checked;
+            const individualCheckboxes = optionsContainer.querySelectorAll('input[type="checkbox"]');
+            individualCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        });
+
+        // 监听下方所有独立复选框的变化，以联动 "一键全选" 的状态
+        optionsContainer.addEventListener('change', (e) => {
+            if (e.target.matches('input[type="checkbox"]')) {
+                const individualCheckboxes = optionsContainer.querySelectorAll('input[type="checkbox"]');
+                const total = individualCheckboxes.length;
+                const checkedCount = optionsContainer.querySelectorAll('input[type="checkbox"]:checked').length;
+                
+                // 如果所有都被选中，则"一键全选"也勾选上；否则取消勾选
+                selectAllCheckbox.checked = total === checkedCount;
+            }
+        });
+    }
+});
+
+
+// <-- 开始替换为 -->
+    /* =============================================================== */
+    /* ============= [新增] 百度网盘集成模块 V1.0 ================ */
+    /* =============================================================== */
+    const BaiduNetdisk = (() => {
+        // [核心] 你的应用API Key，请务必保密
+        const API_CONFIG = {
+            APP_ID: '120616269',
+            APP_KEY: 'VHrQX0UtfM1Aaqzwzx3Wo0CRLJjMqieL',
+            SECRET_KEY: 'zu8jPA3JvCI7QNgEW9m0RfLTI2VwtD2u',
+            SIGN_KEY: 'QfHII+cYCKx@0JlKwtrJBFgy$*Dmy2+p',
+            // 重要：这个重定向URL必须与你在百度开发者平台设置的“安全设置”中的回调地址完全一致！
+            // 对于纯前端应用，通常设置为一个你自己的、可访问的空白页面。
+            // 这里我们用一个通用值，你需要去百度开发者官网后台将它添加进去。
+            REDIRECT_URI: 'https://yeexein.github.io/Jellyfish/',
+            // 应用在网盘中的文件夹名
+            APP_FOLDER_NAME: 'JellyfishDrive'
+        };
+
+        // [核心修改] 在模块顶层声明一个空对象，用于存储UI元素
+        let UI = {};
+
+        // 从localStorage获取所有账户信息
+        function getAccounts() {
+            try {
+                return JSON.parse(localStorage.getItem('baidu_netdisk_accounts') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        // 保存账户信息到localStorage
+        function saveAccounts(accounts) {
+            localStorage.setItem('baidu_netdisk_accounts', JSON.stringify(accounts));
+        }
+
+        // 渲染账户列表
+        function renderAccountList() {
+            const accounts = getAccounts();
+            UI.accountList.innerHTML = '';
+
+            if (accounts.length === 0) {
+                UI.accountList.innerHTML = `<p style="text-align: center; color: #889; padding: 20px 0;">暂未关联任何账户</p>`;
+                return;
+            }
+
+            accounts.forEach((account, index) => {
+                const li = document.createElement('li');
+                li.className = 'baidu-account-item';
+                li.innerHTML = `
+                    <div class="baidu-account-info">
+                        <img src="${account.avatar_url || 'icons/icon-192x192.png'}" alt="avatar" class="baidu-account-avatar">
+                        <span class="baidu-account-name">${account.baidu_name || '未知用户'}</span>
+                    </div>
+                    <button class="modal-button delete" data-index="${index}" style="padding: 8px 12px; font-size: 14px;">解除绑定</button>
+                `;
+                li.querySelector('.delete').addEventListener('click', (e) => {
+                    const indexToRemove = parseInt(e.target.dataset.index, 10);
+                    if (confirm(`确定要解除与用户 "${accounts[indexToRemove].baidu_name}" 的绑定吗？`)) {
+                        removeAccount(indexToRemove);
+                    }
+                });
+                UI.accountList.appendChild(li);
+            });
+        }
+        
+        // 移除指定账户
+        function removeAccount(index) {
+            let accounts = getAccounts();
+            accounts.splice(index, 1);
+            saveAccounts(accounts);
+            renderAccountList();
+            showTopToast("账户已解除绑定。", 2000);
+        }
+
+        // 打开设置弹窗
+        function openSettingsModal() {
+            renderAccountList();
+            UI.statusText.textContent = '';
+            UI.modal.classList.add('show');
+        }
+
+        // 初始化函数，绑定事件
+        function init() {
+            // [核心修改] 将UI元素的获取操作移到init函数内部
+            // 此时页面已加载完毕，可以安全地获取元素
+            UI = {
+                modal: document.getElementById('baiduNetdiskSettingsModal'),
+                accountList: document.getElementById('baidu-account-list'),
+                addBtn: document.getElementById('add-baidu-account-btn'),
+                statusText: document.getElementById('baidu-auth-status'),
+            };
+
+            UI.addBtn.addEventListener('click', () => {
+                // 构建百度OAuth2.0授权URL
+                const authUrl = `https://openapi.baidu.com/oauth/2.0/authorize?response_type=code&client_id=${API_CONFIG.APP_KEY}&redirect_uri=${API_CONFIG.REDIRECT_URI}&scope=basic,netdisk&display=popup`;
+                
+                // 打开一个新窗口进行授权
+                const authWindow = window.open(authUrl, 'baidu_auth', 'width=600,height=500,scrollbars=yes');
+                 
+                 // 轮询检查授权窗口是否已关闭或重定向
+                const timer = setInterval(() => {
+                    // [修复] 增加对 authWindow 是否存在的检查
+                    if (!authWindow || authWindow.closed) {
+                        clearInterval(timer);
+                         if (UI.statusText.textContent === '') { // 仅在没有其他状态时显示
+                            UI.statusText.textContent = '授权窗口已关闭。';
+                         }
+                        return;
+                    }
+                    try {
+                        // 检查窗口的URL是否是我们期望的回调地址
+                        if (authWindow.location.href.startsWith(API_CONFIG.REDIRECT_URI)) {
+                            const url = new URL(authWindow.location.href);
+                            const code = url.searchParams.get('code');
+                            
+                            if (code) {
+                                UI.statusText.textContent = '授权成功，正在获取凭证...';
+                                exchangeCodeForToken(code); // 获取到code后，用它交换token
+                            } else {
+                                UI.statusText.textContent = '授权失败，未获取到授权码。';
+                                console.error("OAuth Error:", url.searchParams.get('error_description'));
+                            }
+
+                            authWindow.close(); // 关闭授权窗口
+                            clearInterval(timer); // 停止轮询
+                        }
+                    } catch (e) {
+                        // 跨域错误是正常的，因为在跳转到百度页面时我们无法访问其location。
+                        // 我们只需要等到它跳回到我们的redirect_uri时即可。
+                    }
+                }, 500);
+            });
+        }
+        
+        // 用授权码交换Access Token
+        async function exchangeCodeForToken(code) {
+            const tokenUrl = `https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code&code=${code}&client_id=${API_CONFIG.APP_KEY}&client_secret=${API_CONFIG.SECRET_KEY}&redirect_uri=${API_CONFIG.REDIRECT_URI}`;
+            
+            try {
+                // 注意：由于浏览器CORS策略，此请求很可能会失败。
+                // 百度OAuth的token获取步骤通常需要在服务器端完成，以保护Secret Key。
+                // 在纯前端环境中，这是一个主要的障碍。
+                // 我们使用你创建的Cloudflare Worker作为CORS代理来绕过这个问题。
+                const proxiedTokenUrl = `https://myjellyfishcors.iixye827.workers.dev/${tokenUrl.replace('://', ':/')}`;
+                const response = await fetch(proxiedTokenUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error_description || '获取Token失败');
+                }
+
+                const data = await response.json();
+                
+                UI.statusText.textContent = '凭证获取成功，正在获取用户信息...';
+
+                // 获取用户信息
+                const userInfo = await getUserInfo(data.access_token);
+
+                if (!userInfo) {
+                    throw new Error('获取用户信息失败');
+                }
+
+                const accounts = getAccounts();
+                // 检查用户是否已绑定
+                const existingAccountIndex = accounts.findIndex(acc => acc.uk === userInfo.uk);
+                
+                const newAccountData = {
+                    ...data,
+                    ...userInfo,
+                    added_at: Date.now()
+                };
+
+                if (existingAccountIndex > -1) {
+                    // 更新已存在账户的token
+                    accounts[existingAccountIndex] = newAccountData;
+                    showTopToast(`账户 "${userInfo.baidu_name}" 的授权已更新！`, 3000);
+                } else {
+                    // 添加新账户
+                    accounts.push(newAccountData);
+                    showTopToast(`成功关联账户: ${userInfo.baidu_name}`, 3000);
+                }
+                
+                saveAccounts(accounts);
+                renderAccountList();
+                UI.statusText.textContent = '';
+
+            } catch (error) {
+                console.error("Error exchanging code for token or fetching user info:", error);
+                UI.statusText.textContent = `操作失败：${error.message}。请检查网络或CORS代理。`;
+                alert(`操作失败: ${error.message}\n\n这可能是由于CORS跨域问题。请确保你的CORS代理服务(如cors-anywhere)是开启状态，或考虑在后端完成此步骤。`);
+            }
+        }
+
+        // 获取用户信息
+        async function getUserInfo(accessToken) {
+            const infoUrl = `https://pan.baidu.com/rest/2.0/xpan/api?method=user.getinfo&access_token=${accessToken}`;
+            // 同样，使用你创建的Cloudflare Worker作为代理
+            const proxiedInfoUrl = `https://myjellyfishcors.iixye827.workers.dev/${infoUrl.replace('://', ':/')}`;
+            const response = await fetch(proxiedInfoUrl);
+
+            if (!response.ok) return null;
+            return await response.json();
+        }
+
+
+        // 模块的公共接口
+        return {
+            init,
+            openSettingsModal,
+        };
+    })();
+
+    /* =============================================================== */
+    /* ========================= [新增结束] ========================== */
+    /* =============================================================== */
+
     
     // ===== [START] MEMORY APP LOGIC =====
     let memoryCache = null; // [修复] 将 memoryCache 提升到模块共享作用域
@@ -7489,17 +7966,20 @@ const getDefaultConfig = () => ({
         function renderMemoFolders() {
             ui.folderList.innerHTML = '';
             memoryCache.memo.folders.forEach(folder => {
+                // [新增] 计算当前文件夹下的笔记数量
+                const itemCount = memoryCache.memo.notes.filter(note => note.folderId === folder.id).length;
                 const isSelected = state.memoFoldersToDelete.includes(folder.id);
                 const el = document.createElement('div');
                 el.className = `folder-item ${state.isMemoManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`;
                 el.dataset.folderId = folder.id;
                 el.dataset.action = "open-memo-folder";
-                // 新增了 sort-handle 和 rename-icon
-                el.innerHTML = `<span class="sort-handle memo-sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div class="folder-icon">📁</div><div class="folder-name">${folder.name}</div><span class="rename-icon" data-action="rename-memo-folder" title="重命名">&#9998;</span>`;
+                // [修改] 在HTML结构中添加项目数量信息，与相册封面对齐
+                el.innerHTML = `<span class="sort-handle memo-sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">📁</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div><span class="rename-icon" data-action="rename-memo-folder" title="重命名">&#9998;</span>`;
                 ui.folderList.appendChild(el);
             });
             if (memoryCache.memo.folders.length === 0) ui.folderList.innerHTML = `<p class="empty-list-placeholder">没有文件夹</p>`;
         }
+
 
         function renderNotes() {
             ui.notesList.innerHTML = '';
@@ -7717,8 +8197,11 @@ const getDefaultConfig = () => ({
                 }
             }
         }
-        
+
+
+
         const actions = {
+            'open-baidu-settings': () => BaiduNetdisk.openSettingsModal(), // <<< 这里添加了逗号
             'goto-memo': () => { showPage('memo-section'); state.currentSection = 'memo'; document.getElementById('memory-modal-title').textContent = '备忘录'; renderMemoFolders(); },
             'goto-album': () => { showPage('album-section'); state.currentSection = 'album'; document.getElementById('memory-modal-title').textContent = '相册'; renderAlbumFolders(); },
             'goto-cloud': () => { 
@@ -8222,7 +8705,8 @@ const getDefaultConfig = () => ({
             let isPhotoSetMode = false;
             const isBatch = totalPhotos > 1;
             ui.photosetToggleContainer.style.display = isBatch ? 'block' : 'none';
-            ui.photosetToggle.checked = isBatch;
+            ui.photosetToggle.checked = false;
+
 
             let photosetData = { id: Date.now(), albumId: state.currentAlbumId, type: 'photoset', title: '', description: '', timestamp: Date.now(), photos: [] };
             
@@ -8242,16 +8726,29 @@ const getDefaultConfig = () => ({
                         ui.photoDetailsModal.querySelector('#upload-thumbnail').src = URL.createObjectURL(file);
                         ui.photoDetailsModal.classList.add('show');
                         
-                        await new Promise(resolve => {
-                            const saveHandler = () => { state.isSavingPhoto = true; resolve(); };
-                            const skipHandler = () => { actions['skip-photo-details'](); state.isSavingPhoto = false; resolve(); };
-                            
+                        await new Promise((resolve, reject) => {
+                            const saveHandler = () => { state.isSavingPhoto = true; cleanUp(); resolve(); };
+                            const skipHandler = () => { actions['skip-photo-details'](); state.isSavingPhoto = false; cleanUp(); resolve(); };
+                            // [新增] 定义取消操作，通过 reject 中断 Promise 链
+                            const cancelHandler = () => { cleanUp(); reject(new Error('Upload cancelled by user')); };
+
                             const saveBtn = ui.photoDetailsModal.querySelector('[data-action="save-photo-details"]');
                             const skipBtn = ui.photoDetailsModal.querySelector('[data-action="skip-photo-details"]');
+                            // [新增] 获取新添加的取消按钮
+                            const cancelBtn = ui.photoDetailsModal.querySelector('[data-action="cancel-photo-upload"]');
 
-                            saveBtn.addEventListener('click', saveHandler, { once: true });
-                            skipBtn.addEventListener('click', skipHandler, { once: true });
+                            const cleanUp = () => {
+                                saveBtn.removeEventListener('click', saveHandler);
+                                skipBtn.removeEventListener('click', skipHandler);
+                                cancelBtn.removeEventListener('click', cancelHandler);
+                            };
+                            
+                            saveBtn.addEventListener('click', saveHandler);
+                            skipBtn.addEventListener('click', skipHandler);
+                            // [新增] 为取消按钮绑定事件
+                            cancelBtn.addEventListener('click', cancelHandler);
                         });
+
                         
                         if (state.isSavingPhoto) {
                             title = document.getElementById('photo-title-input').value.trim();
@@ -8296,11 +8793,19 @@ const getDefaultConfig = () => ({
                 scheduleSave();
 
             } catch (error) {
-                showTopToast('照片上传失败，请检查网络或配置', 4000); // 显示最终失败状态
-                updateStatus('上传失败', true, error.message);
-                alert(error.message); 
-                state.photoUploadQueue = []; 
+                // [新增] 专门处理用户主动取消的逻辑
+                if (error.message === 'Upload cancelled by user') {
+                    showTopToast('上传已取消', 2000);
+                    updateStatus('已取消');
+                    ui.photoDetailsModal.classList.remove('show');
+                } else {
+                    showTopToast('照片上传失败，请检查网络或配置', 4000);
+                    updateStatus('上传失败', true, error.message);
+                    alert(error.message);
+                }
+                state.photoUploadQueue = [];
             } finally {
+
                 // [解决方案 1 清理] 无论成功或失败，都在任务结束后移除标记。
                 const index = activePhotoUploadXHRs.indexOf("photo_upload_session");
                 if (index > -1) {
@@ -8492,498 +8997,240 @@ const getDefaultConfig = () => ({
                     }
                 }
 
-                // [修改] fetchFilesForSelectedProject 重命名并重构为 fetchAllFilesForProject v5 (修复Codeberg时间)
-                async function fetchFilesForSelectedProject() {
+                async function fetchFilesFromGithubProject(projectHref) {
+                    // [新增] 为本次请求创建一个唯一的令牌
                     const requestToken = Symbol();
                     state.cloudDriveRequestToken = requestToken;
+
                     ui.fileList.innerHTML = '';
                     ui.fileListStatus.style.display = 'block';
-                    ui.fileListStatus.textContent = "加载中...";
-                
-                    const projectHref = ui.projectSelector.value;
+
                     const projectConfig = findButtonConfigByHref(projectHref);
+
                     if (!projectConfig) {
                         ui.fileListStatus.textContent = "请选择一个项目以查看文件";
                         return;
                     }
-                
-                    const repoNamePart = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-                
-                    // --- 1. 并行获取所有来源的文件 ---
-                    const promises = [];
-                
-                    // 1a. 添加获取 GitHub 文件的 Promise
-                    if (checkConfig(false)) {
-                        const githubPath = `jellyfish_drive/${repoNamePart}`;
-                        promises.push(
-                            (async () => {
-                                const { data: files } = await fetchFromGithub(githubPath);
-                                if (!files) return [];
-                                
-                                const detailedFiles = await Promise.all(files.map(async f => {
-                                    const { data: commits } = await fetchFromGithub(`../commits?path=${encodeURIComponent(f.path)}&per_page=1`);
-                                    const commitDate = commits?.[0]?.commit?.author?.date;
-                                    return { ...f, storage: 'github', owner: GITHUB_CONFIG.owner, last_commit_date: commitDate };
-                                }));
-                                return detailedFiles;
-                            })().catch(e => {
-                                console.error("加载 GitHub 文件列表时出错:", e);
-                                return [];
-                            })
-                        );
+
+                    const projectName = projectConfig.text;
+                    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `project-${Date.now()}`;
+                    const projectPath = `jellyfish_drive/${folderName}`;
+                    ui.fileListStatus.textContent = "加载中...";
+                    
+                    const { data: files, error } = await fetchFromGithub(projectPath);
+                    
+                    // [新增] 在处理返回数据前，检查令牌是否仍然有效
+                    if(state.cloudDriveRequestToken !== requestToken) {
+                        console.log("文件夹请求已过期，结果被丢弃。");
+                        return; // 如果令牌不匹配（意味着用户已切换项目），则中止函数
                     }
-                
-                    // 1b. 为每个 Codeberg 账户添加获取文件的 Promise
-                    const allCodebergAccounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
-                    for (const cbAccount of allCodebergAccounts) {
-                        const codebergRepoName = repoNamePart || `drive-project-${projectConfig.href.length}`;
-                        const cbRepoUrl = `https://codeberg.org/api/v1/repos/${cbAccount.username}/${codebergRepoName}`;
-                        
-                        // [核心修复] 对 Codeberg 文件也采用先获取列表，再获取每个文件精确日期的策略 
-                        promises.push(
-                            (async () => {
-                                // Step 1: Get file list
-                                const listRes = await fetch(`${cbRepoUrl}/contents/`, { 
-                                    headers: { 'Authorization': `token ${cbAccount.accessToken}` }, cache: 'no-cache' 
-                                });
-                                if (!listRes.ok) return [];
-                                const files = await listRes.json();
-                                
-                                // Step 2: Get detailed commit date for each file
-                                const detailedFiles = await Promise.all(files.map(async f => {
-                                    try {
-                                        const commitRes = await fetch(`${cbRepoUrl}/commits?path=${encodeURIComponent(f.path)}&limit=1`, {
-                                            headers: { 'Authorization': `token ${cbAccount.accessToken}` }, cache: 'no-cache'
-                                        });
-                                        if (!commitRes.ok) return { ...f, last_commit_date: f.last_modified }; // Fallback
-                                        const commits = await commitRes.json();
-                                        const commitDate = commits?.[0]?.created;
-                                        return { ...f, storage: 'codeberg', owner: cbAccount.username, last_commit_date: commitDate || f.last_modified };
-                                    } catch (e) {
-                                        return { ...f, storage: 'codeberg', owner: cbAccount.username, last_commit_date: f.last_modified }; // Fallback on error
-                                    }
-                                }));
-                                return detailedFiles;
-                            })().catch(e => {
-                                console.warn(`加载 Codeberg 账户 ${cbAccount.username} 的文件列表失败:`, e);
-                                return [];
-                            })
-                        );
+
+                    if (error) { 
+                        ui.fileListStatus.textContent = `加载失败: ${error}`; 
+                        return; 
                     }
-                
-                    // --- 2. 等待所有请求完成并合并结果 ---
-                    const results = await Promise.allSettled(promises);
-                    if (state.cloudDriveRequestToken !== requestToken) return;
-                
-                    const allFiles = results
-                        .filter(result => result.status === 'fulfilled' && Array.isArray(result.value))
-                        .flatMap(result => result.value)
-                        .sort((a, b) => new Date(b.last_commit_date || 0) - new Date(a.last_commit_date || 0)); // [修复] 按统一的 last_commit_date 字段排序
-                
-                    // --- 3. 渲染UI (此部分无需修改) ---
-                    if (allFiles.length === 0) {
+
+                    if (!files || files.length === 0) {
                         ui.fileListStatus.textContent = "该项目下暂无文件";
                         return;
                     }
-                
+
                     ui.fileListStatus.style.display = "none";
-                    allFiles.forEach(file => {
+                    
+                    for (const file of files) {
+                        // [新增] 在每次异步操作（如获取日期）后都检查令牌
+                        if(state.cloudDriveRequestToken !== requestToken) { return; }
+
                         const li = document.createElement("li");
-                        const ownerName = file.owner || '未知用户';
-                        const ownerSpan = `<span class="file-owner">${ownerName}</span>`;
-                        const sizeText = formatFileSize(file.size);
-                        // [修复] 统一使用 last_commit_date
-                        const dateText = new Date(file.last_commit_date || Date.now()).toISOString().split('T')[0];
-                        const metaText = `${dateText} • ${sizeText}`;
-                
-                        li.innerHTML = `
-                            <div class="file-info" data-storage="${file.storage}" data-owner="${file.owner}">
-                                <span class="file-name">${file.name}</span>
-                                <span class="file-meta" data-path="${file.path}">${ownerSpan} ${metaText}</span>
-                            </div>
-                            <button class="delete-btn" data-sha="${file.sha}">&times;</button>
-                        `;
-                        if (file.storage === 'codeberg') {
-                            const fileNameSpan = li.querySelector('.file-name');
-                            fileNameSpan.textContent = " " + fileNameSpan.textContent; 
-                            const iconNode = document.createTextNode('📦 ');
-                            fileNameSpan.prepend(iconNode);
-                        }
+                        
+                        const sizeText = formatFileSize(file.size); 
+                        const dateText = await getFileCommitDate(file.path);
+
+                        // [新增] 这是最后一个检查点，在渲染到DOM之前再次确认
+                        if(state.cloudDriveRequestToken !== requestToken) { return; }
+
+                        const metaText = `${sizeText} • ${dateText}`;
+
+                        li.innerHTML = `<div class="file-info"><span class="file-name">${file.name}</span><span class="file-meta" data-path="${file.path}">${metaText}</span></div><button class="delete-btn" data-sha="${file.sha}">&times;</button>`;
                         ui.fileList.appendChild(li);
-                
-                        li.querySelector(".file-info").addEventListener("click", () => forceDownload(file, li));
-                        li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file, li));
-                    });
+                        
+                        li.querySelector(".file-info").addEventListener("click", () => forceDownload(file.path, file.name, li));
+                        li.querySelector(".delete-btn").addEventListener("click", () => deleteFile(file.path, file.sha, li));
+                    }
                 }
 
+        async function getLatestCommitDate(e){const t=`https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/commits?path=${encodeURIComponent(e)}&page=1&per_page=1`;try{const n=await fetch(t,{headers:{"Authorization":`token ${GITHUB_CONFIG.token}`},cache:"no-cache"});if(!n.ok)return(new Date(0)).toISOString().split('T')[0];const o=await n.json();return o[0]?.commit.committer.date.split('T')[0]||(new Date(0)).toISOString().split('T')[0]}catch(n){return console.error(`Error fetching commit date for ${e}:`,n),(new Date(0)).toISOString().split('T')[0]}}async function deleteFile(e,t,n){
+    const originalFileName = n.querySelector(".file-name").textContent;
+    if(!confirm(`确定要永久删除文件 "${originalFileName}" 吗？`))return;
+    
+    // --- [新增功能] ---
+    const fileNameSpan = n.querySelector(".file-name");
+    const deleteButton = n.querySelector(".delete-btn");
+    fileNameSpan.textContent = "正在删除...";
+    deleteButton.style.display = "none"; // 隐藏删除按钮
+    n.style.pointerEvents = "none"; // 禁止重复点击
+    n.style.opacity="0.7";
+    // --- [新增结束] ---
+    
+    try{ 
+        const success = await deleteFromGithub(e, `Delete file: ${e}`, t); 
+        if (success) { 
+            n.remove(); 
+            if(ui.fileList.children.length === 0) { 
+                ui.fileListStatus.textContent = '该文件夹下暂无文件'; 
+                ui.fileListStatus.style.display = 'block'; 
+            } 
+        } else { 
+            // --- [优化] 恢复状态 ---
+            fileNameSpan.textContent = originalFileName;
+            deleteButton.style.display = "flex";
+            n.style.pointerEvents = "auto";
+            n.style.opacity = "1";
+            // --- [优化结束] ---
+        } 
+    } catch(err) { 
+         // --- [优化] 恢复状态 ---
+         fileNameSpan.textContent = originalFileName;
+         deleteButton.style.display = "flex";
+         n.style.pointerEvents = "auto";
+         n.style.opacity = "1";
+         // --- [优化结束] ---
+    }
+}
 
+        async function forceDownload(path, filename, el) {
+            const fileNameSpan = el.querySelector(".file-name");
+            const originalText = fileNameSpan.textContent;
+            el.style.pointerEvents = "none";
 
-                // [V2 修复] 重构 forceDownload 函数，整合账户检查逻辑
-                async function forceDownload(file, el) {
-                    const fileNameSpan = el.querySelector(".file-name");
-                    const originalText = fileNameSpan.textContent;
-                    el.style.pointerEvents = "none";
-                    fileNameSpan.textContent = "准备中...";
-                
-                    try {
-                        let url, authToken, acceptHeader;
-                        
-                        // [核心修复] 根据文件来源动态设置认证和URL
-                        if (file.storage === 'codeberg') {
-                            const activeAccount = CodebergManager.getActiveAccount();
-                            const fileOwner = file.owner; // 直接从文件对象获取所有者
-                
-                            if (!activeAccount || activeAccount.username !== fileOwner) {
-                                promptToSwitchCodebergAccount(fileOwner, () => {
-                                    setTimeout(() => el.querySelector(".file-info").click(), 200);
-                                });
-                                // 恢复UI状态并中断
-                                fileNameSpan.textContent = originalText;
-                                el.style.pointerEvents = "auto";
-                                return;
-                            }
-                
-                            const repoName = findButtonConfigByHref(ui.projectSelector.value).text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-                            url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/media/${file.path}`;
-                            authToken = `token ${activeAccount.accessToken}`;
-                            acceptHeader = 'application/octet-stream';
-                        } else { // GitHub
-                            url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${file.path}`;
-                            authToken = `token ${GITHUB_CONFIG.token}`;
-                            acceptHeader = 'application/vnd.github.v3.raw';
-                        }
-                
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('GET', url, true);
-                        xhr.setRequestHeader('Authorization', authToken);
-                        xhr.setRequestHeader('Accept', acceptHeader);
-                        xhr.responseType = 'blob';
-                
-                        let lastProgressText = '';
-                        xhr.onprogress = (event) => {
-                            let newProgressText = '正在下载...';
-                            if (event.lengthComputable) { newProgressText = `下载中... ${Math.round((event.loaded / event.total) * 100)}%`; }
-                            if (newProgressText !== lastProgressText) { fileNameSpan.textContent = newProgressText; lastProgressText = newProgressText;}
-                        };
-                
-                        xhr.onload = () => {
-                            if (xhr.status === 200) {
-                                const blobUrl = URL.createObjectURL(xhr.response);
-                                const link = document.createElement("a");
-                                link.href = blobUrl;
-                                link.download = file.name;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(blobUrl);
-                                fileNameSpan.textContent = "下载完成";
-                            } else {
-                                fileNameSpan.textContent = "下载失败";
-                                alert(`下载失败: ${xhr.status} ${xhr.statusText}`);
-                            }
-                             setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
-                        };
-                
-                        xhr.onerror = () => {
-                            fileNameSpan.textContent = "下载错误";
-                            alert("下载时发生网络错误");
-                              setTimeout(() => { fileNameSpan.textContent = originalText; el.style.pointerEvents = "auto"; }, 2000);
-                        };
-                        
-                        fileNameSpan.textContent = "准备下载...";
-                        xhr.send();
-                
-                    } catch (error) {
-                        alert("准备下载时出错: " + error.message);
+            try {
+                const xhr = new XMLHttpRequest();
+                const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
+                xhr.open('GET', url, true);
+                xhr.setRequestHeader('Authorization', `token ${GITHUB_CONFIG.token}`);
+                xhr.setRequestHeader('Accept', 'application/vnd.github.v3.raw');
+                xhr.responseType = 'blob';
+
+                let lastProgressText = '';
+                xhr.onprogress = (event) => {
+                    let newProgressText = '正在下载...';
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        newProgressText = `下载中... ${percentComplete}%`;
+                    }
+                    if (newProgressText !== lastProgressText) {
+                        fileNameSpan.textContent = newProgressText;
+                        lastProgressText = newProgressText;
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const blob = xhr.response;
+                        const blobUrl = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = blobUrl;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(blobUrl);
+                        fileNameSpan.textContent = "下载完成";
+                    } else {
+                        fileNameSpan.textContent = "下载失败";
+                        alert(`下载失败: ${xhr.statusText}`);
+                    }
+                    
+                    setTimeout(() => {
                         fileNameSpan.textContent = originalText;
                         el.style.pointerEvents = "auto";
-                    }
-                }
+                    }, 2000);
+                };
 
-                async function deleteFile(file, el) {
-                    // ============ [核心修正 V2] 新增权限检查 ============
-                    const activeCbAccount = CodebergManager.getActiveAccount();
-                    const currentActiveUsername = activeCbAccount ? activeCbAccount.username : null;
+                xhr.onerror = async () => {
+                    fileNameSpan.textContent = "下载错误";
+                    alert(await handleApiError("下载文件", new Error("网络错误")));
+                    setTimeout(() => {
+                        fileNameSpan.textContent = originalText;
+                        el.style.pointerEvents = "auto";
+                    }, 2000);
+                };
 
-                    if (file.storage === 'codeberg' && file.owner !== currentActiveUsername) {
-                        alert(`删除失败！\n\n此文件属于账户【${file.owner}】。\n请先将活动账户切换为【${file.owner}】后再尝试删除。`);
-                        return;
-                    }
-                    // ========================= [修正结束] =========================
+                fileNameSpan.textContent = "准备下载...";
+                xhr.send();
 
-                    const confirmation = confirm(`确定要永久删除文件 "${file.name}" 吗？`);
-                    if (!confirmation) return;
-
-                    el.style.opacity = '0.5';
-                    el.style.pointerEvents = 'none';
-                    let success = false;
-
-                    try {
-                        if (file.storage === 'codeberg' && activeCbAccount) {
-                            const repoName = findButtonConfigByHref(ui.projectSelector.value).text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
-                            const url = `https://codeberg.org/api/v1/repos/${currentActiveUsername}/${repoName}/contents/${file.path}`;
-                            const res = await fetch(url, {
-                                method: 'DELETE',
-                                headers: { 'Authorization': `token ${activeCbAccount.accessToken}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ message: `Delete file: ${file.name}`, sha: file.sha })
-                            });
-                            success = res.ok;
-                            if (!success) throw new Error(await res.text());
-                        } else { // GitHub
-                            success = await deleteFromGithub(file.path, `Delete file: ${file.name}`, file.sha);
-                        }
-
-                        if (success) {
-                            el.remove();
-                            showTopToast(`文件 "${file.name}" 已删除。`, 2000);
-                            if (ui.fileList.children.length === 0) {
-                                ui.fileListStatus.textContent = "该项目下暂无文件";
-                                ui.fileListStatus.style.display = 'block';
-                            }
-                        } else {
-                           throw new Error('API request failed');
-                        }
-                    } catch (error) {
-                        alert(`删除失败: ${error.message}`);
-                        el.style.opacity = '1';
-                        el.style.pointerEvents = 'auto';
-                    }
-                }
-
+            } catch (error) {
+                alert(await handleApiError("准备下载时出错", error));
+                fileNameSpan.textContent = originalText;
+                el.style.pointerEvents = "auto";
+            }
+        }
                 async function uploadFile() {
-                    const FILE_SIZE_LIMIT_MB = 50;
                     if (activeUploadXHR) {
-                        if (confirm("当前有文件正在上传，要终止它吗？")) {
+                        if(confirm("当前有文件正在上传，要终止它吗？")) {
                             activeUploadXHR.abort();
                         }
                         return;
                     }
-                    
+                    if (!checkConfig(true)) return;
+
                     const selectedProjectHref = ui.projectSelector.value;
                     const file = ui.fileUploader.files[0];
                     let fileName = ui.fileNameInput.value.trim() || (file && file.name);
 
-                    if (!selectedProjectHref || !file || !fileName) {
-                        return alert("请选择要上传到的项目、文件，并确保文件名不为空。");
-                    }
-                    
-                    const useCodeberg = file.size >= FILE_SIZE_LIMIT_MB * 1024 * 1024;
-                    
-                    // 根据文件大小选择上传服务
-                    if (useCodeberg) {
-                        await uploadToCodeberg(file, fileName, selectedProjectHref);
-                    } else {
-                        await uploadToGithub(file, fileName, selectedProjectHref);
-                    }
-                }
-                
-                // [V2 修复] 重命名并再次确认缓存策略，确保检查仓库存在的请求不会被缓存
-                async function doesCodebergRepoExist(repoName, authToken) {
-                    const activeAccount = CodebergManager.getActiveAccount();
-                    if (!activeAccount) return false;
-                
-                    const url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}`;
-                    try {
-                        const response = await fetch(url, {
-                            method: 'GET',
-                            headers: { 'Authorization': authToken },
-                            cache: 'no-cache' // [核心修复] 强制不使用缓存，确保获取最新状态
-                        });
-                        return response.ok; // 如果仓库存在，API会返回200 OK
-                    } catch (error) {
-                        console.error('检查Codeberg仓库是否存在时出错:', error);
-                        return false;
-                    }
-                }
+                    if (!selectedProjectHref || !file || !fileName) { return alert("请选择要上传到的项目、文件，并确保文件名不为空。"); }
+                    const projectConfig = findButtonConfigByHref(selectedProjectHref);
+                    if (!projectConfig) { return alert("此项目配置无效。"); }
 
-                // [新增] Codeberg 账号切换确认弹窗
-                function promptToSwitchCodebergAccount(targetUsername, onSwitchCallback) {
-                    // 防止重复创建
-                    document.getElementById('codeberg-switch-prompt')?.remove();
-
-                    const promptOverlay = document.createElement('div');
-                    promptOverlay.id = 'codeberg-switch-prompt';
-                    promptOverlay.className = 'modal-overlay show';
-                    promptOverlay.style.zIndex = '3000'; // 确保在最上层
-                    
-                    const activeUsername = CodebergManager.getActiveAccount()?.username || '未登录';
-
-                    promptOverlay.innerHTML = `
-                        <div class="modal-content" style="max-width: 400px;">
-                            <div class="modal-header"><div class="modal-title-group">⚠️ 账号不匹配</div></div>
-                            <div class="modal-body">
-                                <p>此文件属于账户 <strong>${targetUsername}</strong>。</p>
-                                <p>您当前的活动账户是 <strong>${activeUsername}</strong>。</p>
-                                <p>您是否要切换到 <strong>${targetUsername}</strong> 并继续下载？</p>
-                            </div>
-                            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                                <button id="cancel-switch-btn" class="modal-button">取消</button>
-                                <button id="confirm-switch-btn" class="modal-button primary">切换并下载</button>
-                            </div>
-                        </div>
-                    `;
-
-                    document.body.appendChild(promptOverlay);
-                    
-                    const closeModal = () => promptOverlay.remove();
-                    
-                    promptOverlay.querySelector('#cancel-switch-btn').addEventListener('click', closeModal);
-                    promptOverlay.querySelector('#confirm-switch-btn').addEventListener('click', () => {
-                        // 在CodebergManager中找到对应的事件处理函数并调用
-                        const accounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
-                        const targetAccount = accounts.find(acc => acc.username === targetUsername);
-                        if (targetAccount) {
-                            localStorage.setItem('codeberg_active_account_username', targetUsername);
-                            showTopToast(`活动账户已切换为 "${targetUsername}"。`, 2000);
-
-                            // 如果提供了回调函数，则执行它
-                            if (typeof onSwitchCallback === 'function') {
-                                onSwitchCallback();
-                            }
-                        } else {
-                            alert(`切换失败，未在本地找到账户 ${targetUsername} 的授权信息。`);
-                        }
-                        closeModal();
-                    });
-                     promptOverlay.addEventListener('click', (e) => { if(e.target === promptOverlay) closeModal(); });
-                }
-                // [新增] Codeberg 账号切换确认弹窗
-                function promptToSwitchCodebergAccount(targetUsername, onSwitchCallback) {
-                    // 防止重复创建
-                    document.getElementById('codeberg-switch-prompt')?.remove();
-
-                    const promptOverlay = document.createElement('div');
-                    promptOverlay.id = 'codeberg-switch-prompt';
-                    promptOverlay.className = 'modal-overlay show';
-                    promptOverlay.style.zIndex = '3000'; // 确保在最上层
-                    
-                    const activeUsername = CodebergManager.getActiveAccount()?.username || '未登录';
-
-                    promptOverlay.innerHTML = `
-                        <div class="modal-content" style="max-width: 400px;">
-                            <div class="modal-header"><div class="modal-title-group">⚠️ 账号不匹配</div></div>
-                            <div class="modal-body">
-                                <p>此文件属于账户 <strong>${targetUsername}</strong>。</p>
-                                <p>您当前的活动账户是 <strong>${activeUsername}</strong>。</p>
-                                <p>您是否要切换到 <strong>${targetUsername}</strong> 并继续下载？</p>
-                            </div>
-                            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
-                                <button id="cancel-switch-btn" class="modal-button">取消</button>
-                                <button id="confirm-switch-btn" class="modal-button primary">切换并下载</button>
-                            </div>
-                        </div>
-                    `;
-
-                    document.body.appendChild(promptOverlay);
-                    
-                    const closeModal = () => promptOverlay.remove();
-                    
-                    promptOverlay.querySelector('#cancel-switch-btn').addEventListener('click', closeModal);
-                    promptOverlay.querySelector('#confirm-switch-btn').addEventListener('click', () => {
-                        // 在CodebergManager中找到对应的事件处理函数并调用
-                        const accounts = JSON.parse(localStorage.getItem('codeberg_accounts') || '[]');
-                        const targetAccount = accounts.find(acc => acc.username === targetUsername);
-                        if (targetAccount) {
-                            localStorage.setItem('codeberg_active_account_username', targetUsername);
-                            showTopToast(`活动账户已切换为 "${targetUsername}"。`, 2000);
-
-                            // 如果提供了回调函数，则执行它
-                            if (typeof onSwitchCallback === 'function') {
-                                onSwitchCallback();
-                            }
-                        } else {
-                            alert(`切换失败，未在本地找到账户 ${targetUsername} 的授权信息。`);
-                        }
-                        closeModal();
-                    });
-                     promptOverlay.addEventListener('click', (e) => { if(e.target === promptOverlay) closeModal(); });
-                }
-
-                // [V2 修复] Codeberg 上传函数
-                async function uploadToCodeberg(file, fileName, projectHref) {
-                    const activeAccount = CodebergManager.getActiveAccount();
-                    if (!activeAccount) {
-                        alert("检测到文件大于50MB，需要使用Codeberg存储。\n\n请先在 Codeberg 设置中连接并激活一个账户！");
-                        document.getElementById('codebergSettingsBtn').click();
-                        return;
-                    }
-                
-                    const projectConfig = findButtonConfigByHref(projectHref);
-                    if (!projectConfig) { return alert("项目配置无效。"); }
-                    const repoName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-") || `drive-project-${projectConfig.href.length}`; // [修复] 为无名称按钮提供更稳定的仓库名
-                    const authToken = `token ${activeAccount.accessToken}`;
-                
-                    showTopToast(`文件将上传至Codeberg账户: ${activeAccount.username}`, 3000);
-                    
-                    // [核心修复] 调用重命名后的函数
-                    const repoExists = await doesCodebergRepoExist(repoName, authToken);
-
-                    // 如果仓库不存在，则尝试创建
-                    if (!repoExists) {
-                        showTopToast(`正在为项目 "${projectConfig.text}" 创建Codeberg仓库...`, 3000);
-                        const repoCreateUrl = 'https://codeberg.org/api/v1/user/repos';
-                        try {
-                            const repoCreateRes = await fetch(repoCreateUrl, {
-                                method: 'POST',
-                                headers: { 'Authorization': authToken, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ name: repoName, "private": true, "description": `Jellyfish Island drive for project: ${projectConfig.text}` })
-                            });
-                
-                            // [修复] 422 状态码通常是 "仓库已存在" 的错误，我们应该接受它
-                            if (!repoCreateRes.ok && repoCreateRes.status !== 422) {
-                                const errorData = await repoCreateRes.json();
-                                throw new Error(errorData.message || `创建仓库失败, 状态码: ${repoCreateRes.status}`);
-                            }
-                        } catch (e) {
-                            alert(`创建Codeberg仓库失败: ${e.message}`);
-                            return;
-                        }
-                    }
-                
-                    const path = `${fileName}`;
-                    const url = `https://codeberg.org/api/v1/repos/${activeAccount.username}/${repoName}/contents/${path}`;
-
-                    setupAndRunUpload(file, url, authToken);
-                }
-
-                
-                // [新增] GitHub 上传函数 (从原 uploadFile 逻辑中提取)
-                async function uploadToGithub(file, fileName, projectHref) {
-                     if (!checkConfig(true)) return;
-                     const projectConfig = findButtonConfigByHref(projectHref);
-                     if (!projectConfig) { return alert("项目配置无效。"); }
-                    const folderName = projectConfig.text.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+                    const projectName = projectConfig.text;
+                    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
                     const path = `jellyfish_drive/${folderName}/${fileName}`;
                     const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
-                    
-                    setupAndRunUpload(file, url, `token ${GITHUB_CONFIG.token}`);
-                }
 
-                // [新增] 通用上传逻辑函数
-                async function setupAndRunUpload(file, url, authToken) {
-                    let progressToast = null;
+                    // --- [修改] UI 准备 ---
+                    let progressToast = null; // 用于管理顶部持久化进度提示框
+
+                    // --- [新增] 创建/更新/销毁 顶部提示框的函数 ---
                     const manageProgressToast = (status, isFinal = false, duration = 3000) => {
-                        if (isFinal && !progressToast) { showTopToast(status, duration); return; }
+                        // 如果是最终状态（成功/失败），但提示框从未被创建（即用户未关闭弹窗），则直接使用标准的 showTopToast
+                        if (isFinal && !progressToast) {
+                            showTopToast(status, duration);
+                            return;
+                        }
+
+                        // 如果提示框不存在，则创建它 (仅在非最终状态或模态框关闭后调用)
                         if (!progressToast) {
                             progressToast = document.createElement('div');
                             progressToast.className = 'top-toast';
                             document.body.appendChild(progressToast);
-                            setTimeout(() => { if (progressToast) progressToast.classList.add('show'); }, 50);
+                            // 触发显示动画
+                            setTimeout(() => {
+                                if (progressToast) progressToast.classList.add('show');
+                            }, 50);
                         }
+
+                        // 更新内容
                         progressToast.textContent = status;
+
+                        // 如果是最终状态，安排移除
                         if (isFinal) {
                             setTimeout(() => {
                                 if (progressToast) {
                                     progressToast.classList.remove('show');
-                                    progressToast.addEventListener('transitionend', () => { if (progressToast) progressToast.remove(); progressToast = null; }, { once: true });
+                                    progressToast.addEventListener('transitionend', () => {
+                                        if (progressToast) progressToast.remove();
+                                        progressToast = null; // 清理引用
+                                    }, { once: true });
                                 }
                             }, duration);
                         }
                     };
-
+                    
+                    // --- [修改] 监听主上传模态框的关闭 ---
                     const modalObserver = new MutationObserver(mutations => {
                         for (const mutation of mutations) {
-                            if (mutation.attributeName === 'class' && !ui.modal.classList.contains('show') && activeUploadXHR) {
+                            if (mutation.attributeName === 'class' && !mutation.target.classList.contains('show') && activeUploadXHR) {
+                                // 当模态框关闭时，创建顶部持久提示框
                                 const currentProgress = parseInt(ui.progressBar.style.width, 10) || 0;
                                 manageProgressToast(`上传中... ${currentProgress}%`);
                                 modalObserver.disconnect();
@@ -8991,61 +9238,20 @@ const getDefaultConfig = () => ({
                             }
                         }
                     });
-                    modalObserver.observe(ui.modal, { attributes: true });
+                    modalObserver.observe(document.getElementById('memoryModal'), { attributes: true });
 
+                    // --- 核心上传逻辑 ---
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onload = async () => {
                         const contentB64 = reader.result.split(',')[1];
+                        const { data: existingFile } = await fetchFromGithub(path);
                         
-                        let existingFileSha = null;
-                        try {
-                            const shaRes = await fetch(url, { 
-                                method: 'GET', 
-                                headers: { 'Authorization': authToken },
-                                cache: 'no-cache'
-                            });
-                            if (shaRes.ok) {
-                                const fileData = await shaRes.json();
-                                existingFileSha = fileData.sha;
-                            }
-                        } catch(e) { console.warn("Could not fetch existing file sha, proceeding with create.", e); }
-
-                        // ============ [核心修正 V2] 根据上传目标服务，决定请求方法 ============
-                        const isGithubUpload = url.includes('api.github.com');
-                        let body;
-                        let method;
-
-                        if (isGithubUpload) {
-                            method = 'PUT'; // GitHub 强制使用 PUT
-                            body = {
-                                message: `Upload file via Jellyfish: ${file.name}`,
-                                content: contentB64,
-                            };
-                            if (existingFileSha) {
-                                body.sha = existingFileSha; // 仅在更新时添加 sha
-                            }
-                        } else { // 假定为 Codeberg/Gitea 逻辑
-                            if (existingFileSha) {
-                                method = 'PUT'; // 更新使用 PUT
-                                body = {
-                                    message: `Update file: ${file.name}`,
-                                    content: contentB64,
-                                    sha: existingFileSha
-                                };
-                            } else {
-                                method = 'POST'; // 创建使用 POST
-                                body = {
-                                    message: `Create file: ${file.name}`,
-                                    content: contentB64
-                                };
-                            }
-                        }
-                        // ========================= [修正结束] =========================
+                        const body = { message: `Upload ${fileName} to Drive`, content: contentB64, branch: 'main', sha: existingFile?.sha };
                         
                         activeUploadXHR = new XMLHttpRequest();
-                        activeUploadXHR.open(method, url, true); 
-                        activeUploadXHR.setRequestHeader('Authorization', authToken);
+                        activeUploadXHR.open('PUT', url, true);
+                        activeUploadXHR.setRequestHeader('Authorization', `token ${GITHUB_CONFIG.token}`);
                         activeUploadXHR.setRequestHeader('Content-Type', 'application/json');
                         
                         const uploadCancelBtn = document.getElementById('upload-cancel-btn');
@@ -9055,12 +9261,16 @@ const getDefaultConfig = () => ({
                         activeUploadXHR.upload.onprogress = (e) => {
                             if (e.lengthComputable) {
                                 const percent = (e.loaded / e.total) * 100;
-                                ui.progressBar.style.width =`${percent}%`;
-                                if(progressToast) manageProgressToast(`上传中... ${Math.round(percent)}%`);
+                                ui.progressBar.style.width = `${percent}%`;
+                                // 如果顶部提示框已存在，同步更新进度
+                                if(progressToast) {
+                                    manageProgressToast(`上传中... ${Math.round(percent)}%`);
+                                }
                             }
                         };
+
                         activeUploadXHR.onload = function() {
-                           if (this.status >= 200 && this.status < 300) {
+                            if (this.status >= 200 && this.status < 300) {
                                 manageProgressToast("上传成功！", true, 2000);
                                 fetchFilesForSelectedProject();
                                 ui.fileUploader.value = "";
@@ -9068,23 +9278,36 @@ const getDefaultConfig = () => ({
                                 ui.selectedFileName.textContent = '未选择任何文件';
                             } else {
                                 const errorMsg = JSON.parse(this.responseText).message || `HTTP ${this.status}`;
-                                manageProgressToast(`上传失败: ${errorMsg}`, true, 4000);
+                                manageProgressToast(`上传失败`, true, 4000);
+                                alert(`上传失败: ${errorMsg}`);
                             }
                             cleanup();
                         };
-                        activeUploadXHR.onerror = () => { manageProgressToast("网络错误", true, 4000); cleanup(); };
-                        activeUploadXHR.onabort = () => { manageProgressToast("已取消", true, 2000); cleanup(); };
+
+                        activeUploadXHR.onerror = () => { 
+                            manageProgressToast("网络错误", true, 4000);
+                            alert("上传失败，请检查网络连接。"); 
+                            cleanup(); 
+                        };
+
+                        activeUploadXHR.onabort = () => { 
+                            manageProgressToast("已取消", true, 2000);
+                            cleanup(); 
+                        };
+
                         const cleanup = () => {
                             uploadCancelBtn.removeEventListener('click', uploadCancelHandler);
                             ui.progressContainer.style.display = 'none';
                             activeUploadXHR = null;
                             modalObserver.disconnect();
+                            // 如果清理时，toast 仍在且不处于最终状态，则立即移除
                             if (progressToast && !progressToast.textContent.includes('成功') && !progressToast.textContent.includes('失败') && !progressToast.textContent.includes('取消')) {
                                 progressToast.classList.remove('show');
                                 progressToast.addEventListener('transitionend', () => progressToast.remove(), { once: true });
                                 progressToast = null;
                             }
                         };
+
                         ui.progressContainer.style.display = 'flex';
                         ui.progressBar.style.width = '0%';
                         activeUploadXHR.send(JSON.stringify(body));
@@ -9094,11 +9317,41 @@ const getDefaultConfig = () => ({
 
 
         return {
-            open: () => {
-                if (!checkConfig(true)) { document.getElementById('settingsModal').classList.add('show'); return; }
-                ui.modal.classList.add('show');
-                if (!memoryCache) { syncWithGithub(); }
-            },
+// [修改] 优化加载逻辑，避免白屏
+open: async () => {
+    if (!checkConfig(true)) { 
+        document.getElementById('settingsModal').classList.add('show'); 
+        return; 
+    }
+    
+    // 1. 立即显示模态框
+    ui.modal.classList.add('show');
+
+    // 2. 检查数据是否已在内存中
+    if (memoryCache) {
+        // 如果有缓存数据，直接渲染入口页面，不阻塞UI
+        document.getElementById('memory-modal-title').textContent = '记忆';
+        showPage('hub-view');
+        // 可以在后台静默同步一次最新数据，保证数据新鲜度
+        syncWithGithub().then(() => {
+            console.log("Memory data silently synced in background.");
+        });
+    } else {
+        // 3. 如果没有缓存数据，显示加载状态
+        const hubView = document.getElementById('hub-view');
+        const originalHubContent = hubView.innerHTML; // 保存原始HTML以便恢复
+        hubView.innerHTML = '<p class="empty-list-placeholder" style="margin-top: 100px; font-size: 16px;">正在从云端加载记忆模块...</p>';
+        
+        // 4. 异步等待数据同步完成
+        await syncWithGithub();
+        
+        // 5. 数据同步完成后，恢复UI并渲染
+        hubView.innerHTML = originalHubContent; // 恢复原来的按钮
+        showPage('hub-view'); // 确保hub-view是激活状态
+        document.getElementById('memory-modal-title').textContent = '记忆';
+    }
+},
+
             init: () => {
                  photoObserver = new IntersectionObserver((entries, observer) => {
                     entries.forEach(entry => {
@@ -9160,62 +9413,7 @@ const getDefaultConfig = () => ({
                     });
                 };
 
-                toolbar.addEventListener('click', (e) => {
-                    const button = e.target.closest('.toolbar-btn');
-                    if (!button) return;
 
-                    const command = button.dataset.command;
-                    editor.focus();
-
-                    if (command === 'createCodeBlock') {
-                        const selection = window.getSelection();
-                        if (!selection.rangeCount || selection.isCollapsed) {
-                            showTopToast('请先选择一段文字', 2000);
-                            return;
-                        }
-                        const range = selection.getRangeAt(0);
-                        const selectedText = range.toString();
-                        const codeBlock = document.createElement('div');
-                        codeBlock.className = 'memo-code-block';
-                        const pre = document.createElement('pre');
-                        pre.style.margin = '0';
-                        pre.textContent = selectedText;
-                        const copyBtn = document.createElement('button');
-                        copyBtn.className = 'code-block-copy-btn';
-                        copyBtn.contentEditable = 'false'; // [V2 修复] 将按钮设置为不可编辑
-                        copyBtn.textContent = '❏';
-                        copyBtn.title = '复制';
-                        codeBlock.appendChild(copyBtn);
-                        codeBlock.appendChild(pre);
-                        range.deleteContents();
-                        const fragment = document.createDocumentFragment();
-                        fragment.appendChild(codeBlock);
-                        fragment.appendChild(document.createTextNode('\u200B')); // 零宽度空格，用于放置光标
-                        range.insertNode(fragment);
-                        range.setStartAfter(codeBlock.nextSibling);
-                        range.collapse(true);
-                        selection.removeAllRanges();
-                        selection.addRange(range);
-                    } else if (command === 'todo') {
-                        document.execCommand('insertUnorderedList', false, null);
-                        setTimeout(() => {
-                            const listItems = editor.querySelectorAll('li');
-                            listItems.forEach(li => {
-                                if (!li.querySelector('.todo-text')) {
-                                    const textNode = document.createTextNode(li.textContent.trim());
-                                    const span = document.createElement('span');
-                                    span.className = 'todo-text';
-                                    span.appendChild(textNode);
-                                    li.innerHTML = '';
-                                    li.appendChild(span);
-                                }
-                            });
-                        }, 50);
-                    } else {
-                        document.execCommand(command, false, null);
-                    }
-                    setTimeout(updateToolbarState, 0);
-                });
 
                 editor.addEventListener('keyup', updateToolbarState);
                 editor.addEventListener('mouseup', updateToolbarState);
@@ -9237,54 +9435,173 @@ const getDefaultConfig = () => ({
                    }, 0);
                 });
 
-                // 编辑器内部的交互事件（待办清单完成/代码块复制）
+                // V3 - 跟踪字体大小调整的目标元素
+                let fontSizeTargetSpan = null;
+                const fontSizePopup = document.getElementById('fontSizeSliderPopup');
+                const fontSizeSlider = document.getElementById('fontSizeSlider');
+
+                // V3 - 监听全局点击，用于关闭字号弹窗
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('[data-command="fontSize"]') && !e.target.closest('#fontSizeSliderPopup')) {
+                        if (fontSizePopup.style.display === 'block') {
+                            fontSizePopup.style.display = 'none';
+                        }
+                    }
+                }, true);
+                
+                // V3 最终 BUG 修复: 更健壮的统一事件处理器
+                toolbar.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const button = e.target.closest('.toolbar-btn');
+                    if (!button) return;
+
+                    const command = button.dataset.command;
+                    editor.focus();
+
+                    // 【核心修复】将所有标准 execCommand 命令明确分组，避免 switch 的未知问题
+                    const standardCommands = ['bold', 'italic', 'underline', 'strikeThrough'];
+                    
+                    if (standardCommands.includes(command)) {
+                        document.execCommand(command, false, null);
+                    } else if (command === 'fontSize') {
+                        if (fontSizePopup.style.display === 'block') {
+                            fontSizePopup.style.display = 'none';
+                            return;
+                        }
+
+                        const selection = window.getSelection();
+                        if (!selection.rangeCount || selection.isCollapsed) {
+                            showTopToast('请先选择一段您想调整大小的文字', 2500);
+                            return;
+                        }
+                        const range = selection.getRangeAt(0);
+                        const parentElement = range.commonAncestorContainer.nodeType === 3
+                            ? range.commonAncestorContainer.parentNode
+                            : range.commonAncestorContainer;
+
+                        if (parentElement.nodeName === 'SPAN' && parentElement.style.fontSize) {
+                            fontSizeTargetSpan = parentElement;
+                            fontSizeSlider.value = parseInt(parentElement.style.fontSize, 10) || 16;
+                        } else {
+                            fontSizeTargetSpan = document.createElement('span');
+                            try {
+                                range.surroundContents(fontSizeTargetSpan);
+                            } catch (err) {
+                                showTopToast('选区无法调整，请勿跨段落选择', 2500);
+                                return;
+                            }
+                        }
+                        fontSizePopup.style.display = 'block';
+                    } else if (command === 'copyContent') {
+                        const contentContainer = document.getElementById('note-content-editor');
+                        const plainText = contentContainer.innerText;
+                        if (plainText.trim()) {
+                            navigator.clipboard.writeText(plainText)
+                                .then(() => showTopToast('正文已复制到剪贴板！', 2000))
+                                .catch(() => showTopToast('复制失败，请重试', 2000));
+                        } else {
+                            showTopToast('备忘录内容为空', 2000);
+                        }
+                    } else if (command === 'createCodeBlock') {
+                        const selectionCode = window.getSelection();
+                        if (!selectionCode.rangeCount || selectionCode.isCollapsed) return showTopToast('请先选择一段文字', 2000);
+                        const rangeCode = selectionCode.getRangeAt(0);
+                        const selectedText = rangeCode.toString();
+                        const codeBlock = document.createElement('div');
+                        codeBlock.className = 'memo-code-block';
+                        const pre = document.createElement('pre');
+                        pre.textContent = selectedText;
+                        const copyBtn = document.createElement('button');
+                        copyBtn.className = 'code-block-copy-btn';
+                        copyBtn.contentEditable = 'false';
+                        copyBtn.textContent = '❏';
+                        copyBtn.title = '复制';
+                        codeBlock.appendChild(copyBtn);
+                        codeBlock.appendChild(pre);
+                        rangeCode.deleteContents();
+                        const fragment = document.createDocumentFragment();
+                        fragment.appendChild(codeBlock);
+                        fragment.appendChild(document.createTextNode('\u200B'));
+                        rangeCode.insertNode(fragment);
+                        rangeCode.setStartAfter(codeBlock.nextSibling);
+                        rangeCode.collapse(true);
+                        selectionCode.removeAllRanges();
+                        selectionCode.addRange(rangeCode);
+                    } else if (command === 'todo') {
+                        document.execCommand('insertUnorderedList', false, null);
+                        setTimeout(() => {
+                            editor.querySelectorAll('li').forEach(li => {
+                                if (!li.querySelector('.todo-text')) {
+                                    const textNode = document.createTextNode(li.textContent.trim());
+                                    const span = document.createElement('span');
+                                    span.className = 'todo-text';
+                                    span.appendChild(textNode);
+                                    li.innerHTML = '';
+                                    li.appendChild(span);
+                                }
+                            });
+                        }, 50);
+                    }
+
+                    setTimeout(updateToolbarState, 0);
+                });
+
+                // 编辑器内部的点击事件（待办清单完成/代码块复制）
                 editor.addEventListener('click', (e) => {
                     const li = e.target.closest('li');
                     const copyBtn = e.target.closest('.code-block-copy-btn');
-
+                    
                     if (li) {
                         li.classList.toggle('completed');
                     } else if (copyBtn) {
                         const codeBlock = copyBtn.closest('.memo-code-block');
                         const textToCopy = codeBlock.querySelector('pre')?.textContent || '';
-                        
-                        if (navigator.clipboard && window.isSecureContext) {
-                            navigator.clipboard.writeText(textToCopy).then(() => {
-                                const originalText = copyBtn.textContent;
-                                copyBtn.textContent = '✓';
-                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
-                            }).catch(err => {
-                                showTopToast('复制失败', 2000);
-                            });
-                        } else {
-                            // 兼容非安全环境的降级方案
-                            const textArea = document.createElement("textarea");
-                            textArea.value = textToCopy;
-                            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
-                            document.body.appendChild(textArea);
-                            textArea.focus();
-                            textArea.select();
-                            try {
-                                document.execCommand('copy');
-                                const originalText = copyBtn.textContent;
-                                copyBtn.textContent = '✓';
-                                setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
-                            } catch (err) {
-                                showTopToast('复制失败', 2000);
-                            }
-                            document.body.removeChild(textArea);
-                        }
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            const originalText = copyBtn.textContent;
+                            copyBtn.textContent = '✓';
+                            setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
+                        }).catch(() => showTopToast('复制失败', 2000));
                     }
                     updateToolbarState();
                 });
 
-
+                // 为字号滑块添加事件监听
+                fontSizeSlider.addEventListener('input', () => {
+                    if (fontSizeTargetSpan) {
+                        fontSizeTargetSpan.style.fontSize = `${fontSizeSlider.value}px`;
+                    }
+                });
 
                 ui.folderModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 ui.photoDetailsModal.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 ui.photoViewer.addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target) actions[target.dataset.action]?.(); });
                 document.getElementById('movePhotosModal').addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target && actions[target.dataset.action]) actions[target.dataset.action](target); });
-            document.getElementById('moveNotesModal').addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target && actions[target.dataset.action]) actions[target.dataset.action](target); });
+            document.getElementById('moveNotesModal').addEventListener('click', e => { const target = e.target.closest('[data-action]'); if (target && actions[target.dataset.action]) actions[target.dataset.action](target);                 });
+
+                // ★★★ [新增] 备忘录回顶按钮逻辑 ★★★
+                const noteEditorContent = document.querySelector('#memoryModal .editor-content');
+                const backToTopBtn = document.getElementById('memo-back-to-top');
+
+                if (noteEditorContent && backToTopBtn) {
+                    // 监听编辑区域的滚动事件
+                    noteEditorContent.addEventListener('scroll', () => {
+                        // 如果滚动距离大于300像素，显示按钮，否则隐藏
+                        if (noteEditorContent.scrollTop > 300) {
+                            backToTopBtn.classList.add('show');
+                        } else {
+                            backToTopBtn.classList.remove('show');
+                        }
+                    });
+
+                    // 为按钮添加点击事件，实现平滑滚动回顶部
+                    backToTopBtn.addEventListener('click', () => {
+                        noteEditorContent.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    });
+                }
+                // ★★★ [新增结束] ★★★
 
                 ui.photoUploader.addEventListener('change', e => {
                     if (!e.target.files.length) return;
@@ -9293,64 +9610,61 @@ const getDefaultConfig = () => ({
                     e.target.value = '';
                 });
 
-                // [新增] 为照片下载按钮添加分享功能
+
+
+                // [V2 优化] 为照片下载按钮添加平台差异化处理
                 document.getElementById('download-photo-btn').addEventListener('click', async (e) => {
-                    // 检查浏览器是否支持 Web Share API 的文件分享功能
-                    if (!navigator.share || !navigator.canShare) {
-                        // 如果不支持，则不执行任何操作，让 a 标签的默认下载行为发生
-                        return;
-                    }
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-                    // 如果支持，则阻止 a 标签的默认下载行为
-                    e.preventDefault();
-
-                    const downloadBtn = e.currentTarget;
-                    const imageUrl = downloadBtn.href;
-                    const title = downloadBtn.download || '分享的图片';
-
-                    try {
-                        // 显示加载提示，提升用户体验
-                        showTopToast('正在准备图片...', 60000); 
-
-                        // 使用 fetch API 获取图片数据
-                        const response = await fetch(imageUrl);
-                        if (!response.ok) {
-                            throw new Error('下载图片失败，无法分享。');
-                        }
-                        const blob = await response.blob();
+                    // 如果是 iOS 设备，则执行分享逻辑
+                    if (isIOS) {
+                        // 阻止 a 标签的默认下载行为
+                        e.preventDefault();
                         
-                        // 创建一个 File 对象，这是 navigator.share 所需的格式
-                        const file = new File([blob], title, { type: blob.type });
-
-                        // 移除加载提示
-                        const existingToast = document.querySelector('.top-toast');
-                        if (existingToast) existingToast.remove();
-
-                        // 再次确认浏览器能分享此类文件
-                        if (navigator.canShare({ files: [file] })) {
-                            // 调用原生分享
-                            await navigator.share({
-                                files: [file],
-                                title: title,
-                                text: '来自 Jellyfish Island 的分享'
-                            });
-                        } else {
-                             // 如果文件类型由于某些原因无法分享，则回退到传统下载
-                            alert('您的浏览器不支持分享此类型的文件，将尝试直接下载。');
-                            const link = document.createElement('a');
-                            link.href = imageUrl;
-                            link.download = title;
-                            link.click();
+                        // 检查浏览器是否支持 Web Share API 的文件分享功能
+                        if (!navigator.share || !navigator.canShare) {
+                            alert('您的浏览器不支持分享功能。');
+                            return;
                         }
-                    } catch (error) {
-                        // 移除加载提示
-                        const existingToast = document.querySelector('.top-toast');
-                        if (existingToast) existingToast.remove();
-                        // 如果用户手动关闭分享面板，会触发 AbortError，我们不应将其视为错误
-                        if (error.name !== 'AbortError') {
-                            console.error('分享图片时出错:', error);
-                            alert('无法分享图片: ' + error.message);
+
+                        const shareBtn = e.currentTarget;
+                        const imageUrl = shareBtn.href;
+                        const title = shareBtn.download || '分享的图片';
+
+                        try {
+                            showTopToast('正在准备图片...', 60000); 
+
+                            const response = await fetch(imageUrl);
+                            if (!response.ok) throw new Error('下载图片失败，无法分享。');
+                            
+                            const blob = await response.blob();
+                            const file = new File([blob], title, { type: blob.type });
+
+                            const existingToast = document.querySelector('.top-toast');
+                            if (existingToast) existingToast.remove();
+
+                            if (navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    files: [file],
+                                    title: title,
+                                    text: '来自 Jellyfish Island 的分享'
+                                });
+                            } else {
+                                alert('您的浏览器不支持分享此类型的文件。');
+                            }
+                        } catch (error) {
+                            const existingToast = document.querySelector('.top-toast');
+                            if (existingToast) existingToast.remove();
+                            if (error.name !== 'AbortError') {
+                                console.error('分享图片时出错:', error);
+                                alert('无法分享图片: ' + error.message);
+                            }
                         }
+                    }
+                    // 如果是安卓或电脑设备，不执行任何操作，让<a>标签的download属性自然生效
+                    else {
+                        // 此处无需代码，浏览器将自动处理下载
+                        return;
                     }
                 });
 
@@ -9868,7 +10182,9 @@ const getDefaultConfig = () => ({
             const displayName = sm.renameInput.value.trim();
             if (!displayName) { alert("请输入歌曲名称。"); return; }
             
-            const finalMusicFilename = displayName + '.mp3';
+            // [核心修正] 从原始文件名动态获取扩展名，而不是写死.mp3
+            const originalExtension = state.pendingMusicFile.name.slice(state.pendingMusicFile.name.lastIndexOf('.'));
+            const finalMusicFilename = displayName + originalExtension;
             const finalLrcFilename = displayName + '.lrc';
             sm.confirmUploadBtn.textContent = "取消上传 (0%)";
             sm.confirmUploadBtn.disabled = false;
@@ -9889,7 +10205,7 @@ const getDefaultConfig = () => ({
             } catch (e) { if (e.message !== "上传已取消。") alert(await handleApiError(`上传歌曲 ${displayName}`, e)); } 
             finally { sm.confirmUploadBtn.textContent = "确认上传"; sm.confirmUploadBtn.disabled = false; }
         }
-        
+
         function resetUploadForm() {
             const sm = ui.settingsModal;
             state.pendingMusicFile = null; state.pendingLrcFile = null;
@@ -10009,9 +10325,11 @@ const getDefaultConfig = () => ({
         checkAppUpdate();
         await loadInitialData();
         setupModals();
+        BaiduNetdisk.init(); // <-- 将初始化调用移到这里
         MemoryApp.init();
         WanderView.init();
         setupBgImageManager();
+
         setupColorSync(colorModal.pickerD1, colorModal.hexD1, 'dayColor1'); 
         setupColorSync(colorModal.pickerD2, colorModal.hexD2, 'dayColor2');
         setupColorSync(colorModal.pickerN1, colorModal.hexN1, 'nightColor1'); 
@@ -12176,8 +12494,6 @@ const getDefaultConfig = () => ({
 
         // 初始化字体管理器
         FontManager.init();
-        CodebergManager.init(); // [新增] 初始化 Codeberg 管理器
-
         
         // [核心修正] 初始化备份提醒管理器
         // 1. 先调用 initUI() 找到所有HTML元素
@@ -12345,49 +12661,62 @@ const getDefaultConfig = () => ({
             </div>
         </div>
     </div>
-    <!-- ============ [新增] Codeberg 大文件存储设置模态框 ============ -->
-    <div class="modal-overlay" id="codebergSettingsModal">
-        <div class="modal-content" style="max-width: 450px;">
+    <!-- [CORE-ADD END] -->
+    <!-- [新增] 百度网盘设置模态框 -->
+    <div class="modal-overlay" id="baiduNetdiskSettingsModal">
+        <div class="modal-content" style="max-width: 420px;">
             <div class="modal-header">
-                <div class="modal-title-group">Codeberg 大文件存储</div>
-                <button class="close-btn" data-modal-id="codebergSettingsModal">&times;</button>
+                <div class="modal-title-group"><span>百度网盘账户管理</span></div>
+                <button class="close-btn" data-modal-id="baiduNetdiskSettingsModal">&times;</button>
             </div>
-            <div class="modal-body" style="gap: 25px;">
-                <!-- 当前活动账户 -->
+            <div class="modal-body">
                 <div class="form-section">
-                    <label>当前活动账户</label>
-                    <div id="codeberg-active-account-display" class="codeberg-account-display inactive">
-                        未连接
-                    </div>
-                </div>
-
-                <!-- 已授权账户列表 -->
-                <div class="form-section">
-                    <label>已授权账户列表</label>
-                    <div id="codeberg-authorized-list" class="codeberg-account-list-container">
+                    <label>已关联账户</label>
+                    <ul id="baidu-account-list">
                         <!-- JS 动态填充 -->
-                        <div class="codeberg-empty-list">暂无已授权的账户</div>
-                    </div>
+                        <p style="text-align: center; color: #889; padding: 20px 0;">暂未关联任何账户</p>
+                    </ul>
                 </div>
 
-                <!-- 操作按钮 -->
-                <div class="form-section" style="margin-top: 10px;">
-                    <a id="add-codeberg-account-btn" class="modal-button codeberg-auth-button" href="#" style="text-align: center; text-decoration: none; display: block;">
-                        + 添加或切换 Codeberg 账户
-                    </a>
+                <div class="important-note" style="font-size: 13px; padding: 10px 15px;">
+                  <p>点击下方按钮将通过百度官方页面授权，您的账户信息将得到安全保护。</p>
+                  <p>本应用将在您的网盘根目录下的 “/apps/JellyfishDrive/” 文件夹内读写文件。</p>
                 </div>
                 
-                <!-- 引导注册 -->
-                <div class="codeberg-guidance-section">
-                    <p>没有 Codeberg 账户？
-                        <a href="https://codeberg.org/user/sign_up" target="_blank" rel="noopener noreferrer">点此免费注册</a>
-                    </p>
-                    <p>此功能用于存储大于 50MB 的文件。</p>
-                </div>
+                <button id="add-baidu-account-btn" class="modal-button">关联新的百度网盘账户</button>
+
+                <div id="baidu-auth-status"></div>
             </div>
         </div>
     </div>
-    <!-- ============ [新增结束] ============ -->
-    <!-- [CORE-ADD END] -->
+    <!-- [新增结束] -->
+    <!-- [新增] 选择性数据清理模态框 -->
+    <div class="modal-overlay" id="selectiveClearModal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <div class="modal-title-group"><span>请选择您要清理的数据</span></div>
+                <button class="close-btn" data-modal-id="selectiveClearModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #e53e3e; font-weight: bold;">⚠️ 警告：此操作不可逆，请谨慎选择！</p>
+                <!-- [V2 修正] 调整样式并为JS交互做准备 -->
+                <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid rgba(128,128,128,0.2); margin: 15px 0; cursor: pointer;">
+                    <input type="checkbox" id="selectAllClearOptions" style="width: 16px; height: 16px; flex-shrink: 0;">
+                    <strong style="user-select: none; font-size: 14px; font-weight: 600;">一键全选</strong>
+                </label>
+                <div id="clear-options-container" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- 选项列表保持不变，但移除了margin-top -->
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="config" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>主配置和按钮</strong><br><span style="font-size: 12px; color: #889;">(config.json)</span></div></label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="memory" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>记忆数据 (备忘录/相册结构)</strong><br><span style="font-size: 12px; color: #889;">(memory/data.json)</span></div></label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="photos" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>相册照片文件</strong><br><span style="font-size: 12px; color: #889;">(/memory/photos/ 文件夹)</span></div></label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="music" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>漫游音乐及歌词</strong><br><span style="font-size: 12px; color: #889;">(/memory/music/ 等)</span></div></label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="projects" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>上传的项目文件</strong><br><span style="font-size: 12px; color: #889;">(/projects/ 文件夹)</span></div></label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="drive" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>文件夹(云盘)文件</strong><br><span style="font-size: 12px; color: #889;">(/jellyfish_drive/ 文件夹)</span></div></label>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.03); cursor: pointer;"><input type="checkbox" data-clear-target="local" style="width: 18px; height: 18px; flex-shrink: 0;"><div><strong>浏览器本地缓存</strong><br><span style="font-size: 12px; color: #889;">(主题、背景、GitHub配置等)</span></div></label>
+                </div>
+                <button id="confirmSelectiveClearBtn" class="modal-button" style="margin-top: 20px; background: #e53e3e; color: white;">清除选中项</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
