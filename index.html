@@ -96,10 +96,33 @@
             overflow-y: auto; /* 当内容超出时，只在此容器内显示垂直滚动条 */
             min-height: 0; /* Flex布局中的重要技巧，防止内容撑开容器 */
             padding-bottom: 30px; /* 保留底部空间，避免按钮紧贴屏幕边缘 */
-            /* [核心修改] 使用遮罩创建无感的渐变分界线 */
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15px);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15px);
+            position: relative; /* [新增] 为伪元素的绝对定位提供基准 */
         }
+        
+        /* [新增] 使用伪元素创建无冲突的渐变遮罩 */
+        .scrollable-nav-wrapper::before {
+            content: '';
+            position: absolute; /* 或使用 sticky 定位，取决于具体滚动效果需求 */
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 15px; /* 渐变的高度 */
+            background-image: linear-gradient(to bottom, var(--day-color1), transparent);
+            z-index: 10; /* 确保在按钮内容之上 */
+            pointer-events: none; /* 关键：让鼠标可以穿透此渐变层点击下方的按钮 */
+            transition: background-image 0.5s ease; /* 跟随主题切换的过渡 */
+        }
+
+        /* [新增] 夜间模式适配 */
+        body.dark-mode .scrollable-nav-wrapper::before {
+            background-image: linear-gradient(to bottom, var(--night-color1), transparent);
+        }
+
+        /* [新增] 磨砂玻璃主题适配：隐藏分界线 */
+        body.theme-glass .scrollable-nav-wrapper::before {
+            background-image: none; /* 或者 background-image: linear-gradient(to bottom, transparent, transparent); */
+        }
+
         /* 美化滚动条 (可选，但推荐) */
         .scrollable-nav-wrapper::-webkit-scrollbar {
             width: 5px;
@@ -346,7 +369,8 @@ body.dark-mode .progress-bar-wrapper {
         #memoryModal .note-timestamp { font-size: 12px; font-weight: 300; color: #9A86A4; margin-top: 12px; }
         #memoryModal .album-item { aspect-ratio: 1 / 1; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; }
         #memoryModal .album-item .folder-icon { font-size: 32px; }
-        #memoryModal .album-info { font-size: 12px; color: #889; }
+        #memoryModal .album-info { font-size: 12px; color: #889; margin-top: 6px; /* 新增此行 */ }
+
 #memoryModal #photo-list-container {
     display: flex;          /* 1. 声明为 Flexbox 弹性布局 */
     flex-wrap: wrap;        /* 2. 允许项目自动换行 */
@@ -664,6 +688,8 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass #memoryPhotoViewerOverlay {
             background: transparent;
         }
+
+        body.theme-glass .nav-btn,
         body.theme-glass .title-card,
         body.theme-glass .fab-main,
         body.theme-glass .fab-drawer-item,
@@ -672,35 +698,33 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass .player-content,
         body.theme-glass .player-popover,
         body.theme-glass #memoryModal .hub-btn,
-        body.theme-glass .phone-partition-item, 
         body.theme-glass #memoryModal .folder-item,
         body.theme-glass #memoryModal .note-item,
-        body.e-glass #memoryModal .album-item,
+        body.theme-glass #memoryModal .album-item,
         body.theme-glass #memoryModal .fab,
         body.theme-glass #memoryModal .editor-btn,
         body.theme-glass #memoryModal #note-editor-view,
         body.theme-glass .management-controls,
         body.theme-glass #returnConfirmationToast {
-            background: rgba(255, 255, 255, 0.25); /* 透明度降低 */
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15); /* 边框更柔和 */
+            border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
         }
-
-        /* ★★★ [修改] 磨砂玻璃主题下项目按钮的高斯磨砂样式 ★★★ */
-        body.theme-glass .nav-btn {
-            background-color: rgba(255, 255, 255, 0.18); /* 半透明白色背景，与参考对齐 */
-            backdrop-filter: blur(12px);                  /* 核心模糊效果，与参考对齐 */
-            -webkit-backdrop-filter: blur(12px);          /* 兼容性前缀，与参考对齐 */
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.12);    /* 柔和阴影，与参考对齐 */
-            border: 1px solid rgba(255, 255, 255, 0.25);   /* 亮色轮廓边框，与参考对齐 */
-            color: #1a1a1a;                                /* 深色文字保证可读性，与参考对齐 */
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* 文字光晕效果，与参考对齐 */
+        
+        /* [兼容性修复] 将text-btn的样式覆盖单独出来，防止因其他特殊选择器导致整个规则块失效 */
+        body.theme-glass .nav-btn.text-btn {
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+            box-shadow: none;
         }
 
-         body.theme-glass.dark-mode .title-card,
+        body.theme-glass.dark-mode .nav-btn,
+        body.theme-glass.dark-mode .title-card,
         body.theme-glass.dark-mode .fab-main,
         body.theme-glass.dark-mode .fab-drawer-item,
         body.theme-glass.dark-mode .modal-content,
@@ -716,20 +740,8 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass.dark-mode #memoryModal #note-editor-view,
         body.theme-glass.dark-mode .management-controls,
         body.theme-glass.dark-mode #returnConfirmationToast {
-            background: rgba(20, 20, 20, 0.3); /* 透明度降低 */
+            background: rgba(20, 20, 20, 0.25);
             border-color: rgba(255, 255, 255, 0.1);
-        }
-
-
-        /* ★★★ [修改] 磨砂玻璃主题 & 夜间模式下项目按钮的专属磨砂样式 ★★★ */
-        body.theme-glass.dark-mode .nav-btn {
-            background-color: rgba(40, 45, 55, 0.18);      /* 夜间模式：使用更深的半透明背景 */
-            backdrop-filter: blur(12px);                  /* 保持相同的模糊度 */
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);     /* 夜间模式：阴影更深以突显层次 */
-            border: 1px solid rgba(255, 255, 255, 0.15);   /* 夜间模式：边框透明度降低，更柔和 */
-            color: #e0e6f0;                               /* 适配夜间模式的亮色文字 */
-            text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);      /* 文字阴影改为深色，增加对比度 */
         }
 
         body.theme-glass .modal-input,
@@ -765,7 +777,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
              background: rgba(30, 30, 30, 0.4);
         }
 
-                body.theme-glass .nav-btn:active,
+        body.theme-glass .nav-btn:active,
         body.theme-glass .modal-button:active,
         body.theme-glass .fab-main:active,
         body.theme-glass .fab-drawer-item:active {
@@ -782,50 +794,8 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
              background: rgba(200, 200, 200, 0.25);
              border-color: rgba(255, 255, 255, 0.15);
         }
-        /* [V3 最终修正] 强制修正颜色选择器布局，杜绝溢出 */
-        .color-input-wrapper {
-            display: flex;
-            align-items: center;
-            /* 使用一个非常小的间距 */
-            gap: 6px;
-            /* 容器的内边距也相应减小 */
-            padding: 5px 8px;
-        }
-
-        /* 为颜色选择器本身设置固定尺寸，且不允许收缩 */
-        .color-input-wrapper input[type="color"] {
-            width: 40px; /* 固定宽度 */
-            height: 28px; /* 固定高度 */
-            flex-shrink: 0; /* 核心：禁止此元素收缩 */
-            border: none;
-            padding: 0;
-            background: none;
-        }
-
-        /* 为十六进制输入框设置一个固定的、紧凑的尺寸 */
-        .color-input-wrapper .hex-display.modal-input {
-            flex: 0 0 auto; /* 核心：禁止增长和收缩，宽度由width属性决定 */
-            width: 85px; /* 核心：设置一个足以容纳7个字符和少量边距的固定宽度 */
-
-            /* 重置所有可能导致问题的样式 */
-            box-shadow: none !important;
-            background: transparent !important;
-            border: none !important;
-            outline: none !important;
-            padding: 0 5px; /* 给予文字左右5px的呼吸空间 */
-            margin: 0;
-            text-align: center; /* 文本居中 */
-
-            /* 确保文本颜色在不同模式下正确显示 */
-            color: var(--text-day);
-        }
-
-
-        body.dark-mode .color-input-wrapper .hex-display.modal-input {
-            color: var(--text-night);
-        }
-
         /* ===== [END] FROSTED GLASS THEME ===== */
+
         /* [新增] 为“已确认”的十六进制代码添加变淡的样式 */
         .hex-display.modal-input.confirmed-color {
             color: #a0aec0; /* 一个比默认文字更淡的灰色 */
@@ -2418,22 +2388,38 @@ body.dark-mode .baidu-account-item:hover {
 /* ============= [新增] 备忘录编辑器 v2.0 样式 ============= */
 /* =============================================================== */
 #memoryModal #note-editor-view {
-    padding-bottom: 0; /* 为工具栏留出空间 */
+    /* [核心修改] 移除所有内边距，并添加过渡效果以平滑动画 */
+    padding: 0;
+    transition: padding-bottom 0.25s ease-out;
 }
 #memoryModal .editor-content {
-    padding-bottom: 10px;
+    /* [核心修改] 移除固定的 padding-bottom */
+    padding-bottom: 0;
 }
 #memoryModal #note-content-editor {
-    /* [修改] 移除 flex-grow，让其高度由内容决定，由父容器 .editor-content 滚动 */
+    /* [和 V1 版本保持一致] */
     resize: none;
     line-height: 1.7;
     font-size: 16px;
     padding: 10px;
     -webkit-user-select: text; /* 允许在iOS上选择文本 */
     user-select: text;
-    /* [修改] 移除此处的滚动，交由父容器处理 */
 }
-
+.memo-toolbar {
+    /* [核心修改] 将工具栏从文档流中脱离，固定在底部，以便我们可以精确控制它的位置 */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%; /* 确保占满父容器宽度 */
+    /* [核心修改] 移除 margin，因为绝对定位不再需要它 */
+    margin: 0;
+    /* [核心修改] 确保圆角在最外层容器，而不是在内部计算 */
+    border-radius: 0 0 16px 16px;
+    box-sizing: border-box; /* 确保 padding 不会影响宽度计算 */
+    /* [新增] 增加过渡，使上移动画更平滑 */
+    transition: transform 0.25s ease-out;
+}
 
 #memoryModal #note-content-editor:focus {
     outline: none;
@@ -2509,7 +2495,12 @@ body.dark-mode .memo-toolbar {
     opacity: 0.7;
     transition: opacity 0.2s, transform 0.2s;
     padding: 5px;
+    /* [新增] 以下三行是关键，确保按钮内容绝对居中 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .toolbar-btn:hover {
     opacity: 1;
 }
@@ -3771,6 +3762,555 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
     background: rgba(20, 20, 20, 0.4);
     border-color: rgba(255, 255, 255, 0.1);
 }
+/* =============================================================== */
+/* ================ [新增] 摇摆挂件及设置弹窗样式 ================= */
+/* =============================================================== */
+
+/* 1. 挂件容器定位 (V2 - 全局固定定位) */
+#pendant-container {
+    position: fixed;    /* [核心修改] 改为固定定位，相对于视口 */
+    top: 0;             /* [核心修改] 初始 top 为 0，将由JS动态设置 */
+    right: 15%;         /* 水平位置保持不变 */
+    width: 50px;        /* 容器宽度 */
+    height: 100vh;      /* [核心修改] 高度占满整个屏幕，确保长绳子不会溢出 */
+    pointer-events: none; /* 保持事件穿透特性 */
+    z-index: 5;         /* [核心修改] 调整层级，使其在大部分内容之上，但在弹窗之下 */
+    transition: top 0.3s ease; /* [新增] 当窗口大小变化时，可以平滑过渡 */
+}
+
+/* 2. 动画效果 (基本复用原代码) */
+#pendant-container .all-wrap {
+    /* 引入变量以便JS修改 */
+    --bob-amount: -20px;
+    --anim-duration: 7s;
+    animation: bob var(--anim-duration) cubic-bezier(0.5, 0, 0.5, 1) infinite both;
+}
+#pendant-container .all {
+    position: relative;
+    transform-origin: center top; /* 线的顶端为摇摆支点 */
+    animation: swing var(--anim-duration) cubic-bezier(0.5, 0, 0.5, 1) infinite both;
+}
+
+/* 3. 绳子样式 (可由JS修改) */
+#pendant-container .all::before {
+    content: "";
+    /* 引入CSS变量，方便JS动态修改 */
+    height: var(--line-length, 5rem); 
+    width: 2px;
+    background-color: var(--line-color, #000); 
+    position: absolute;
+    left: 50%;
+    top: 0; 
+    transform: translateX(-50%);
+}
+
+/* 4. 挂件图案样式 (可点击) */
+#pendant-shape {
+    display: block; /* 确保transform生效 */
+    position: absolute;
+    /* 核心：top值与绳子长度变量绑定，确保始终连接 */
+    top: var(--line-length, 5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: top center;
+    cursor: pointer; /* 鼠标变为手型，提示可点击 */
+    z-index: 20;      /* 确保图案在最前面，可以被点击 */
+    -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+    pointer-events: auto; /* [核心修改] 让图案本身可以接收鼠标事件 */
+}
+
+
+#pendant-shape img {
+    width: 50px;
+    height: auto;
+    vertical-align: top; /* 消除图片底部空隙 */
+}
+
+#pendant-shape .emoji {
+    font-size: 40px; /* 如果是emoji，调整大小 */
+    line-height: 1;
+}
+
+/* 5. 动画关键帧 (复用原代码) */
+@keyframes swing {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(15deg); }
+    75% { transform: rotate(-15deg); }
+}
+@keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(var(--bob-amount)); }
+}
+
+/* 6. 挂件设置弹窗样式 (V2 - 固定高度布局) */
+#pendant-settings-modal {
+    z-index: 1005; 
+}
+#pendant-settings-modal .modal-content {
+    max-width: 420px; /* 稍微加宽以容纳内容 */
+    height: 90vh; /* 关键：设置一个相对于视口的高度 */
+    max-height: 650px; /* 关键：在超长屏幕上限制最大高度 */
+    display: flex; /* 关键：启用flexbox布局 */
+    flex-direction: column; /* 关键：设置主轴为垂直方向 */
+}
+#pendant-settings-modal .modal-body {
+    /* display, flex-direction, gap等属性已在下方.widget-hub-page相关规则中定义，此处无需重复 */
+}
+
+.pendant-settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.pendant-settings-group label {
+    font-size: 14px;
+    color: #5a6778;
+    font-weight: 600;
+}
+body.dark-mode .pendant-settings-group label {
+    color: #c0c6cc;
+}
+.pendant-settings-group .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.pendant-settings-group input[type="range"] {
+    flex-grow: 1;
+}
+.pendant-settings-group .slider-value {
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 3em; /* 保证宽度，防止跳动 */
+    text-align: right;
+}
+/* =============================================================== */
+/* ============= [新增] 挂件设置悬浮窗升级样式 V1.0 =========== */
+/* =============================================================== */
+
+/* 重构 modal-body 以支持页面切换 */
+#pendant-settings-modal .modal-body {
+    padding: 15px 15px 80px 15px; /* 关键：为底部胶囊栏留出空间 */
+    position: relative; /* 为页面切换容器提供定位基准 */
+    overflow: hidden; /* 隐藏页面切换时的溢出 */
+}
+
+/* 页面容器的样式 (修正版) */
+.widget-hub-page {
+    /* 移除了 position: absolute 和相关的 top/left/right/bottom */
+    width: 100%;
+    height: 100%;
+    display: none; /* 默认隐藏所有页面 */
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto; /* 当页面内容过多时，允许独立滚动 */
+    padding-right: 5px; /* 为滚动条留出空间，防止内容挤压 */
+    margin-right: -5px;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    /* 新增：让 flex 容器在内容不足时也不会收缩 */
+    flex-grow: 1;
+}
+
+/* 活动页面的显示样式 */
+.widget-hub-page.active {
+    display: flex; /* 改为 flex 以便内部布局 */
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* [新增] 底部悬浮胶囊导航栏 */
+#widget-hub-capsule {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    height: 60px;
+    background: var(--bg-day-element);
+    border-radius: 30px; /* 胶囊形状 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1),
+                inset 2px 2px 4px var(--shadow-dark-day),
+                inset -2px -2px 4px var(--shadow-light-day);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+body.dark-mode #widget-hub-capsule {
+    background: var(--bg-night-element);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2),
+                inset 2px 2px 4px var(--shadow-dark-night),
+                inset -2px -2px 4px var(--shadow-light-night);
+}
+body.theme-glass #widget-hub-capsule {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+body.theme-glass.dark-mode #widget-hub-capsule {
+    background: rgba(20, 20, 20, 0.35);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* 胶囊内的按钮样式 */
+.capsule-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 20px; /* 为了点击效果 */
+    padding: 6px 0;
+    transition: background-color 0.2s, transform 0.2s, color 0.3s;
+    color: #889; /* 默认图标和文字颜色 */
+}
+
+/* 按钮内的SVG图标样式 */
+.capsule-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+body.dark-mode .capsule-btn, body.dark-mode .capsule-btn span {
+    color: #a0aec0;
+}
+.capsule-btn:not(.active) svg path,
+.capsule-btn:not(.active) svg rect {
+    fill: #889 !important; /* 强制未激活的图标为灰色 */
+}
+body.dark-mode .capsule-btn:not(.active) svg path,
+body.dark-mode .capsule-btn:not(.active) svg rect {
+    fill: #a0aec0 !important; /* 夜间模式未激活的图标颜色 */
+}
+
+
+/* 按钮内的文字样式 */
+.capsule-btn span {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* 激活状态的按钮样式 */
+.capsule-btn.active {
+    color: var(--hold-border); /* 激活时文字颜色高亮 */
+    font-weight: 700;
+}
+.capsule-btn.active svg {
+    transform: scale(1.1); /* 激活时图标放大 */
+}
+.capsule-btn.active svg path,
+.capsule-btn.active svg rect {
+    fill: var(--hold-border) !important; /* 激活时图标颜色高亮 */
+}
+
+/* 按钮点击效果 */
+.capsule-btn:active {
+    transform: scale(0.95);
+}
+
+/* 占位符样式 */
+.placeholder-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 18px;
+    color: #ccc;
+    font-weight: 600;
+    user-select: none;
+}
+body.dark-mode .placeholder-content {
+    color: #666;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ================ [新增] 使用时长排行榜专属样式 ================ */
+/* =============================================================== */
+
+/* 排行榜列表容器 */
+#usage-leaderboard-list {
+    list-style: none; /* 移除默认的数字列表样式 */
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 每个排行榜项目 */
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    border-radius: 12px;
+    background: var(--bg-day-element);
+    box-shadow: inset 3px 3px 6px var(--shadow-dark-day), inset -3px -3px 6px var(--shadow-light-day);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.dark-mode .leaderboard-item {
+    background: var(--bg-night-element);
+    box-shadow: inset 3px 3px 6px var(--shadow-dark-night), inset -3px -3px 6px var(--shadow-light-night);
+}
+
+/* [新增] 使用时长项目在磨砂玻璃主题下的样式 */
+body.theme-glass .leaderboard-item {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none; /* 移除拟态的内阴影 */
+}
+
+body.theme-glass.dark-mode .leaderboard-item {
+    background: rgba(10, 10, 10, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 排名徽章 */
+.leaderboard-rank {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-day-element);
+    box-shadow: 3px 3px 6px var(--shadow-dark-day), -3px -3px 6px var(--shadow-light-day);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--hold-border);
+}
+body.dark-mode .leaderboard-rank {
+    background: var(--bg-night-element);
+    box-shadow: 3px 3px 6px var(--shadow-dark-night), -3px -3px 6px var(--shadow-light-night);
+}
+/* 前三名特殊样式 */
+.leaderboard-rank.rank-1 { background-color: #ffd700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.leaderboard-rank.rank-2 { background-color: #c0c0c0; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.leaderboard-rank.rank-3 { background-color: #cd7f32; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+
+/* 项目信息 */
+.leaderboard-info {
+    flex-grow: 1;
+    min-width: 0; /* 防止内容溢出时撑开布局 */
+    text-align: left;
+}
+.leaderboard-info-name {
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.leaderboard-info-time {
+    font-size: 13px;
+    color: #889;
+    margin-top: 4px;
+}
+body.dark-mode .leaderboard-info-time {
+    color: #a0aec0;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* =============== [新增] 签到翻转日历专属样式 ================= */
+/* =============================================================== */
+
+/* 整体容器尺寸和3D变换准备 */
+.calendar-flipper {
+    /* [核心修正] 使用相对单位和 aspect-ratio 实现动态缩放 */
+    width: 85%; /* 宽度为父容器的85% */
+    max-width: 350px; /* 但最大不超过350px，保证在大屏幕上不会过大 */
+    aspect-ratio: 1 / 1.1; /* 强制保持微调后的比例，给标题留出空间感 */
+    height: auto; /* 高度自动计算以匹配宽度 */
+    
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    perspective: 1000px; /* 增加透视，使3D效果更明显 */
+}
+
+/* 翻转后的状态 */
+.calendar-flipper.flipped {
+    transform: rotateY(180deg);
+}
+
+/* 正面和背面的通用样式 */
+.calendar-front, .calendar-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* 隐藏翻转到背后的那一面 */
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: translateZ(1px); 
+}
+
+/* 背面默认旋转180度 */
+.calendar-back {
+    transform: rotateY(180deg) translateZ(1px);
+}
+
+
+/* 复用并调整您原有的日历样式 */
+.calendar {
+    width: 100%; 
+    height: 100%;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    position: relative;
+    overflow: hidden;
+    background-color: #fff;
+    font-family: 'Arial', sans-serif;
+}
+.calendar-header {
+    width: 100%;
+    /* [核心修正] 使用百分比高度，使其随容器缩放 */
+    height: 18%; 
+    max-height: 60px; /* 限制最大高度 */
+    background-color: #8B4513; 
+    border-bottom: 3px solid #6d3811;
+    position: absolute;
+    top: 0; left: 0; z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    /* [核心修正] 动态字体 */
+    font-size: clamp(16px, 6vw, 22px);
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer; 
+    transition: background-color 0.3s;
+}
+.calendar-header:hover {
+    background-color: #a0522d;
+}
+.calendar-date-current {
+    width: 100%;
+     /* [核心修正] 使用百分比高度 */
+    height: 82%;
+    position: absolute;
+    bottom: 0; left: 0;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+    z-index: 2;
+}
+.calendar-date-current:active { cursor: grabbing; }
+.calendar-date-next {
+    width: 100%;
+    /* [核心修正] 使用百分比高度 */
+    height: 82%;
+    position: absolute;
+    bottom: 0; left: 0;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.09);
+    z-index: 1;
+}
+.date-number {
+    /* [核心修正] 调整 clamp() 参数以获得更好的缩放效果 */
+    font-size: clamp(50px, 28vw, 110px);
+    font-weight: bold;
+    color: #333;
+    line-height: 1;
+}
+.date-full {
+    /* [核心修正] 调整 clamp() 参数 */
+    font-size: clamp(12px, 4vw, 16px);
+    color: #666;
+    margin-top: 10px;
+    letter-spacing: 0.5px;
+}
+
+
+/* 月度日历的样式 */
+.monthly-calendar {
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+    display: flex;
+    flex-direction: column;
+}
+.monthly-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.monthly-calendar-header span {
+    /* [核心修正] 动态字体 */
+    font-size: clamp(16px, 5vw, 18px);
+    font-weight: 600;
+}
+.monthly-calendar-header button {
+    background: transparent;
+    border: none;
+    /* [核心修正] 动态字体 */
+    font-size: clamp(18px, 5.5vw, 20px);
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.monthly-calendar-header button:hover { background-color: #f0f0f0; }
+#monthly-calendar-table { width: 100%; flex-grow: 1; border-collapse: collapse; }
+#monthly-calendar-table th, #monthly-calendar-table td {
+    text-align: center;
+    padding: 2px; /* 减小内边距以适应小屏幕 */
+    /* [核心修正] 动态字体 */
+    font-size: clamp(11px, 3.5vw, 14px);
+}
+
+#monthly-calendar-table th { color: #aaa; font-weight: normal; }
+#monthly-calendar-table td { position: relative; height: 14.28%; }
+#monthly-calendar-table td.today { background-color: #e3f2fd; color: #1565c0; font-weight: bold; border-radius: 50%; }
+#monthly-calendar-table td.other-month { color: #ccc; }
+/* 已签到的小蓝点样式 */
+#monthly-calendar-table td.checked-in::after {
+    content: '';
+    position: absolute;
+    bottom: 4px; /* 调整位置 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: clamp(4px, 1.2vw, 6px); /* [核心修正] 小圆点也动态缩放 */
+    height: clamp(4px, 1.2vw, 6px);
+    background-color: #63b3ed;
+    border-radius: 50%;
+}
 
     </style>
 
@@ -3799,6 +4339,8 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
     <div class="title-card" id="titleCard">
         <h1 class="editable-title" id="title">Jellyfish Island</h1>
         <div class="editable-subtitle" id="subtitle">长按🌞打开工具栏 | By淡季水母</div>
+
+
     </div>
 
     <div class="category-nav-container" id="categoryNavContainer">
@@ -3811,6 +4353,19 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
             <p id="loading-status" style="text-align: center; color: #889;">正在从云端加载配置...</p>
         </div>
     </div>
+
+    <!-- ===== [新增] 摇摆挂件的HTML结构 (全局定位) ===== -->
+    <div id="pendant-container">
+        <div id="pendant-all-wrap" class="all-wrap">
+            <div id="pendant-all" class="all">
+                <!-- 使用一个span来方便地更改emoji或图片 -->
+                <span id="pendant-shape">
+                    <img src="https://tc.z.wiki/autoupload/fr/0x9Zm_rdfaeRRjK8iV0xPw5cKjQnMC1OZdesfpjt90qyl5f0KlZfm6UsKj-HyTuv/20251105/Nh10/1024X440/IMG_7008.png?imageMogr2/thumbnail/100x" alt="挂件" id="pendant-img">
+                </span>
+            </div>
+        </div>
+    </div>
+    <!-- ===== [新增结束] ===== -->
 
     <!-- 注意：悬浮按钮和模态框需要放在滑动容器之外，以保证它们在所有页面上都能正常显示和交互 -->
     <div class="fab-container" id="fabContainer">
@@ -4074,6 +4629,24 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
     </div>
         <!-- ★ 在这里新增下面的代码块 ★ -->
 <div class="update-log-entry">
+    <h4>v6.0.0 <span class="update-date">- 2025.11.06</span></h4>
+    <ul>
+        <li><span class="tag new">新功能</span> 备忘录工具栏加强，支持调整文字大小和一键复制全文。</li>
+        <li><span class="tag new">新功能</span> 漫游模式支持上传 <code>.m4a</code> 格式的音乐文件。</li>
+        <li><span class="tag new">新功能</span> 新增照片上传取消功能，可在上传过程中随时中止任务。</li>
+        <li><span class="tag new">新功能</span> 数据清理功能现已支持按类别（如主配置、相册、云盘等）进行选择性清空。</li>
+        <li><span class="tag new">新功能</span> 备忘录的文件夹封面上增加项目数量显示。</li>
+        <li><span class="tag new">新功能</span> 新增对网易云盘的授权上传支持（此功能测试中，暂不可用）。</li>
+        <li><span class="tag opt">优化</span> 对于 iOS 设备，相册照片下载方式变更为“分享，”可选择保存到“照片”或“文件”应用。</li>
+        <li><span class="tag opt">优化</span> 修复了悬浮球的预览功能交互，点击“预览”可实时查看效果，应用后将刷新页面。</li>
+        <li><span class="tag opt">优化</span> 优化了悬浮球CSS自定义功能的帮助提示词。</li>
+        <li><span class="tag opt">优化</span> 优化了“记忆”模块的加载逻辑与显示效果，提升了启动速度。</li>
+        <li><span class="tag opt">优化</span> 上传照片时，默认不再勾选“创建照片集”选项。</li>
+        <li><span class="tag opt">优化</span> 优化了退出页面时管理模式的自动退出逻辑。</li>
+        <li><span class="tag fix">修复</span> 修复了在“磨砂玻璃”主题下，项目按钮的磨砂背景显示不正确的问题。</li>
+    </ul>
+</div>
+<div class="update-log-entry">
     <h4>v5.9.5 <span class="update-date">- 2025.10.19</span></h4>
     <ul>
         <li><span class="tag new">新功能</span> 新增备份提醒功能，支持定时或在关闭项目时弹出提醒，有效防止数据丢失。</li>
@@ -4216,7 +4789,7 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
     </div>
     
     <footer class="update-footer">
-        当前版本: v5.9.5
+        当前版本: v6.0.0
     </footer>
 </div>
                     <div id="help-page-3" class="help-page-content">
@@ -4307,8 +4880,8 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
                         <div class="preset-row">
                             <select id="presetSelector" class="modal-select" style="flex-grow: 1;"></select>
                             <button id="addColorPresetBtn" title="添加新预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">+</button>
-                            <button id="updateColorPresetBtn" title="更新当前预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">↻</button>
-                            <button id="deleteColorPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">🗑</button>
+                            <button id="updateColorPresetBtn" title="更新当前预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 24 24" style="vertical-align: middle;"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.00283 5.97646C7.54105 4.44489 9.65927 3.5 12.0001 3.5C16.6945 3.5 20.5001 7.30558 20.5001 12V13H22.5001V12C22.5001 6.20101 17.7991 1.5 12.0001 1.5C9.21634 1.5 6.52096 2.62797 4.55516 4.59569L2.51245 6.84208L3.99216 8.18762L6.00283 5.97646Z" fill="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 1.5V6.5H9.5V8.5H2.5V1.5H4.5Z" fill="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M17.9972 18.0235C16.4589 19.5551 14.3407 20.5 11.9999 20.5C7.30551 20.5 3.49993 16.6944 3.49993 12V11H1.49993V12C1.49993 17.799 6.20094 22.5 11.9999 22.5C14.901 22.5 17.5289 21.3221 19.4282 19.4209L21.4875 17.1579L20.0078 15.8124L17.9972 18.0235Z" fill="currentColor" data-color="color-2"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M19.5 22.5V17.5H14.5V15.5H21.5V22.5H19.5Z" fill="currentColor" data-color="color-2"></path> </svg></button>
+                            <button id="deleteColorPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="m4.458,9l.463,11.125c.067,1.612,1.384,2.875,2.998,2.875h8.163c1.613,0,2.93-1.263,2.998-2.875l.463-11.125H4.458Z" stroke-width="0" fill="currentColor"></path><path d="m16,5V1h-8v4H2v2h20v-2h-6Zm-6-2h4v2h-4v-2Z" fill="currentColor" stroke-width="0" data-color="color-2"></path></svg></button>
                         </div>
                     </div>
                     <div class="toggle-section"><span>每次启动时随机应用预设</span><label class="toggle-switch"><input type="checkbox" id="randomPaletteToggle"><span class="slider"></span></label></div>
@@ -4354,8 +4927,8 @@ body.theme-glass.dark-mode .memo-fab-back-to-top {
                     <div class="preset-row" style="margin-top: 15px;">
                         <select id="fontPresetSelector" class="modal-select" style="flex-grow: 1;"></select>
                         <button id="addFontPresetBtn" title="添加新预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">+</button>
-                        <button id="updateFontPresetBtn" title="修改预设名" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">✎</button>
-                        <button id="deleteFontPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">🗑</button>
+                        <button id="updateFontPresetBtn" title="修改预设名" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 24 24" style="vertical-align: middle;"><rect x="1" y="20" width="22" height="2" fill="currentColor" stroke-width="0" data-color="color-2"></rect><path d="m18.875,2.125c-1.492-1.493-3.922-1.493-5.414,0L4.079,11.507l-1.354,6.768,6.768-1.354,9.382-9.382c1.493-1.493,1.493-3.921,0-5.414Zm-1.414,4l-.875.875-2.586-2.586.875-.875c.713-.713,1.873-.713,2.586,0s.713,1.873,0,2.586Z" stroke-width="0" fill="currentColor"></path></svg></button>
+                        <button id="deleteFontPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="m4.458,9l.463,11.125c.067,1.612,1.384,2.875,2.998,2.875h8.163c1.613,0,2.93-1.263,2.998-2.875l.463-11.125H4.458Z" stroke-width="0" fill="currentColor"></path><path d="m16,5V1h-8v4H2v2h20v-2h-6Zm-6-2h4v2h-4v-2Z" fill="currentColor" stroke-width="0" data-color="color-2"></path></svg></button>
                     </div>
                 </div>
                 <!-- [新增结束] -->
@@ -4653,20 +5226,20 @@ body.dark-mode #floating-jellyfish-ball {
                                 <button data-action="save-note" class="editor-btn">完成</button>
                             </div>
                         </div>
-                        <div class="editor-content">
+                        <div class="editor-content" id="noteEditorContent">
                             <input type="text" id="note-title-input" placeholder="标题">
                             <div id="note-content-editor" contenteditable="true" placeholder="在这里输入内容..."></div>
                         </div>
                         <!-- [V3] 最终版工具栏布局：所有按钮平铺，由 Flexbox 自动均分间距 -->
-                        <div class="memo-toolbar">
-                            <button class="toolbar-btn" data-command="todo" title="待办清单">✓</button>
+                        <div class="memo-toolbar" id="memoToolbar">
+                            <button class="toolbar-btn" data-command="todo" title="待办清单"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 20 20"><polyline points="3 6 4.5 7.5 8 3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" data-color="color-2"></polyline><rect x="3" y="12" width="4" height="4" rx="1" ry="1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" fill="currentColor"></rect><line x1="11" y1="6" x2="17" y2="6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" data-color="color-2"></line><line x1="11" y1="14" x2="17" y2="14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line></svg></button>
                             <button class="toolbar-btn" data-command="bold" title="加粗">B</button>
                             <button class="toolbar-btn" data-command="italic" title="斜体">I</button>
                             <button class="toolbar-btn" data-command="underline" title="下划线">U</button>
                             <button class="toolbar-btn strikethrough" data-command="strikeThrough" title="删除线">S</button>
                             <button class="toolbar-btn font-size-icon" data-command="fontSize" title="调整字号">A<small>A</small></button>
-                            <button class="toolbar-btn" data-command="createCodeBlock" title="代码块">&lt;/&gt;</button>
-                            <button class="toolbar-btn" data-command="copyContent" title="复制备忘录正文">❏</button>
+                            <button class="toolbar-btn" data-command="createCodeBlock" title="代码块"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 20 20"><path d="m14,3H6c-1.657,0-3,1.343-3,3v2h14v-2c0-1.657-1.343-3-3-3Zm-8,3c-.552,0-1-.448-1-1s.448-1,1-1,1,.448,1,1-.448,1-1,1Zm3,0c-.552,0-1-.448-1-1s.448-1,1-1,1,.448,1,1-.448,1-1,1Z" stroke-width="0" fill="currentColor"></path><polyline points="12.5 12 10 14.5 12.5 17" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" data-color="color-2"></polyline><path d="m17,8.845v-2.845c0-1.657-1.343-3-3-3H6c-1.657,0-3,1.343-3,3v8c0,1.657,1.343,3,3,3h1.55l-.025-.025" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><polyline points="15.5 17 18 14.5 15.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" data-color="color-2"></polyline></svg></button>
+<button class="toolbar-btn" data-command="copyContent" title="复制备忘录正文"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 20 20"><path d="m4,7h3c.552,0,1-.448,1-1v-3" fill="#1c1f21" stroke="#1c1f21" stroke-linejoin="round" stroke-width="2" data-color="color-2"></path><path d="m16,14v-8c0-1.657-1.343-3-3-3h-4.586c-.265,0-.52.105-.707.293l-3.414,3.414c-.188.188-.293.442-.293.707v6.586c0,1.657,1.343,3,3,3h6c1.657,0,3-1.343,3-3Z" fill="none" stroke="#1c1f21" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>
                         </div>
 
                         <!-- [V2] 重新设计的、更小巧的字号滑块弹窗 -->
@@ -4687,7 +5260,31 @@ body.dark-mode #floating-jellyfish-ball {
                             <button data-action="back-to-hub" class="header-btn back-btn">&#10094;</button>
                             <h1 class="title">我的相册</h1>
                             <div class="header-controls">
-                                <button data-action="wander-global" class="header-btn wander-btn">💫</button>
+                               <button data-action="wander-global" class="header-btn wander-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <title>star-sparkle</title>
+      <g fill="none">
+        <path d="M20.3174 8.19531C20.0357 8.8823 19.5416 9.61008 18.9248 10.332C17.6628 11.8091 15.7312 13.4472 13.4355 14.9248C11.14 16.4022 8.8494 17.4826 6.98242 18.0195C6.31873 18.2104 5.67868 18.3394 5.09375 18.3857L5.45996 16.3232C5.74837 16.2727 6.07264 16.1993 6.42969 16.0967C8.06215 15.6272 10.1747 14.6455 12.3535 13.2432C14.5326 11.8406 16.3019 10.3247 17.4053 9.0332C17.7661 8.61089 18.0377 8.22999 18.2305 7.90234L20.3174 8.19531Z" fill="url(#star-sparkle_grad_0-global)" data-glass="origin" mask="url(#star-sparkle_mask-global)"></path>
+        <path d="M20.3174 8.19531C20.0357 8.8823 19.5416 9.61008 18.9248 10.332C17.6628 11.8091 15.7312 13.4472 13.4355 14.9248C11.14 16.4022 8.8494 17.4826 6.98242 18.0195C6.31873 18.2104 5.67868 18.3394 5.09375 18.3857L5.45996 16.3232C5.74837 16.2727 6.07264 16.1993 6.42969 16.0967C8.06215 15.6272 10.1747 14.6455 12.3535 13.2432C14.5326 11.8406 16.3019 10.3247 17.4053 9.0332C17.7661 8.61089 18.0377 8.22999 18.2305 7.90234L20.3174 8.19531Z" fill="url(#star-sparkle_grad_0-global)" data-glass="clone" filter="url(#star-sparkle_filter-global)" clip-path="url(#star-sparkle_clip-global)"></path>
+        <path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="url(#star-sparkle_grad_1-global)" data-glass="blur"></path>
+        <path d="M10.6641 2.61911C11.2207 1.52809 12.7793 1.52809 13.336 2.61911L15.5079 6.87498C15.7301 7.31065 16.1505 7.61058 16.6348 7.67869L21.4083 8.34959C22.654 8.5247 23.1438 10.0637 22.2286 10.9267L18.839 14.123C18.4713 14.4698 18.3034 14.9789 18.3917 15.4766L19.2003 20.0371C19.4097 21.2177 18.2249 22.1382 17.1475 21.6846L17.044 21.6367L12.6797 19.418C12.2525 19.2008 11.7475 19.2008 11.3203 19.418L6.95602 21.6367L6.85251 21.6846C5.80984 22.1236 4.6659 21.2757 4.78315 20.1504L4.79975 20.0371L5.60835 15.4766C5.68559 15.0411 5.56634 14.5972 5.28901 14.2607L5.16108 14.123L1.7714 10.9267C0.884703 10.0905 1.31671 8.62007 2.47746 8.3701L2.59172 8.34959L7.36521 7.67869C7.84952 7.61057 8.26991 7.31064 8.49217 6.87498L10.6641 2.61911ZM12.668 2.95993C12.3897 2.41442 11.6104 2.41442 11.332 2.95993L9.16015 7.2158C8.82676 7.86931 8.19619 8.31969 7.4697 8.42185L2.69621 9.09275C2.07335 9.18031 1.82846 9.9493 2.28605 10.3808L5.67574 13.5771C6.22733 14.0974 6.47906 14.8609 6.34664 15.6074L5.53804 20.168C5.42998 20.7772 6.06456 21.248 6.61618 20.9678L10.9805 18.749C11.6212 18.4234 12.3789 18.4234 13.0196 18.749L17.3839 20.9678C17.9355 21.248 18.5701 20.7772 18.462 20.168L17.6534 15.6074C17.521 14.8609 17.7727 14.0974 18.3243 13.5771L21.714 10.3808C22.1716 9.9493 21.9267 9.18031 21.3038 9.09275L16.5303 8.42185C15.8038 8.31969 15.1733 7.86931 14.8399 7.2158L12.668 2.95993Z" fill="url(#star-sparkle_grad_2-global)"></path>
+        <path d="M6.07314 2.88824L5.44324 1.30101C5.28398 0.8997 4.71603 0.89965 4.55669 1.30094L3.92644 2.88824C3.91951 2.90563 3.90577 2.91938 3.88838 2.9263L2.30091 3.55671C1.89969 3.71604 1.8997 4.28396 2.30092 4.44329L3.88838 5.0737C3.90577 5.08063 3.91951 5.09437 3.92644 5.11176L4.55668 6.69906C4.71602 7.10035 5.28397 7.1003 5.44324 6.69899L6.07314 5.11176C6.08008 5.0943 6.094 5.08061 6.11147 5.0737L7.69907 4.4433C8.10031 4.28398 8.10031 3.71602 7.69907 3.5567L6.11147 2.9263C6.094 2.91939 6.08008 2.9057 6.07314 2.88824Z" fill="url(#star-sparkle_grad_3-global)"></path>
+        <path d="M23.5 16.25C23.5 16.9404 22.9404 17.5 22.25 17.5C21.5596 17.5 21 16.9404 21 16.25C21 15.5596 21.5596 15 22.25 15C22.9404 15 23.5 15.5596 23.5 16.25Z" fill="url(#star-sparkle_grad_4-global)"></path>
+        <path d="M18.2307 4.89743C18.949 4.93039 19.7944 5.15041 20.2727 5.89353L20.3548 6.03415C20.7312 6.74332 20.584 7.53845 20.3333 8.16404C20.3289 8.17492 20.3231 8.18536 20.3186 8.19626L18.2327 7.90329C18.3369 7.72619 18.4187 7.56496 18.4768 7.4199C18.578 7.16745 18.5847 7.03502 18.5813 6.98142C18.5338 6.95616 18.4108 6.90798 18.1399 6.89548C17.6948 6.87509 17.0493 6.96563 16.2268 7.20212C14.5943 7.67159 12.482 8.65321 10.303 10.0556C8.12386 11.4582 6.3547 12.974 5.25125 14.2656C4.69526 14.9164 4.34675 15.4662 4.18093 15.8799C4.07977 16.1323 4.07313 16.2646 4.07644 16.3183C4.12416 16.3436 4.24758 16.3918 4.51882 16.4043C4.76947 16.4157 5.08313 16.3909 5.45632 16.3261L5.09011 18.3867C4.86005 18.4047 4.63829 18.412 4.42703 18.4023C3.70884 18.3694 2.86334 18.1492 2.38504 17.4062C1.90698 16.6632 2.05709 15.803 2.32449 15.1357C2.60377 14.4391 3.10509 13.7002 3.73172 12.9668C4.99373 11.4897 6.92524 9.85163 9.22097 8.374C11.5166 6.89649 13.8071 5.81617 15.6741 5.27927C16.6011 5.01275 17.4811 4.86312 18.2307 4.89743Z" fill="url(#star-sparkle_grad_5-global)"></path>
+        <defs>
+          <linearGradient id="star-sparkle_grad_0-global" x1="12.706" y1="7.902" x2="12.706" y2="18.386" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_1-global" x1="12" y1="1.801" x2="12" y2="21.802" gradientUnits="userSpaceOnUse"><stop stop-color="#E3E3E5" stop-opacity=".6"></stop><stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_2-global" x1="12" y1="1.801" x2="12" y2="13.384" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"></stop><stop offset="1" stop-color="#fff" stop-opacity="0"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_3-global" x1="5" y1="1" x2="5" y2="7" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_4-global" x1="22.25" y1="15" x2="22.25" y2="17.5" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_5-global" x1="11.329" y1="4.893" x2="11.329" y2="18.407" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <filter id="star-sparkle_filter-global" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur></filter>
+          <clipPath id="star-sparkle_clip-global"><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="url(#star-sparkle_grad_1-global)"></path></clipPath>
+          <mask id="star-sparkle_mask-global"><rect width="100%" height="100%" fill="#FFF"></rect><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="#000"></path></mask>
+        </defs>
+      </g>
+    </svg>
+</button>
                                 <button data-action="toggle-album-manage" class="header-btn manage-btn">管理</button>
                             </div>
                         </div>
@@ -4703,7 +5300,33 @@ body.dark-mode #floating-jellyfish-ball {
                             <button data-action="back-to-album-folders" class="header-btn back-btn">&#10094;</button>
                             <h1 id="photo-grid-title" class="title">相册</h1>
                             <div class="header-controls">
-                                <button data-action="wander-local" class="header-btn wander-btn">💫</button>
+<button data-action="wander-global" class="header-btn wander-btn">
+<button data-action="wander-local" class="header-btn wander-btn">
+    <!-- 这是一个新的、唯一的SVG图标，用于相册内部，解决了ID冲突问题 -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <title>star-sparkle</title>
+      <g fill="none">
+        <path d="M20.3174 8.19531C20.0357 8.8823 19.5416 9.61008 18.9248 10.332C17.6628 11.8091 15.7312 13.4472 13.4355 14.9248C11.14 16.4022 8.8494 17.4826 6.98242 18.0195C6.31873 18.2104 5.67868 18.3394 5.09375 18.3857L5.45996 16.3232C5.74837 16.2727 6.07264 16.1993 6.42969 16.0967C8.06215 15.6272 10.1747 14.6455 12.3535 13.2432C14.5326 11.8406 16.3019 10.3247 17.4053 9.0332C17.7661 8.61089 18.0377 8.22999 18.2305 7.90234L20.3174 8.19531Z" fill="url(#star-sparkle_grad_0-album-inner)" data-glass="origin" mask="url(#star-sparkle_mask-album-inner)"></path>
+        <path d="M20.3174 8.19531C20.0357 8.8823 19.5416 9.61008 18.9248 10.332C17.6628 11.8091 15.7312 13.4472 13.4355 14.9248C11.14 16.4022 8.8494 17.4826 6.98242 18.0195C6.31873 18.2104 5.67868 18.3394 5.09375 18.3857L5.45996 16.3232C5.74837 16.2727 6.07264 16.1993 6.42969 16.0967C8.06215 15.6272 10.1747 14.6455 12.3535 13.2432C14.5326 11.8406 16.3019 10.3247 17.4053 9.0332C17.7661 8.61089 18.0377 8.22999 18.2305 7.90234L20.3174 8.19531Z" fill="url(#star-sparkle_grad_0-album-inner)" data-glass="clone" filter="url(#star-sparkle_filter-album-inner)" clip-path="url(#star-sparkle_clip-album-inner)"></path>
+        <path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="url(#star-sparkle_grad_1-album-inner)" data-glass="blur"></path>
+        <path d="M10.6641 2.61911C11.2207 1.52809 12.7793 1.52809 13.336 2.61911L15.5079 6.87498C15.7301 7.31065 16.1505 7.61058 16.6348 7.67869L21.4083 8.34959C22.654 8.5247 23.1438 10.0637 22.2286 10.9267L18.839 14.123C18.4713 14.4698 18.3034 14.9789 18.3917 15.4766L19.2003 20.0371C19.4097 21.2177 18.2249 22.1382 17.1475 21.6846L17.044 21.6367L12.6797 19.418C12.2525 19.2008 11.7475 19.2008 11.3203 19.418L6.95602 21.6367L6.85251 21.6846C5.80984 22.1236 4.6659 21.2757 4.78315 20.1504L4.79975 20.0371L5.60835 15.4766C5.68559 15.0411 5.56634 14.5972 5.28901 14.2607L5.16108 14.123L1.7714 10.9267C0.884703 10.0905 1.31671 8.62007 2.47746 8.3701L2.59172 8.34959L7.36521 7.67869C7.84952 7.61057 8.26991 7.31064 8.49217 6.87498L10.6641 2.61911ZM12.668 2.95993C12.3897 2.41442 11.6104 2.41442 11.332 2.95993L9.16015 7.2158C8.82676 7.86931 8.19619 8.31969 7.4697 8.42185L2.69621 9.09275C2.07335 9.18031 1.82846 9.9493 2.28605 10.3808L5.67574 13.5771C6.22733 14.0974 6.47906 14.8609 6.34664 15.6074L5.53804 20.168C5.42998 20.7772 6.06456 21.248 6.61618 20.9678L10.9805 18.749C11.6212 18.4234 12.3789 18.4234 13.0196 18.749L17.3839 20.9678C17.9355 21.248 18.5701 20.7772 18.462 20.168L17.6534 15.6074C17.521 14.8609 17.7727 14.0974 18.3243 13.5771L21.714 10.3808C22.1716 9.9493 21.9267 9.18031 21.3038 9.09275L16.5303 8.42185C15.8038 8.31969 15.1733 7.86931 14.8399 7.2158L12.668 2.95993Z" fill="url(#star-sparkle_grad_2-album-inner)"></path>
+        <path d="M6.07314 2.88824L5.44324 1.30101C5.28398 0.8997 4.71603 0.89965 4.55669 1.30094L3.92644 2.88824C3.91951 2.90563 3.90577 2.91938 3.88838 2.9263L2.30091 3.55671C1.89969 3.71604 1.8997 4.28396 2.30092 4.44329L3.88838 5.0737C3.90577 5.08063 3.91951 5.09437 3.92644 5.11176L4.55668 6.69906C4.71602 7.10035 5.28397 7.1003 5.44324 6.69899L6.07314 5.11176C6.08008 5.0943 6.094 5.08061 6.11147 5.0737L7.69907 4.4433C8.10031 4.28398 8.10031 3.71602 7.69907 3.5567L6.11147 2.9263C6.094 2.91939 6.08008 2.9057 6.07314 2.88824Z" fill="url(#star-sparkle_grad_3-album-inner)"></path>
+        <path d="M23.5 16.25C23.5 16.9404 22.9404 17.5 22.25 17.5C21.5596 17.5 21 16.9404 21 16.25C21 15.5596 21.5596 15 22.25 15C22.9404 15 23.5 15.5596 23.5 16.25Z" fill="url(#star-sparkle_grad_4-album-inner)"></path>
+        <path d="M18.2307 4.89743C18.949 4.93039 19.7944 5.15041 20.2727 5.89353L20.3548 6.03415C20.7312 6.74332 20.584 7.53845 20.3333 8.16404C20.3289 8.17492 20.3231 8.18536 20.3186 8.19626L18.2327 7.90329C18.3369 7.72619 18.4187 7.56496 18.4768 7.4199C18.578 7.16745 18.5847 7.03502 18.5813 6.98142C18.5338 6.95616 18.4108 6.90798 18.1399 6.89548C17.6948 6.87509 17.0493 6.96563 16.2268 7.20212C14.5943 7.67159 12.482 8.65321 10.303 10.0556C8.12386 11.4582 6.3547 12.974 5.25125 14.2656C4.69526 14.9164 4.34675 15.4662 4.18093 15.8799C4.07977 16.1323 4.07313 16.2646 4.07644 16.3183C4.12416 16.3436 4.24758 16.3918 4.51882 16.4043C4.76947 16.4157 5.08313 16.3909 5.45632 16.3261L5.09011 18.3867C4.86005 18.4047 4.63829 18.412 4.42703 18.4023C3.70884 18.3694 2.86334 18.1492 2.38504 17.4062C1.90698 16.6632 2.05709 15.803 2.32449 15.1357C2.60377 14.4391 3.10509 13.7002 3.73172 12.9668C4.99373 11.4897 6.92524 9.85163 9.22097 8.374C11.5166 6.89649 13.8071 5.81617 15.6741 5.27927C16.6011 5.01275 17.4811 4.86312 18.2307 4.89743Z" fill="url(#star-sparkle_grad_5-album-inner)"></path>
+        <defs>
+          <linearGradient id="star-sparkle_grad_0-album-inner" x1="12.706" y1="7.902" x2="12.706" y2="18.386" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_1-album-inner" x1="12" y1="1.801" x2="12" y2="21.802" gradientUnits="userSpaceOnUse"><stop stop-color="#E3E3E5" stop-opacity=".6"></stop><stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_2-album-inner" x1="12" y1="1.801" x2="12" y2="13.384" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"></stop><stop offset="1" stop-color="#fff" stop-opacity="0"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_3-album-inner" x1="5" y1="1" x2="5" y2="7" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_4-album-inner" x1="22.25" y1="15" x2="22.25" y2="17.5" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <linearGradient id="star-sparkle_grad_5-album-inner" x1="11.329" y1="4.893" x2="11.329" y2="18.407" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient>
+          <filter id="star-sparkle_filter-album-inner" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur></filter>
+          <clipPath id="star-sparkle_clip-album-inner"><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="url(#star-sparkle_grad_1-album-inner)"></path></clipPath>
+          <mask id="star-sparkle_mask-album-inner"><rect width="100%" height="100%" fill="#FFF"></rect><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="#000"></path></mask>
+        </defs>
+      </g>
+    </svg>
+</button>
                                 <button data-action="toggle-photo-manage" class="header-btn manage-btn">管理</button>
                             </div>
                         </div>
@@ -4723,7 +5346,7 @@ body.dark-mode #floating-jellyfish-ball {
                         <button data-action="back-to-hub" class="header-btn back-btn">&#10094;</button>
                         <h1 class="title">文件夹</h1>
                         <!-- [新增] 百度网盘设置按钮 -->
-                        <button data-action="open-baidu-settings" class="header-btn baidu-settings-btn" title="百度网盘设置">⚙️</button>
+                        <button data-action="open-baidu-settings" class="header-btn baidu-settings-btn" title="百度网盘设置"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><path d="m23,13.75v-3.5l-2.384-.841c-.176-.583-.407-1.142-.691-1.668l1.091-2.281-2.475-2.475-2.281,1.091c-.527-.284-1.086-.515-1.668-.691l-.841-2.384h-3.5l-.841,2.384c-.583.176-1.142.407-1.668.691l-2.281-1.091-2.475,2.475,1.091,2.281c-.284.527-.515,1.086-.691,1.668l-2.384.841v3.5l2.384.841c.176.583.407,1.142.691,1.668l-1.091,2.281,2.475,2.475,2.281-1.091c.527.284,1.086.515,1.668.691l.841,2.384h3.5l.841-2.384c.583-.176,1.142-.407,1.668-.691l2.281,1.091,2.475-2.475-1.091-2.281c.284-.527-.515,1.086.691-1.668l2.384-.841Zm-11,2.25c-2.206,0-4-1.794-4-4s1.794-4,4-4,4,1.794,4,4-1.794,4-4,4Z" stroke-width="0" fill="currentColor"></path></svg></button>
                     </div>
                     <div class="list-container">
                         <select id="categorySelector" class="modal-select"></select>
@@ -4836,7 +5459,7 @@ body.dark-mode #floating-jellyfish-ball {
             <p id="viewer-description"></p>
             <p id="viewer-timestamp"></p>
             <!-- [修改] 将下载按钮移动到页脚内部 -->
-            <a id="download-photo-btn" title="下载图片">⇩</a>
+            <a id="download-photo-btn" title="下载图片"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 20 20"><polyline points="14 8 10 12 6 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" data-color="color-2"></polyline><line x1="10" y1="3" x2="10" y2="12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" data-color="color-2"></line><path d="m17,13v1c0,1.657-1.343,3-3,3H6c-1.657,0-3-1.343-3-3v-1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></a>
         </div>
     </div>
     <!-- Wander View -->
@@ -4980,6 +5603,143 @@ body.dark-mode #floating-jellyfish-ball {
 
     // [JS - V12.5.0 "Cascade Select"]
     const CURRENT_APP_VERSION = '3.7.0';
+// [新增] ==========================================================
+// [新增] 数据模块化管理器 (DataManager) V1.0
+// [新增] ==========================================================
+const DataManager = (() => {
+    // 内存缓存
+    const cache = {};
+    // 模块名到文件路径的映射
+    const modulePaths = {
+        usageTime: 'stats/usage_time.json',
+        checkInData: 'widgets/checkin_data.json'
+    };
+    // 模块的默认数据结构
+    const moduleDefaults = {
+        usageTime: {},
+        checkInData: { dates: [] }
+    };
+
+    /**
+     * 异步获取一个数据模块
+     * @param {string} moduleName - 模块名 (例如 'usageTime')
+     * @returns {Promise<Object>} - 该模块的数据对象
+     */
+    async function get(moduleName) {
+        // 1. 优先从内存缓存读取
+        if (cache[moduleName]) {
+            return cache[moduleName];
+        }
+
+        const path = modulePaths[moduleName];
+        if (!path) {
+            throw new Error(`DataManager: 未知的模块 '${moduleName}'`);
+        }
+
+        updateSyncStatus('syncing', `加载 ${moduleName} 模块...`);
+        const { data, error, response } = await fetchFromGithub(path);
+
+        if (error) {
+            updateSyncStatus('error', `加载 ${moduleName} 失败: ${error}`);
+            // 如果加载失败，返回默认值以保证程序运行，但不缓存
+            return moduleDefaults[moduleName] || {};
+        }
+
+        let moduleData;
+        // 2. 如果文件不存在(404)或内容为空，则使用默认结构
+        if ((response && response.status === 404) || !data || !data.content) {
+            console.log(`'${path}' not found on remote. Using default structure.`);
+            moduleData = moduleDefaults[moduleName] || {};
+        } else {
+            // 3. 解析云端数据
+            try {
+                moduleData = JSON.parse(b64_to_utf8(data.content));
+            } catch (e) {
+                console.error(`解析 '${path}' 失败:`, e);
+                updateSyncStatus('error', `解析云端 ${moduleName} 数据失败`);
+                moduleData = moduleDefaults[moduleName] || {};
+            }
+        }
+        
+        // 4. 存入缓存并返回
+        cache[moduleName] = moduleData;
+        updateSyncStatus('synced', `模块 ${moduleName} 加载成功`);
+        return moduleData;
+    }
+
+    /**
+     * 异步保存一个数据模块
+     * @param {string} moduleName - 模块名
+     * @param {string} commitMessage - 提交信息
+     */
+    async function save(moduleName, commitMessage) {
+        if (!cache[moduleName]) {
+            console.warn(`DataManager: 尝试保存在内存中不存在的模块 '${moduleName}'`);
+            return;
+        }
+
+        const path = modulePaths[moduleName];
+        const dataToSave = cache[moduleName];
+        const content = utf8_to_b64(JSON.stringify(dataToSave, null, 2));
+
+        // 注意：这里的 saveToGithub 会自动获取最新的 sha，无需手动管理
+        await saveToGithub(path, content, commitMessage);
+    }
+
+    return { get, save };
+})();
+
+/**
+ * [新增] 一次性数据迁移函数 V1.0
+ * 将旧的、臃肿的 config.json 拆分为模块化文件
+ */
+async function migrateToModularData(config) {
+    let needsMigration = false;
+    const migrationTasks = [];
+    
+    // 检查并准备迁移 usageTime
+    if (config.settings && config.settings.usageTime) {
+        needsMigration = true;
+        const usageTimeData = config.settings.usageTime;
+        delete config.settings.usageTime; // 从主配置中移除
+        
+        const content = utf8_to_b64(JSON.stringify(usageTimeData, null, 2));
+        migrationTasks.push(saveToGithub('stats/usage_time.json', content, 'Migrate: Create usage_time.json'));
+    }
+
+    // 检查并准备迁移 checkInData
+    if (config.settings && config.settings.checkInData) {
+        needsMigration = true;
+        const checkInData = config.settings.checkInData;
+        delete config.settings.checkInData; // 从主配置中移除
+
+        const content = utf8_to_b64(JSON.stringify(checkInData, null, 2));
+        migrationTasks.push(saveToGithub('widgets/checkin_data.json', content, 'Migrate: Create checkin_data.json'));
+    }
+
+    if (needsMigration) {
+        alert("检测到新的数据结构，将为您进行一次性数据迁移。过程可能需要一点时间，请稍候...");
+        
+        // 更新主配置，标记为已迁移
+        config.dataStructureVersion = 2; // 添加版本号
+        const configContent = utf8_to_b64(JSON.stringify(config, null, 2));
+        migrationTasks.push(saveToGithub('config.json', configContent, 'Migrate: Update main config to v2 structure'));
+
+        try {
+            await Promise.all(migrationTasks);
+            alert("数据迁移成功！页面将刷新以应用新结构。");
+            location.reload();
+            return true; // 表示已成功迁移并刷新
+        } catch (error) {
+            alert(`数据迁移失败: ${error.message}\n请截图联系开发者。`);
+            return false;
+        }
+    }
+    
+    return false; // 表示无需迁移
+}
+// [新增结束] =======================================================
+
     let GITHUB_CONFIG = {}, configSha = null, isManagementMode = false, isEditingButton = false, editingButtonData = null;
     const navContainer = document.getElementById('navContainer'), pageOverlay = document.getElementById('pageOverlay');
     const syncStatusIndicator = document.getElementById('sync-status-indicator');
@@ -5021,9 +5781,12 @@ const getDefaultConfig = () => ({
                 message: '是时候该备份你的项目啦！', // 默认提醒文字
                 onExit: false, // 关闭项目时提醒
                 projects: [] // 需要提醒的项目href列表
-            }
+            },
+            // [核心重构] 将使用时长数据移至主配置
+            usageTime: {}
 
         },
+
         themePresets: [
             {
                 name: "原生主题",
@@ -5204,7 +5967,11 @@ const getDefaultConfig = () => ({
             handleEl.addEventListener('click', () => show(id));
             winEl.addEventListener('mousedown', () => focus(id));
             winEl.addEventListener('touchstart', () => focus(id), { passive: true });
+
+            // [新增] 在窗口创建时，开始计时
+            startUsageTracking(windows[id].url);
         }
+
 
 // <-- 结束替换为 -->
 
@@ -5255,8 +6022,14 @@ const getDefaultConfig = () => ({
         }
 
         function close(id) {
+            // [新增] 停止计时
+            if (currentTrackedProject && currentTrackedProject.href === windows[id]?.url) {
+                stopUsageTracking();
+            }
+
             const win = windows[id];
             if (!win) return;
+
             
             // 标记标签为不可见，以便在关闭动画期间，其他标签可以先移动到位
             const wasVisible = win.handle.classList.contains('visible');
@@ -5288,6 +6061,135 @@ const getDefaultConfig = () => ({
         return { create, closeAll };
     })();
     // ===== [END] FLOATING PROJECT WINDOW MANAGER =====
+    // [新增] ==========================================================
+    // [新增] 使用时长功能核心模块
+    // [新增] ==========================================================
+
+    // [核心修复] 将计时器追踪变量移至全局作用域
+    let currentTrackedProject = null;
+
+    /**
+     * 将毫秒数格式化为人类可读的字符串 (例如: "12小时 30分钟 5秒")
+     * @param {number} ms - 毫秒数
+     * @returns {string} 格式化后的时间字符串
+     */
+    function formatDuration(ms) {
+
+        if (ms < 1000) {
+            return "不足1秒";
+        }
+        let seconds = Math.floor(ms / 1000);
+        const hours = Math.floor(seconds / 3600);
+        seconds %= 3600;
+        const minutes = Math.floor(seconds / 60);
+        seconds %= 60;
+
+        const parts = [];
+        if (hours > 0) parts.push(`${hours}小时`);
+        if (minutes > 0) parts.push(`${minutes}分钟`);
+        if (seconds > 0 || parts.length === 0) parts.push(`${seconds}秒`);
+        
+        return parts.join(' ');
+    }
+
+// <-- 开始替换为 -->
+    /**
+     * 渲染使用时长排行榜 (V2 - 异步加载)
+     */
+    async function renderUsageLeaderboard() {
+        const listContainer = document.getElementById('usage-leaderboard-list');
+        const placeholder = document.getElementById('usage-leaderboard-placeholder');
+        if (!listContainer || !placeholder) return;
+
+        // [修改] 异步从 DataManager 获取 usageTime 数据
+        const usageData = await DataManager.get('usageTime');
+
+        if (!usageData || Object.keys(usageData).length === 0) {
+            placeholder.textContent = '暂无使用记录';
+            placeholder.style.display = 'block';
+            listContainer.innerHTML = '';
+            return;
+        }
+
+        const leaderboardData = Object.entries(usageData)
+            .map(([href, time]) => {
+                const project = findButtonConfigByHref(href);
+                return {
+                    name: project ? project.text : '未知项目',
+                    time: time
+                };
+            })
+            .sort((a, b) => b.time - a.time);
+
+        if (leaderboardData.length === 0) {
+            placeholder.style.display = 'block';
+            listContainer.innerHTML = '';
+            return;
+        }
+
+        placeholder.style.display = 'none';
+        listContainer.innerHTML = leaderboardData.map((item, index) => {
+            const rank = index + 1;
+            let rankClass = `leaderboard-rank`;
+            if (rank <= 3) {
+                rankClass += ` rank-${rank}`;
+            }
+
+            return `
+                <li class="leaderboard-item">
+                    <div class="${rankClass}">${rank}</div>
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-info-name">${item.name}</div>
+                        <div class="leaderboard-info-time">${formatDuration(item.time)}</div>
+                    </div>
+                </li>
+            `;
+        }).join('');
+    }
+// <-- 结束替换为 -->
+
+    /**
+     * 开始追踪一个项目的使用时长
+     * @param {string} projectHref - 项目的唯一链接
+     */
+    function startUsageTracking(projectHref) {
+        // 如果当前有正在计时的项目，先停止并保存它
+        if (currentTrackedProject) {
+            stopUsageTracking();
+        }
+        // 开始追踪新项目
+        currentTrackedProject = {
+            href: projectHref,
+            startTime: Date.now()
+        };
+        console.log(`开始计时: ${projectHref}`);
+    }
+
+// <-- 开始替换为 -->
+    /**
+     * 停止当前项目的计时并保存数据 (V4 - 模块化)
+     */
+    async function stopUsageTracking() {
+        if (!currentTrackedProject) return;
+
+        const duration = Date.now() - currentTrackedProject.startTime;
+        const href = currentTrackedProject.href;
+
+        // [修改] 异步获取 usageTime 数据
+        const usageData = await DataManager.get('usageTime');
+        
+        // 累加时间
+        usageData[href] = (usageData[href] || 0) + duration;
+        
+        console.log(`停止计时: ${href}, 本次使用: ${duration}ms, 总计: ${usageData[href]}ms`);
+        
+        // [修改] 调用 DataManager 保存独立的 usage_time.json 文件
+        await DataManager.save('usageTime', 'Update project usage time');
+        
+        // 重置追踪器
+        currentTrackedProject = null;
+    }
+// <-- 结束替换为 -->
 
     // ===== [START] FLOATING JELLYFISH BALL LOGIC (MODIFIED) =====
     const FloatingBallManager = (() => {
@@ -5610,14 +6512,14 @@ const getDefaultConfig = () => ({
                         <div class="toggle-section" style="flex-direction: column; align-items: flex-start; gap: 10px;">
                             <label for="jellyBallCssTextarea" style="font-size: 14px; color: #5a6778; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                                 <span>自定义CSS</span>
-                                <button id="show-jelly-css-help" style="background:none; border:none; font-size: 20px; cursor:pointer; padding:0; line-height: 1;" title="CSS提示词向导">💡</button>
+                               <button id="show-jelly-css-help" style="background:none; border:none; font-size: 20px; cursor:pointer; padding:0; line-height: 1;" title="CSS提示词向导"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="13px" height="13px" viewBox="0 0 24 24"><path d="m20,15v-6c0-4.411-3.589-8-8-8S4,4.589,4,9v6c0,1.103-.897,2-2,2v2h20v-2c-1.103,0-2-.897-2-2Z" stroke-width="0" fill="rgba(255, 240, 0, 1)"></path><path d="m8.538,21l.875,1.503c.537.924,1.528,1.497,2.587,1.497s2.05-.573,2.587-1.497l.875-1.503h-6.924Z" fill="rgba(255, 240, 0, 1)" stroke-width="0" data-color="color-2"></path></svg></button>
                             </label>
                             <!-- ★ 修改：全新简洁的预设管理UI ★ -->
                             <div class="preset-row" style="width:100%;">
                                 <select id="jellyCssPresetSelector" class="modal-select" style="flex-grow: 1;"></select>
                                 <button id="addJellyCssPresetBtn" title="添加新预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">+</button>
-                                <button id="editJellyCssPresetBtn" title="修改当前预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">✎</button>
-                                <button id="deleteJellyCssPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;">🗑</button>
+                               <button id="editJellyCssPresetBtn" title="修改当前预设" class="modal-button" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 24 24" style="vertical-align: middle;"><rect x="1" y="20" width="22" height="2" fill="currentColor" stroke-width="0" data-color="color-2"></rect><path d="m18.875,2.125c-1.492-1.493-3.922-1.493-5.414,0L4.079,11.507l-1.354,6.768,6.768-1.354,9.382-9.382c1.493-1.493,1.493-3.921,0-5.414Zm-1.414,4l-.875.875-2.586-2.586.875-.875c.713-.713,1.873-.713,2.586,0s.713,1.873,0,2.586Z" stroke-width="0" fill="currentColor"></path></svg></button>
+                                <button id="deleteJellyCssPresetBtn" title="删除当前预设" class="modal-button delete" style="width: auto; padding: 12px; font-size: 16px; flex-shrink: 0;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="m4.458,9l.463,11.125c.067,1.612,1.384,2.875,2.998,2.875h8.163c1.613,0,2.93-1.263,2.998-2.875l.463-11.125H4.458Z" stroke-width="0" fill="currentColor"></path><path d="m16,5V1h-8v4H2v2h20v-2h-6Zm-6-2h4v2h-4v-2Z" fill="currentColor" stroke-width="0" data-color="color-2"></path></svg></button>
                             </div>
                             <div style="display: flex; gap: 15px; width:100%; align-items: center;">
                                 <textarea id="jellyBallCssTextarea" class="modal-textarea" rows="5" placeholder="在此粘贴CSS代码，或清空以恢复默认样式" style="flex: 1;"></textarea>
@@ -6295,17 +7197,21 @@ const getDefaultConfig = () => ({
         return null;
     }
     
-    async function saveGlobalConfig(commitMessage) {
+async function saveGlobalConfig(commitMessage) {
+        // [核心修改] 在保存到云端前，立即更新本地缓存
+        // 这样可以确保即使用户在保存完成前刷新，也能看到最新的更改
+        localStorage.setItem('currentConfig', JSON.stringify(currentConfig));
         const content = utf8_to_b64(JSON.stringify(currentConfig, null, 2));
         const result = await saveToGithub('config.json', content, commitMessage, configSha);
         if (result.sha) {
             configSha = result.sha;
             console.log('Global configuration saved successfully.');
         } else {
-            // Error handling is managed inside saveToGithub
+            // 错误处理已在 saveToGithub 内部完成
         }
     }
-    
+
+
     function toggleManagementMode(forceState) {
         isManagementMode = forceState !== undefined ? forceState : !isManagementMode;
         
@@ -6957,43 +7863,13 @@ const getDefaultConfig = () => ({
         }
     });
 
-    async function loadInitialData() { 
-        navContainer.innerHTML = '<p id="loading-status" style="text-align: center; color: #889;">正在从云端加载配置...</p>'; 
-        let fetchedConfig = await fetchConfigFromGithub(); 
-        let needsSave = false;
-        let wasMigrated = false;
+// <-- 开始替换为 -->
+    async function loadInitialData() {
+        // --- 阶段 1: 瞬间从本地缓存加载并渲染UI ---
+        const cachedConfigStr = localStorage.getItem('currentConfig');
+        let isCacheAvailable = false;
 
-        // [核心修复逻辑]
-        if (fetchedConfig) {
-            // 云端存在配置，以此为基础进行合并和迁移
-            const migrationResult = migrateLegacyConfig(fetchedConfig);
-            const migratedConfig = migrationResult.migratedConfig;
-            wasMigrated = migrationResult.wasMigrated;
-
-            const defaultConfig = getDefaultConfig();
-            // 正确的合并顺序：以用户数据 (migratedConfig) 为主，用默认配置 (defaultConfig) 补充缺失的字段
-            const mergedConfig = mergeDeep({}, defaultConfig, migratedConfig); 
-            
-            currentConfig = mergedConfig;
-            
-            // 检查合并或迁移后是否有变化，有则需要保存
-            if (JSON.stringify(currentConfig) !== JSON.stringify(fetchedConfig) || wasMigrated) {
-                needsSave = true;
-                console.log("Config updated with new fields or migrated. Scheduling an auto-save.");
-            }
-        } else {
-            // 只有当云端确实没有 config.json 文件时，才使用全新的默认配置并创建
-            console.log('Config.json not found on remote. Creating a new one with default settings.');
-            currentConfig = getDefaultConfig();
-            configSha = null; // 确保是创建新文件
-            needsSave = true; 
-        }
-
-        if (needsSave) {
-            await saveGlobalConfig(wasMigrated ? 'Auto-migrate legacy config format' : 'Auto-create or repair config.json');
-        }
-
-        // --- [UI 初始化逻辑保持不变] ---
+        // 设置默认主题，避免闪烁
         const t = localStorage.getItem('theme');
         if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.body.classList.add('dark-mode');
@@ -7002,26 +7878,105 @@ const getDefaultConfig = () => ({
             fabMainBtn.textContent = '🌞';
         }
 
-        const savedThemeStyle = currentConfig.settings.themeStyle || 'neumorphism';
-        setThemeStyle(savedThemeStyle);
+        if (cachedConfigStr) {
+            try {
+                // 使用缓存数据快速填充全局变量和UI
+                currentConfig = JSON.parse(cachedConfigStr);
+                isCacheAvailable = true;
 
-        applyAllBackgrounds();
-        
-        document.getElementById('title').textContent = currentConfig.title; 
-        document.getElementById('subtitle').textContent = currentConfig.subtitle; 
-        document.querySelector('.editable-title').style.opacity = 1; 
-        document.querySelector('.editable-subtitle').style.opacity = 1; 
-        
-        currentCategory = localStorage.getItem('lastSelectedCategory') || '全部';
-        if (!currentConfig.categories.some(c => c.name === currentCategory)) {
-            currentCategory = '全部';
+                // 立即渲染基础UI
+                setThemeStyle(currentConfig.settings.themeStyle || 'neumorphism');
+                applyAllBackgrounds();
+                document.getElementById('title').textContent = currentConfig.title;
+                document.getElementById('subtitle').textContent = currentConfig.subtitle;
+                document.querySelector('.editable-title').style.opacity = 1;
+                document.querySelector('.editable-subtitle').style.opacity = 1;
+                currentCategory = localStorage.getItem('lastSelectedCategory') || '全部';
+                if (!currentConfig.categories.some(c => c.name === currentCategory)) {
+                    currentCategory = '全部';
+                }
+                renderCategories();
+                loadColorState();
+            } catch (e) {
+                console.error("解析本地缓存配置失败:", e);
+                isCacheAvailable = false;
+            }
         }
-        
-        renderCategories();
-        loadColorState(); 
-    }
 
-    
+        if (!isCacheAvailable) {
+            navContainer.innerHTML = '<p id="loading-status" style="text-align: center; color: #889;">首次加载，正在从云端初始化配置...</p>';
+        }
+
+        // --- 阶段 2: 异步在后台与云端同步 ---
+        try {
+            const fetchedConfig = await fetchConfigFromGithub();
+            let needsSave = false;
+            let wasMigrated = false;
+            let finalConfig;
+
+            if (fetchedConfig) {
+                 if (!fetchedConfig.dataStructureVersion || fetchedConfig.dataStructureVersion < 2) {
+                    const migrationCompleted = await migrateToModularData(fetchedConfig);
+                    if (migrationCompleted) return; 
+                }
+
+                const migrationResult = migrateLegacyConfig(fetchedConfig);
+                const migratedConfig = migrationResult.migratedConfig;
+                wasMigrated = migrationResult.wasMigrated;
+                
+                const defaultConfig = getDefaultConfig();
+                finalConfig = mergeDeep({}, defaultConfig, migratedConfig);
+
+                if (JSON.stringify(finalConfig) !== JSON.stringify(fetchedConfig) || wasMigrated) {
+                    needsSave = true;
+                }
+            } else {
+                // 云端无配置，通常是新用户或数据被清空
+                finalConfig = getDefaultConfig();
+                finalConfig.dataStructureVersion = 2;
+                configSha = null;
+                needsSave = true;
+            }
+
+            // 比较云端与缓存，仅在必要时更新UI和缓存
+            if (JSON.stringify(finalConfig) !== JSON.stringify(currentConfig)) {
+                console.log("云端配置与当前显示不一致，正在更新...");
+                currentConfig = finalConfig;
+                localStorage.setItem('currentConfig', JSON.stringify(currentConfig)); // 更新本地快照
+                
+                // 重新渲染UI以反映最新数据
+                if (!isCacheAvailable) {
+                    // 如果之前没有缓存，这是第一次渲染
+                     setThemeStyle(currentConfig.settings.themeStyle || 'neumorphism');
+                    applyAllBackgrounds();
+                    document.getElementById('title').textContent = currentConfig.title;
+                    document.getElementById('subtitle').textContent = currentConfig.subtitle;
+                    document.querySelector('.editable-title').style.opacity = 1;
+                    document.querySelector('.editable-subtitle').style.opacity = 1;
+                }
+                renderCategories(); 
+                loadColorState();
+            }
+
+            if (needsSave) {
+                await saveGlobalConfig(wasMigrated ? 'Auto-migrate legacy config format' : 'Auto-create or repair config.json');
+            }
+
+            // --- 阶段 3: 静默预加载其他数据模块 ---
+            // 这些请求在后台发起，不阻塞任何UI交互
+            console.log("后台静默加载非核心数据模块...");
+            DataManager.get('usageTime');
+            DataManager.get('checkInData');
+
+        } catch (error) {
+            console.error("后台同步失败:", error);
+            if (!isCacheAvailable) {
+                navContainer.innerHTML = `<p id="loading-status" style="text-align: center; color: #e53e3e;">加载配置失败，请检查网络和GitHub配置。</p>`;
+            }
+        }
+    }
+// <-- 结束替换为 -->
+
     function renderCategories() {
         const navContainerEl = document.getElementById('categoryNavContainer');
         if (!currentConfig.settings) {
@@ -7327,18 +8282,23 @@ const getDefaultConfig = () => ({
     
     function openIframeModal(url) { 
         if (!localStorage.getItem('swipeHintShown')) { swipeHint.classList.add('show'); setTimeout(() => { swipeHint.classList.remove('show'); localStorage.setItem('swipeHintShown', 'true'); }, 4000); } 
+        
+        // [新增] 开始使用时长计时
+        startUsageTracking(url);
+
         iframeEl.src = url; 
         iframeModal.dataset.originalUrl = url; // [新增] 记录原始URL
         iframeModal.classList.add('active'); 
     }
 
-
      function closeIframeModal() { 
+        // [新增] 停止计时
+        stopUsageTracking();
+
         FloatingProjectWindowManager.closeAll();
         hideReturnConfirmation(); 
         iframeModal.classList.remove('active'); 
     }
-
 
     function showReturnConfirmation() { returnConfirmationToast.classList.add('show'); }
     function hideReturnConfirmation() { returnConfirmationToast.classList.remove('show'); }
@@ -7866,7 +8826,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let isSaving = false;
         let saveTimeout = null;
 
-        
         const ui = {
             modal: document.getElementById('memoryModal'),
             appContainer: document.getElementById('memoryAppContainer'),
@@ -7919,6 +8878,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 album: { folders: [{ id: Date.now() + 1, name: "我的照片" }], items: [] }
             };
         }
+
+
 
         function updateStatus(text, isError = false, reason = '') { ui.status.textContent = isError && reason ? `${text}: ${reason}` : text; ui.status.style.color = isError ? '#e53e3e' : 'inherit'; }
 
@@ -7974,7 +8935,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.dataset.folderId = folder.id;
                 el.dataset.action = "open-memo-folder";
                 // [修改] 在HTML结构中添加项目数量信息，与相册封面对齐
-                el.innerHTML = `<span class="sort-handle memo-sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">📁</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div><span class="rename-icon" data-action="rename-memo-folder" title="重命名">&#9998;</span>`;
+                el.innerHTML = `<span class="sort-handle memo-sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">📁</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div><span class="rename-icon" data-action="rename-memo-folder" title="重命名"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="m18,22H5c-1.654,0-3-1.346-3-3V6c0-1.654,1.346-3,3-3h6v2h-6c-.552,0-1,.449-1,1v13c0,.551,.448,1,1,1h13c.552,0,1-.449,1-1v-6h2v6c0,1.654-1.346,3-3,3Z" stroke-width="0" fill="currentColor"></path><path d="m21.707,2.293c-1.178-1.18-3.236-1.18-4.414,0l-9.196,9.196-1.471,5.886,5.886-1.472,9.195-9.196c1.217-1.217,1.217-3.197,0-4.414Zm-1.414,3l-1.707,1.707-1.586-1.586,1.707-1.707c.424-.424,1.162-.424,1.586,0,.437.437,.437,1.149,0,1.586Z" fill="currentColor" stroke-width="0" data-color="color-2"></path></svg></span>`;
+
                 ui.folderList.appendChild(el);
             });
             if (memoryCache.memo.folders.length === 0) ui.folderList.innerHTML = `<p class="empty-list-placeholder">没有文件夹</p>`;
@@ -8012,7 +8974,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.className = `album-item ${state.isAlbumManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`;
                 el.dataset.albumId = folder.id;
                 el.dataset.action = "open-album-folder";
-                el.innerHTML = `<span class="sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div><span class="rename-icon" data-action="rename-album" title="重命名">&#9998;</span>`;
+                el.innerHTML = `<span class="sort-handle" title="按住拖拽排序">☰</span><input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div><div class="folder-icon">🖼️</div><div class="folder-name">${folder.name}</div></div><div class="album-info">${itemCount} 个项目</div><span class="rename-icon" data-action="rename-album" title="重命名"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="m18,22H5c-1.654,0-3-1.346-3-3V6c0-1.654,1.346-3,3-3h6v2h-6c-.552,0-1,.449-1,1v13c0,.551,.448,1,1,1h13c.552,0,1-.449,1-1v-6h2v6c0,1.654-1.346,3-3,3Z" stroke-width="0" fill="currentColor"></path><path d="m21.707,2.293c-1.178-1.18-3.236-1.18-4.414,0l-9.196,9.196-1.471,5.886,5.886-1.472,9.195-9.196c1.217-1.217,1.217-3.197,0-4.414Zm-1.414,3l-1.707,1.707-1.586-1.586,1.707-1.707c.424-.424,1.162-.424,1.586,0,.437.437,.437,1.149,0,1.586Z" fill="currentColor" stroke-width="0" data-color="color-2"></path></svg></span>`;
+
 
 
                 
@@ -8213,7 +9176,16 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchFilesForSelectedProject(); 
 },
 
-            'back-to-hub': () => { showPage('hub-view'); state.currentSection = null; document.getElementById('memory-modal-title').textContent = '记忆'; },
+            'back-to-hub': () => {
+                // 退出管理模式
+                if (state.isMemoManageMode) actions['toggle-memo-manage'](ui.modal.querySelector('[data-action="toggle-memo-manage"]'));
+                if (state.isAlbumManageMode) actions['toggle-album-manage'](ui.modal.querySelector('[data-action="toggle-album-manage"]'));
+                
+                showPage('hub-view'); 
+                state.currentSection = null; 
+                document.getElementById('memory-modal-title').textContent = '记忆'; 
+            },
+
             'add-memo-folder': () => { state.folderModalContext = { type: 'memo', id: null }; document.getElementById('folder-modal-title').textContent = '新文件夹'; ui.folderModal.querySelector('#folder-name-input').value = ''; ui.folderModal.classList.add('show'); },
             'add-album-folder': () => {
                 if (memoryCache.album.folders.length >= 100) { alert('相册数量已达上限（100个），请整理后再创建。'); return; }
@@ -8282,10 +9254,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('note-editor-view').classList.contains('active')) {
                    actions['cancel-note']();
                 } else {
+                   // [新增] 在返回文件夹列表前，检查并关闭笔记列表的管理模式
+                   if (state.isNoteManageMode) {
+                        actions['toggle-note-manage'](ui.modal.querySelector('[data-action="toggle-note-manage"]'));
+                   }
                    showView('folder-view', 'memo-section'); state.currentMemoFolderId = null;
                 }
             },
-            'back-to-album-folders': () => { showView('album-folder-view', 'album-section'); state.currentAlbumId = null; },
+
+            'back-to-album-folders': () => {
+                // [新增] 在返回相册列表前，检查并关闭照片列表的管理模式
+                if (state.isPhotoManageMode) {
+                    actions['toggle-photo-manage'](ui.modal.querySelector('[data-action="toggle-photo-manage"]'));
+                }
+                showView('album-folder-view', 'album-section'); 
+                state.currentAlbumId = null; 
+            },
+
             'add-note': () => {
                 state.currentNoteId = null;
                 document.getElementById('note-title-input').value = '';
@@ -8509,12 +9494,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const wanderBtn = document.querySelector('#photo-grid-view [data-action="wander-local"], #photo-grid-view [data-action="set-album-bg"]'); // 确保能选中按钮
                 if (wanderBtn) {
                     if (state.isPhotoManageMode) {
-                        wanderBtn.innerHTML = '🖼️'; // [修改] 使用emoji图标
+                        wanderBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 24 24"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16.5071 8.39038L22.7863 16.3822L21.5 19.5L16.4929 20H10.628H3.5L2.7433 18.669L1.25671 18.331L6.41639 12.5981L10.372 16.0592L16.5071 8.39038Z" fill="#1c1f21"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M20 3C21.6569 3 23 4.34315 23 6L23 18C23 19.6569 21.6569 21 20 21L4 21C2.34314 21 0.999999 19.6569 0.999999 18L1 6C1 4.34314 2.34315 3 4 3L20 3ZM21 6C21 5.44772 20.5523 5 20 5L4 5C3.44771 5 3 5.44771 3 6L3 18C3 18.5523 3.44771 19 4 19L20 19C20.5523 19 21 18.5523 21 18L21 6Z" fill="#1c1f21"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M7 9C7 7.89543 7.89543 7 9 7C10.1046 7 11 7.89543 11 9C11 10.1046 10.1046 11 9 11C7.89543 11 7 10.1046 7 9Z" fill="#1c1f21" data-color="color-2"></path> </svg>';
+
                         wanderBtn.dataset.action = 'set-album-bg';
                         wanderBtn.title = '设置相册背景'; // [新增] 增加提示
                         wanderBtn.classList.remove('wander-btn');
                     } else {
-                        wanderBtn.innerHTML = '💫'; // 恢复emoji
+                       wanderBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g fill="none"><path d="M20.3174 8.19531C20.0357 8.8823 19.5416 9.61008 18.9248 10.332C17.6628 11.8091 15.7312 13.4472 13.4355 14.9248C11.14 16.4022 8.8494 17.4826 6.98242 18.0195C6.31873 18.2104 5.67868 18.3394 5.09375 18.3857L5.45996 16.3232C5.74837 16.2727 6.07264 16.1993 6.42969 16.0967C8.06215 15.6272 10.1747 14.6455 12.3535 13.2432C14.5326 11.8406 16.3019 10.3247 17.4053 9.0332C17.7661 8.61089 18.0377 8.22999 18.2305 7.90234L20.3174 8.19531Z" fill="url(#star-sparkle_grad_0-album-inner-js)" data-glass="origin" mask="url(#star-sparkle_mask-album-inner-js)"></path><path d="M20.3174 8.19531C20.0357 8.8823 19.5416 9.61008 18.9248 10.332C17.6628 11.8091 15.7312 13.4472 13.4355 14.9248C11.14 16.4022 8.8494 17.4826 6.98242 18.0195C6.31873 18.2104 5.67868 18.3394 5.09375 18.3857L5.45996 16.3232C5.74837 16.2727 6.07264 16.1993 6.42969 16.0967C8.06215 15.6272 10.1747 14.6455 12.3535 13.2432C14.5326 11.8406 16.3019 10.3247 17.4053 9.0332C17.7661 8.61089 18.0377 8.22999 18.2305 7.90234L20.3174 8.19531Z" fill="url(#star-sparkle_grad_0-album-inner-js)" data-glass="clone" filter="url(#star-sparkle_filter-album-inner-js)" clip-path="url(#star-sparkle_clip-album-inner-js)"></path><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="url(#star-sparkle_grad_1-album-inner-js)" data-glass="blur"></path><path d="M10.6641 2.61911C11.2207 1.52809 12.7793 1.52809 13.336 2.61911L15.5079 6.87498C15.7301 7.31065 16.1505 7.61058 16.6348 7.67869L21.4083 8.34959C22.654 8.5247 23.1438 10.0637 22.2286 10.9267L18.839 14.123C18.4713 14.4698 18.3034 14.9789 18.3917 15.4766L19.2003 20.0371C19.4097 21.2177 18.2249 22.1382 17.1475 21.6846L17.044 21.6367L12.6797 19.418C12.2525 19.2008 11.7475 19.2008 11.3203 19.418L6.95602 21.6367L6.85251 21.6846C5.80984 22.1236 4.6659 21.2757 4.78315 20.1504L4.79975 20.0371L5.60835 15.4766C5.68559 15.0411 5.56634 14.5972 5.28901 14.2607L5.16108 14.123L1.7714 10.9267C0.884703 10.0905 1.31671 8.62007 2.47746 8.3701L2.59172 8.34959L7.36521 7.67869C7.84952 7.61057 8.26991 7.31064 8.49217 6.87498L10.6641 2.61911ZM12.668 2.95993C12.3897 2.41442 11.6104 2.41442 11.332 2.95993L9.16015 7.2158C8.82676 7.86931 8.19619 8.31969 7.4697 8.42185L2.69621 9.09275C2.07335 9.18031 1.82846 9.9493 2.28605 10.3808L5.67574 13.5771C6.22733 14.0974 6.47906 14.8609 6.34664 15.6074L5.53804 20.168C5.42998 20.7772 6.06456 21.248 6.61618 20.9678L10.9805 18.749C11.6212 18.4234 12.3789 18.4234 13.0196 18.749L17.3839 20.9678C17.9355 21.248 18.5701 20.7772 18.462 20.168L17.6534 15.6074C17.521 14.8609 17.7727 14.0974 18.3243 13.5771L21.714 10.3808C22.1716 9.9493 21.9267 9.18031 21.3038 9.09275L16.5303 8.42185C15.8038 8.31969 15.1733 7.86931 14.8399 7.2158L12.668 2.95993Z" fill="url(#star-sparkle_grad_2-album-inner-js)"></path><path d="M6.07314 2.88824L5.44324 1.30101C5.28398 0.8997 4.71603 0.89965 4.55669 1.30094L3.92644 2.88824C3.91951 2.90563 3.90577 2.91938 3.88838 2.9263L2.30091 3.55671C1.89969 3.71604 1.8997 4.28396 2.30092 4.44329L3.88838 5.0737C3.90577 5.08063 3.91951 5.09437 3.92644 5.11176L4.55668 6.69906C4.71602 7.10035 5.28397 7.1003 5.44324 6.69899L6.07314 5.11176C6.08008 5.0943 6.094 5.08061 6.11147 5.0737L7.69907 4.4433C8.10031 4.28398 8.10031 3.71602 7.69907 3.5567L6.11147 2.9263C6.094 2.91939 6.08008 2.9057 6.07314 2.88824Z" fill="url(#star-sparkle_grad_3-album-inner-js)"></path><path d="M23.5 16.25C23.5 16.9404 22.9404 17.5 22.25 17.5C21.5596 17.5 21 16.9404 21 16.25C21 15.5596 21.5596 15 22.25 15C22.9404 15 23.5 15.5596 23.5 16.25Z" fill="url(#star-sparkle_grad_4-album-inner-js)"></path><path d="M18.2307 4.89743C18.949 4.93039 19.7944 5.15041 20.2727 5.89353L20.3548 6.03415C20.7312 6.74332 20.584 7.53845 20.3333 8.16404C20.3289 8.17492 20.3231 8.18536 20.3186 8.19626L18.2327 7.90329C18.3369 7.72619 18.4187 7.56496 18.4768 7.4199C18.578 7.16745 18.5847 7.03502 18.5813 6.98142C18.5338 6.95616 18.4108 6.90798 18.1399 6.89548C17.6948 6.87509 17.0493 6.96563 16.2268 7.20212C14.5943 7.67159 12.482 8.65321 10.303 10.0556C8.12386 11.4582 6.3547 12.974 5.25125 14.2656C4.69526 14.9164 4.34675 15.4662 4.18093 15.8799C4.07977 16.1323 4.07313 16.2646 4.07644 16.3183C4.12416 16.3436 4.24758 16.3918 4.51882 16.4043C4.76947 16.4157 5.08313 16.3909 5.45632 16.3261L5.09011 18.3867C4.86005 18.4047 4.63829 18.412 4.42703 18.4023C3.70884 18.3694 2.86334 18.1492 2.38504 17.4062C1.90698 16.6632 2.05709 15.803 2.32449 15.1357C2.60377 14.4391 3.10509 13.7002 3.73172 12.9668C4.99373 11.4897 6.92524 9.85163 9.22097 8.374C11.5166 6.89649 13.8071 5.81617 15.6741 5.27927C16.6011 5.01275 17.4811 4.86312 18.2307 4.89743Z" fill="url(#star-sparkle_grad_5-album-inner-js)"></path><defs><linearGradient id="star-sparkle_grad_0-album-inner-js" x1="12.706" y1="7.902" x2="12.706" y2="18.386" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient><linearGradient id="star-sparkle_grad_1-album-inner-js" x1="12" y1="1.801" x2="12" y2="21.802" gradientUnits="userSpaceOnUse"><stop stop-color="#E3E3E5" stop-opacity=".6"></stop><stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop></linearGradient><linearGradient id="star-sparkle_grad_2-album-inner-js" x1="12" y1="1.801" x2="12" y2="13.384" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"></stop><stop offset="1" stop-color="#fff" stop-opacity="0"></stop></linearGradient><linearGradient id="star-sparkle_grad_3-album-inner-js" x1="5" y1="1" x2="5" y2="7" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient><linearGradient id="star-sparkle_grad_4-album-inner-js" x1="22.25" y1="15" x2="22.25" y2="17.5" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient><linearGradient id="star-sparkle_grad_5-album-inner-js" x1="11.329" y1="4.893" x2="11.329" y2="18.407" gradientUnits="userSpaceOnUse"><stop stop-color="#575757"></stop><stop offset="1" stop-color="#151515"></stop></linearGradient><filter id="star-sparkle_filter-album-inner-js" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur></filter><clipPath id="star-sparkle_clip-album-inner-js"><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="url(#star-sparkle_grad_1-album-inner-js)"></path></clipPath><mask id="star-sparkle_mask-album-inner-js"><rect width="100%" height="100%" fill="#FFF"></rect><path d="M10.6642 2.61922C11.2208 1.52816 12.7794 1.52811 13.336 2.61922L15.5069 6.87508C15.7292 7.31078 16.1505 7.6107 16.6349 7.67879L21.4083 8.34969C22.654 8.52479 23.1438 10.0637 22.2286 10.9268L18.839 14.1231C18.4713 14.4699 18.3034 14.979 18.3917 15.4766L19.2003 20.0372C19.4164 21.2558 18.1473 22.1966 17.0441 21.6358L12.6798 19.418C12.2526 19.2009 11.7476 19.2009 11.3204 19.418L6.95616 21.6358C5.85285 22.1967 4.58376 21.2559 4.79991 20.0372L5.60851 15.4766C5.69678 14.9789 5.52801 14.4699 5.16027 14.1231L1.77159 10.9268C0.856418 10.0637 1.34619 8.52479 2.59191 8.34969L7.36534 7.67879C7.84961 7.61064 8.27006 7.31071 8.4923 6.87508L10.6642 2.61922Z" fill="#000"></path></mask></defs></g></svg>`;
+
                         wanderBtn.dataset.action = 'wander-local';
                         wanderBtn.title = '漫游此相册'; // [新增] 恢复提示
                         wanderBtn.classList.add('wander-btn');
@@ -9034,20 +10021,36 @@ document.addEventListener('DOMContentLoaded', () => {
                         ui.fileListStatus.textContent = "该项目下暂无文件";
                         return;
                     }
+                    
+                    // -- 开始修改 --
+                    ui.fileListStatus.textContent = "正在获取文件信息...";
+
+                    // 1. 创建一个包含文件和日期的对象数组
+                    const filesWithDates = await Promise.all(files.map(async file => {
+                        if(state.cloudDriveRequestToken !== requestToken) { return null; } // 检查令牌
+                        const date = await getLatestCommitDate(file.path);
+                        return { file, date };
+                    }));
+
+                    if(state.cloudDriveRequestToken !== requestToken) { return; } // 再次检查令牌
+
+                    // 2. 过滤掉可能因请求取消而产生的null，并按日期从新到旧排序
+                    const sortedFiles = filesWithDates
+                        .filter(item => item !== null)
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map(item => item.file); // 提取出排序后的文件对象
 
                     ui.fileListStatus.style.display = "none";
-                    
-                    for (const file of files) {
-                        // [新增] 在每次异步操作（如获取日期）后都检查令牌
-                        if(state.cloudDriveRequestToken !== requestToken) { return; }
 
+                    // 3. 遍历排序后的数组来渲染列表
+                    for (const file of sortedFiles) {
+                        
                         const li = document.createElement("li");
                         
                         const sizeText = formatFileSize(file.size); 
-                        const dateText = await getFileCommitDate(file.path);
-
-                        // [新增] 这是最后一个检查点，在渲染到DOM之前再次确认
-                        if(state.cloudDriveRequestToken !== requestToken) { return; }
+                        // 由于我们已经获取了日期，这里可以直接用，或者重新获取以确保最新
+                        // 为了简化，我们直接从已排序的对象中获取，但为了代码结构清晰，仍保留异步调用
+                        const dateText = await getLatestCommitDate(file.path);
 
                         const metaText = `${sizeText} • ${dateText}`;
 
@@ -9413,8 +10416,6 @@ open: async () => {
                     });
                 };
 
-
-
                 editor.addEventListener('keyup', updateToolbarState);
                 editor.addEventListener('mouseup', updateToolbarState);
 
@@ -9551,8 +10552,21 @@ open: async () => {
                     const li = e.target.closest('li');
                     const copyBtn = e.target.closest('.code-block-copy-btn');
                     
-                    if (li) {
+                    if (li && e.target.tagName !== 'SPAN' && !e.target.closest('.todo-text')) {
+                        // 核心修复1：只有当点击的不是文本SPAN时，才切换状态
                         li.classList.toggle('completed');
+                        
+                        // 核心修复2：确保取消勾选时删除线也被移除
+                        const textSpan = li.querySelector('.todo-text');
+                        if (textSpan) {
+                            if (li.classList.contains('completed')) {
+                                textSpan.style.textDecoration = 'line-through';
+                                textSpan.style.opacity = '0.6';
+                            } else {
+                                textSpan.style.textDecoration = 'none';
+                                textSpan.style.opacity = '1';
+                            }
+                        }
                     } else if (copyBtn) {
                         const codeBlock = copyBtn.closest('.memo-code-block');
                         const textToCopy = codeBlock.querySelector('pre')?.textContent || '';
@@ -9564,7 +10578,6 @@ open: async () => {
                     }
                     updateToolbarState();
                 });
-
                 // 为字号滑块添加事件监听
                 fontSizeSlider.addEventListener('input', () => {
                     if (fontSizeTargetSpan) {
@@ -9603,14 +10616,69 @@ open: async () => {
                 }
                 // ★★★ [新增结束] ★★★
 
+
+                // ★★★ [核心新增] 备忘录编辑器键盘适配逻辑 ★★★
+                const KeyboardManager = (() => {
+                    const editorView = document.getElementById('note-editor-view');
+                    let initialWindowHeight = window.innerHeight;
+
+                    function handleViewportChange() {
+                        // 仅当备忘录编辑器可见时才执行逻辑
+                        if (!editorView.classList.contains('active')) {
+                            return;
+                        }
+
+                        const visualViewportHeight = window.visualViewport.height;
+                        const keyboardHeight = initialWindowHeight - visualViewportHeight;
+
+                        if (keyboardHeight > 100) { // 阈值，防止小的resize也触发
+                            // 键盘弹出
+                            editorView.style.paddingBottom = `${keyboardHeight}px`;
+                        } else {
+                            // 键盘收起
+                            editorView.style.paddingBottom = '0px';
+                        }
+                    }
+
+                    function startListening() {
+                        initialWindowHeight = window.innerHeight;
+                        if (window.visualViewport) {
+                            window.visualViewport.addEventListener('resize', handleViewportChange);
+                        }
+                    }
+
+                    function stopListening() {
+                        if (window.visualViewport) {
+                            window.visualViewport.removeEventListener('resize', handleViewportChange);
+                        }
+                        // 确保退出编辑器时，样式恢复
+                        editorView.style.paddingBottom = '0px';
+                    }
+
+                    return {
+                        start: startListening,
+                        stop: stopListening
+                    };
+                })();
+
+                // 在进入和退出备忘录编辑器时，启动/停止监听
+                ui.appContainer.addEventListener('click', e => {
+                    const action = e.target.closest('[data-action]')?.dataset.action;
+                    if (action === 'open-note' || action === 'add-note') {
+                        KeyboardManager.start();
+                    } else if (action === 'save-note' || action === 'cancel-note') {
+                        KeyboardManager.stop();
+                    }
+                });
+                // ★★★ [核心新增结束] ★★★
+
+
                 ui.photoUploader.addEventListener('change', e => {
                     if (!e.target.files.length) return;
                     state.photoUploadQueue = Array.from(e.target.files);
                     processPhotoUploadQueue();
                     e.target.value = '';
                 });
-
-
 
                 // [V2 优化] 为照片下载按钮添加平台差异化处理
                 document.getElementById('download-photo-btn').addEventListener('click', async (e) => {
@@ -11795,6 +12863,10 @@ open: async () => {
                         widgetEl.addEventListener('click', function (e) {
                             e.stopPropagation();
                             const href = this.dataset.href;
+                            
+                            // [新增] 开始计时 (因为这个点击事件会直接打开iframe)
+                            startUsageTracking(href);
+
                             const config = findButtonConfigByHref(href);
                             if (config && config.openExternally) {
                                 window.open(href, '_blank', 'noopener,noreferrer');
@@ -11803,6 +12875,7 @@ open: async () => {
                             }
                         });
                         break;
+
                     case 'html':
                         Object.assign(widgetEl.style, { padding: '0', overflow: 'hidden' });
                         const iframe = document.createElement('iframe');
@@ -12538,6 +13611,472 @@ open: async () => {
                     MemoryApp.scheduleSave(); // 复用 MemoryApp 的保存逻辑
                 }
             });
+/* =============================================================== */
+/* ================ [新增] 摇摆挂件设置功能逻辑 =================== */
+/* =============================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. 获取所有需要的DOM元素
+    const pendantShape = document.getElementById('pendant-shape');
+    const pendantContainer = document.getElementById('pendant-container');
+    const settingsModal = document.getElementById('pendant-settings-modal');
+    
+    // 如果挂件元素不存在，则直接退出，避免报错
+    if (!pendantShape || !pendantContainer || !settingsModal) {
+        console.warn("摇摆挂件所需的核心元素未找到，功能将不被初始化。");
+        return;
+    }
+    
+    const lineLengthSlider = document.getElementById('line-length-slider');
+    const lineLengthValue = document.getElementById('line-length-value');
+    const lineColorPicker = document.getElementById('line-color-picker');
+    const shapeInput = document.getElementById('pendant-shape-input');
+    const applyBtn = document.getElementById('apply-pendant-settings');
+    const resetBtn = document.getElementById('reset-pendant-settings');
+
+    const PENDANT_CONFIG_KEY = 'jellyfish_pendant_config';
+
+    // 2. 默认设置
+    const defaultSettings = {
+        lineLength: '5rem',
+        lineColor: '#000000',
+        shapeContent: 'https://tc.z.wiki/autoupload/fr/0x9Zm_rdfaeRRjK8iV0xPw5cKjQnMC1OZdesfpjt90qyl5f0KlZfm6UsKj-HyTuv/20251105/Nh10/1024X440/IMG_7008.png?imageMogr2/thumbnail/100x'
+    };
+
+    // 3. 应用设置到DOM的函数
+    function applySettings(settings) {
+        // 应用CSS变量
+        pendantContainer.style.setProperty('--line-length', settings.lineLength);
+        pendantContainer.style.setProperty('--line-color', settings.lineColor);
+
+        // 更新挂件内容
+        const isUrl = settings.shapeContent.startsWith('http') || settings.shapeContent.startsWith('/');
+        if (isUrl) {
+            pendantShape.innerHTML = `<img src="${settings.shapeContent}" alt="挂件" id="pendant-img">`;
+        } else {
+            pendantShape.innerHTML = `<span class="emoji">${settings.shapeContent}</span>`;
+        }
+    }
+
+    // 4. 加载设置的函数
+    function loadSettings() {
+        let savedSettings;
+        try {
+            savedSettings = JSON.parse(localStorage.getItem(PENDANT_CONFIG_KEY));
+        } catch (e) {
+            savedSettings = null;
+        }
+        
+        const settings = { ...defaultSettings, ...savedSettings };
+        
+        applySettings(settings);
+        
+        // 更新设置弹窗内的UI状态
+        lineLengthSlider.value = parseFloat(settings.lineLength);
+        lineLengthValue.textContent = `${settings.lineLength}`;
+        lineColorPicker.value = settings.lineColor;
+        shapeInput.value = settings.shapeContent;
+    }
+
+    // 5. 事件监听器
+    
+    // 点击挂件，打开设置弹窗
+    pendantShape.addEventListener('click', (e) => {
+        e.stopPropagation(); // 防止事件冒泡
+        settingsModal.classList.add('show');
+    });
+
+    // 滑块实时更新显示值
+    lineLengthSlider.addEventListener('input', () => {
+        lineLengthValue.textContent = `${lineLengthSlider.value}rem`;
+    });
+
+    // 应用按钮点击事件
+    applyBtn.addEventListener('click', () => {
+        const newSettings = {
+            lineLength: `${lineLengthSlider.value}rem`,
+            lineColor: lineColorPicker.value,
+            shapeContent: shapeInput.value.trim() || '🪼' // 如果为空，则默认为水母emoji
+        };
+
+        // 保存到localStorage
+        localStorage.setItem(PENDANT_CONFIG_KEY, JSON.stringify(newSettings));
+
+        
+        // 应用新设置
+        applySettings(newSettings);
+        
+        // 关闭弹窗
+        settingsModal.classList.remove('show');
+
+        // 显示成功提示 (复用你的showTopToast函数)
+        if (typeof showTopToast === 'function') {
+            showTopToast("挂件设置已保存！", 2000);
+        }
+    });
+
+    // 恢复默认按钮点击事件
+    resetBtn.addEventListener('click', () => {
+        if (confirm("确定要恢复挂件的默认设置吗？")) {
+            // 移除本地存储
+            localStorage.removeItem(PENDANT_CONFIG_KEY);
+            // 重新加载默认设置
+            loadSettings();
+             // 关闭弹窗
+            settingsModal.classList.remove('show');
+        }
+    });
+    
+    // 页面加载时，立即加载并应用设置
+    loadSettings();
+});
+/* =============================================================== */
+/* ================ [新增] 摇摆挂件设置功能逻辑 ================= */
+/* =============================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. 获取所有需要的DOM元素
+    const pendantShape = document.getElementById('pendant-shape');
+    const pendantContainer = document.getElementById('pendant-container');
+    const settingsModal = document.getElementById('pendant-settings-modal');
+    
+    // 如果挂件元素不存在，则直接退出，避免报错
+    if (!pendantShape || !pendantContainer || !settingsModal) {
+        console.warn("摇摆挂件所需的核心元素未找到，功能将不被初始化。");
+        return;
+    }
+    
+    // 挂件原始设置相关
+    const lineLengthSlider = document.getElementById('line-length-slider');
+    const lineLengthValue = document.getElementById('line-length-value');
+    const lineColorPicker = document.getElementById('line-color-picker');
+    const shapeInput = document.getElementById('pendant-shape-input');
+    const applyBtn = document.getElementById('apply-pendant-settings');
+    const resetBtn = document.getElementById('reset-pendant-settings');
+
+    // 新的胶囊导航和页面相关
+    const capsuleContainer = document.getElementById('widget-hub-capsule');
+    const modalTitle = document.getElementById('pendant-modal-title').querySelector('span');
+
+    const PENDANT_CONFIG_KEY = 'jellyfish_pendant_config';
+
+    // 2. 默认设置
+    const defaultSettings = {
+        lineLength: '5rem',
+        lineColor: '#000000',
+        shapeContent: 'https://tc.z.wiki/autoupload/fr/0x9Zm_rdfaeRRjK8iV0xPw5cKjQnMC1OZdesfpjt90qyl5f0KlZfm6UsKj-HyTuv/20251105/Nh10/1024X440/IMG_7008.png?imageMogr2/thumbnail/100x'
+    };
+
+    // 3. 应用设置到DOM的函数
+    function applySettings(settings) {
+        pendantContainer.style.setProperty('--line-length', settings.lineLength);
+        pendantContainer.style.setProperty('--line-color', settings.lineColor);
+        const isUrl = settings.shapeContent.startsWith('http') || settings.shapeContent.startsWith('/');
+        if (isUrl) {
+            pendantShape.innerHTML = `<img src="${settings.shapeContent}" alt="挂件" id="pendant-img">`;
+        } else {
+            pendantShape.innerHTML = `<span class="emoji">${settings.shapeContent}</span>`;
+        }
+    }
+
+    // 4. 加载设置的函数
+    function loadSettings() {
+        let savedSettings;
+        try {
+            savedSettings = JSON.parse(localStorage.getItem(PENDANT_CONFIG_KEY));
+        } catch (e) {
+            savedSettings = null;
+        }
+        const settings = { ...defaultSettings, ...savedSettings };
+        applySettings(settings);
+        lineLengthSlider.value = parseFloat(settings.lineLength);
+        lineLengthValue.textContent = `${settings.lineLength}`;
+        lineColorPicker.value = settings.lineColor;
+        shapeInput.value = settings.shapeContent;
+    }
+
+    // 5. 新的页面切换函数
+    function switchHubPage(targetId, title) {
+        // 移除所有按钮和页面的 active 类
+        capsuleContainer.querySelectorAll('.capsule-btn').forEach(btn => btn.classList.remove('active'));
+        settingsModal.querySelectorAll('.widget-hub-page').forEach(page => page.classList.remove('active'));
+
+        // 为目标按钮和页面添加 active 类
+        const targetButton = capsuleContainer.querySelector(`[data-target="${targetId}"]`);
+        const targetPage = document.getElementById(targetId);
+        
+        if(targetButton) targetButton.classList.add('active');
+        if(targetPage) targetPage.classList.add('active');
+
+        // 更新弹窗标题
+        if(modalTitle) modalTitle.textContent = title || '挂件中心';
+    }
+
+
+    // 6. 事件监听器
+    pendantShape.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsModal.classList.add('show');
+        // 每次打开时，默认显示"设置"页面
+        switchHubPage('widget-page-settings', '页面设置');
+    });
+
+    // 为胶囊导航容器添加事件委托
+    capsuleContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.capsule-btn');
+        if (button) {
+            switchHubPage(button.dataset.target, button.dataset.title);
+            // [新增] 如果点击的是“时长”按钮，则渲染排行榜
+            if (button.dataset.target === 'widget-page-usage') {
+                renderUsageLeaderboard();
+            }
+        }
+    });
+
+    lineLengthSlider.addEventListener('input', () => {
+        lineLengthValue.textContent = `${lineLengthSlider.value}rem`;
+    });
+
+    applyBtn.addEventListener('click', () => {
+        const newSettings = {
+            lineLength: `${lineLengthSlider.value}rem`,
+            lineColor: lineColorPicker.value,
+            shapeContent: shapeInput.value.trim() || '🪼'
+        };
+        localStorage.setItem(PENDANT_CONFIG_KEY, JSON.stringify(newSettings));
+        applySettings(newSettings);
+        settingsModal.classList.remove('show');
+        if (typeof showTopToast === 'function') {
+            showTopToast("挂件设置已保存！", 2000);
+        }
+    });
+
+    resetBtn.addEventListener('click', () => {
+        if (confirm("确定要恢复挂件的默认设置吗？")) {
+            localStorage.removeItem(PENDANT_CONFIG_KEY);
+            loadSettings();
+            settingsModal.classList.remove('show');
+        }
+    });
+    
+    // 页面加载时，立即加载并应用设置
+    loadSettings();
+});
+/* =============================================================== */
+/* ============= [新增] 签到功能管理器 V3.0 (数据持久化修复) ========= */
+/* =============================================================== */
+const CheckInManager = (() => {
+    let ui = {};
+    let displayedDate = new Date();
+
+    function getFormattedDate(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    // 更新撕页日历 (正面)
+    async function updateTearOffCalendar() {
+        const checkInData = await DataManager.get('checkInData');
+        const totalDays = checkInData.dates.length;
+        
+ui.header.textContent = `成为水母宝宝已经`;
+
+        // 更新当前日期卡片
+        const now = new Date();
+        ui.currentNumEl.textContent = totalDays;
+        ui.currentFullEl.textContent = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        
+        // 更新下一张卡片 (明日)
+        const tomorrow = new Date();
+        tomorrow.setDate(now.getDate() + 1);
+        ui.nextNumEl.textContent = totalDays + 1;
+        ui.nextFullEl.textContent = `${tomorrow.getFullYear()}-${tomorrow.getMonth() + 1}-${tomorrow.getDate()}`;
+    };
+
+    // 处理签到逻辑
+    async function handleCheckIn() {
+        const checkInData = await DataManager.get('checkInData');
+        const todayStr = getFormattedDate(new Date());
+        
+        if (checkInData.dates.includes(todayStr)) {
+            showTopToast("今天已经签过到啦！", 2000);
+        } else {
+            checkInData.dates.push(todayStr);
+            await DataManager.save('checkInData', 'Perform daily check-in');
+            
+            showTopToast("今日签到成功！", 2000);
+            
+            // 签到成功后，立即更新所有UI
+            await updateTearOffCalendar();
+            await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
+        }
+    }
+
+    // 更新UI总天数（此函数已合并到 updateTearOffCalendar，但保留以防万一）
+    async function updateUICount() {
+        const checkInData = await DataManager.get('checkInData');
+        const totalDays = checkInData.dates.length;
+        ui.header.textContent = `成为水母宝宝已经 ${totalDays} 天`;
+    }
+
+    // 渲染月度日历 (背面)
+    async function renderMonthlyCalendar(year, month) {
+        const checkInData = await DataManager.get('checkInData');
+        const checkInDates = new Set(checkInData.dates);
+        const todayStr = getFormattedDate(new Date());
+
+        ui.monthYearEl.textContent = `${year} 年 ${month + 1} 月`;
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startDayOfWeek = firstDay.getDay();
+
+        const tableBody = ui.table.querySelector('tbody') || document.createElement('tbody');
+        tableBody.innerHTML = '';
+        ui.table.appendChild(tableBody);
+
+        let date = 1;
+        for (let i = 0; i < 6; i++) {
+            const row = document.createElement('tr');
+            for (let j = 0; j < 7; j++) {
+                const cell = document.createElement('td');
+                if (i === 0 && j < startDayOfWeek) {
+                    cell.classList.add('other-month');
+                } else if (date > daysInMonth) {
+                    cell.classList.add('other-month');
+                } else {
+                    const cellDate = new Date(year, month, date);
+                    const cellDateStr = getFormattedDate(cellDate);
+                    cell.textContent = date;
+                    
+                    // Bug 4 修复:
+                    // 1. 如果是今天，添加 'today' 类 (CSS会应用蓝色背景)
+                    if (cellDateStr === todayStr) {
+                        cell.classList.add('today');
+                    }
+                    // 2. 如果是已签到的日期，添加 'checked-in' 类 (CSS会添加底部蓝点)
+                    if (checkInDates.has(cellDateStr)) {
+                        cell.classList.add('checked-in');
+                    }
+
+                    date++;
+                }
+                row.appendChild(cell);
+            }
+            tableBody.appendChild(row);
+            if (date > daysInMonth) break;
+        }
+    }
+
+    // 初始化函数
+    async function init() {
+        ui = {
+            flipper: document.querySelector('.calendar-flipper'),
+            header: document.getElementById('checkin-header'),
+            slidableCard: document.getElementById('slidableCard'),
+            currentNumEl: document.getElementById('currentDateNum'),
+            currentFullEl: document.getElementById('currentDateFull'),
+            nextNumEl: document.getElementById('nextDateNum'),
+            nextFullEl: document.getElementById('nextDateFull'),
+            prevMonthBtn: document.getElementById('prev-month-btn'),
+            nextMonthBtn: document.getElementById('next-month-btn'),
+            monthYearEl: document.getElementById('current-month-year'),
+            table: document.getElementById('monthly-calendar-table')
+        };
+        const thead = ui.table.querySelector('thead') || document.createElement('thead');
+        if (!thead.innerHTML) {
+            thead.innerHTML = `<tr>${['日', '一', '二', '三', '四', '五', '六'].map(d => `<th>${d}</th>`).join('')}</tr>`;
+            ui.table.appendChild(thead);
+        }
+        
+        // 翻转事件
+        ui.header.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
+        ui.monthYearEl.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
+
+        // 月份切换
+        ui.prevMonthBtn.addEventListener('click', () => {
+            displayedDate.setMonth(displayedDate.getMonth() - 1);
+            renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
+        });
+        ui.nextMonthBtn.addEventListener('click', () => {
+            displayedDate.setMonth(displayedDate.getMonth() + 1);
+            renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
+        });
+
+        // 初始化撕页日历交互
+        let startX = 0, startY = 0, isSliding = false;
+        const slideThreshold = 20;
+
+        const resetCard = async (shouldCheckIn) => {
+            if (shouldCheckIn) await handleCheckIn();
+            
+            setTimeout(async () => {
+                ui.slidableCard.style.transition = 'none';
+                ui.slidableCard.style.transform = 'translate(0, 0) rotate(0deg)';
+                ui.slidableCard.style.opacity = '1';
+                await updateTearOffCalendar(); // 更新日历数据
+                setTimeout(() => {
+                    ui.slidableCard.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1.2)';
+                    ui.slidableCard.style.pointerEvents = 'auto';
+                }, 50);
+            }, 500);
+        };
+        
+        const handleSlideStart = (x, y) => { startX = x; startY = y; isSliding = false; };
+        const handleSlideMove = (x, y) => {
+            const deltaX = x - startX, deltaY = y - startY;
+            if (!isSliding && (Math.abs(deltaX) > slideThreshold || Math.abs(deltaY) > slideThreshold)) isSliding = true;
+            if (isSliding) ui.slidableCard.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX / 10}deg)`;
+        };
+        const handleSlideEnd = (x, y) => {
+            if (!isSliding) return;
+            const deltaX = x - startX, deltaY = y - startY;
+            ui.slidableCard.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1.2)';
+            ui.slidableCard.style.transform = `translate(${deltaX * 5}px, ${deltaY * 5}px) rotate(${deltaX > 0 ? 45 : -45}deg)`;
+            ui.slidableCard.style.opacity = '0';
+            ui.slidableCard.style.pointerEvents = 'none';
+            resetCard(true);
+        };
+
+        const addSlideListeners = (el) => {
+            const startHandler = (e) => handleSlideStart(e.clientX, e.clientY);
+            const moveHandler = (e) => handleSlideMove(e.clientX, e.clientY);
+            const endHandler = (e) => {
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('mouseup', endHandler);
+                handleSlideEnd(e.clientX, e.clientY);
+            };
+            el.addEventListener('mousedown', () => { document.addEventListener('mousemove', moveHandler); document.addEventListener('mouseup', endHandler, { once: true }); });
+            
+            const touchStart = (e) => handleSlideStart(e.touches[0].clientX, e.touches[0].clientY);
+            const touchMove = (e) => handleSlideMove(e.touches[0].clientX, e.touches[0].clientY);
+            const touchEnd = (e) => handleSlideEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+            el.addEventListener('touchstart', (e) => { el.addEventListener('touchmove', touchMove, { passive: true }); el.addEventListener('touchend', touchEnd, { once: true }); touchStart(e); }, { passive: true });
+        };
+        
+        addSlideListeners(ui.slidableCard);
+
+        // 初始渲染
+        await updateTearOffCalendar();
+        await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
+    }
+
+    return { init };
+})();
+
+// <-- 开始替换为 -->
+document.addEventListener('DOMContentLoaded', () => {
+    // ... 其他初始化代码 ...
+    
+    // 在最后添加签到管理器的初始化
+    CheckInManager.init();
+});
+// 您也可以直接将 CheckInManager.init(); 添加到现有的 DOMContentLoaded 事件监听器末尾
+// <-- 结束替换为 -->
+
     </script>
     <!-- ★★★ 新增：社区须知弹窗 ★★★ -->
     <div class="modal-overlay" id="communityNoticeModal">
@@ -12718,5 +14257,110 @@ open: async () => {
             </div>
         </div>
     </div>
+<!-- ===== [重构] 全新挂件设置悬浮窗 V2.0 ===== -->
+<div class="modal-overlay" id="pendant-settings-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <!-- 标题会由JS动态改变 -->
+            <div class="modal-title-group" id="pendant-modal-title"><span>挂件中心</span></div>
+            <button class="close-btn" data-modal-id="pendant-settings-modal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- 页面1: 签到 (V2.0 - 翻转日历) -->
+            <div class="widget-hub-page" id="widget-page-checkin" style="align-items: center; justify-content: center;">
+                <div class="calendar-flipper">
+                    <!-- 正面：撕页日历 -->
+                    <div class="calendar-front">
+                        <div class="calendar">
+                            <div class="calendar-header" id="checkin-header">成为水母宝宝已经 0 天</div>
+                            <div class="calendar-date-next">
+                                <div class="date-number" id="nextDateNum"></div>
+                                <div class="date-full" id="nextDateFull"></div>
+                            </div>
+                            <div class="calendar-date-current" id="slidableCard">
+                                <div class="date-number" id="currentDateNum"></div>
+                                <div class="date-full" id="currentDateFull"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 背面：月度日历 -->
+                    <div class="calendar-back">
+                        <div class="monthly-calendar">
+                             <div class="monthly-calendar-header">
+                                <button id="prev-month-btn">&lt;</button>
+                                <span id="current-month-year"></span>
+                                <button id="next-month-btn">&gt;</button>
+                            </div>
+                            <table id="monthly-calendar-table">
+                                <!-- JS 动态填充日历 -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 页面2: 使用时长 -->
+            <div class="widget-hub-page" id="widget-page-usage">
+                <!-- [新增] 排行榜列表容器 -->
+                <ol id="usage-leaderboard-list"></ol>
+                <!-- [新增] 数据为空时的占位符 -->
+              <p id="usage-leaderboard-placeholder" class="placeholder-content" style="display: none;">暂无使用记录</p>
+            </div>
+
+            <!-- 页面3: 留言板 -->
+            <div class="widget-hub-page" id="widget-page-board">
+                <p class="placeholder-content">留言板功能开发中...</p>
+            </div>
+            
+            <!-- 页面4: 页面设置 (包含原有功能) -->
+            <div class="widget-hub-page" id="widget-page-settings">
+                <!-- 调节线长 -->
+                <div class="pendant-settings-group">
+                    <label for="line-length-slider">绳子长度</label>
+                    <div class="slider-container">
+                        <input type="range" id="line-length-slider" min="0" max="15" value="5" step="0.5">
+                        <span id="line-length-value" class="slider-value">5 rem</span>
+                    </div>
+                </div>
+                <!-- 调节颜色 -->
+                <div class="pendant-settings-group">
+                    <label for="line-color-picker">绳子颜色</label>
+                    <input type="color" id="line-color-picker" class="modal-input" value="#000000" style="padding: 5px; height: 40px;">
+                </div>
+                <!-- 更换形状/图片 -->
+                <div class="pendant-settings-group">
+                    <label for="pendant-shape-input">挂件内容 (Emoji或图片链接)</label>
+                    <input type="text" id="pendant-shape-input" class="modal-input" placeholder="输入单个Emoji或一个图片URL">
+                </div>
+                <!-- 应用按钮 -->
+                <button id="apply-pendant-settings" class="modal-button primary" style="color: var(--hold-border);">应用更改</button>
+                <button id="reset-pendant-settings" class="modal-button" style="color: #889;">恢复默认</button>
+            </div>
+
+        </div>
+
+        <!-- 全新的胶囊导航栏 -->
+        <div id="widget-hub-capsule">
+            <button class="capsule-btn" data-target="widget-page-checkin" data-title="签到">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><rect x="6" y="0" width="2" height="5" fill="#1c1f21"></rect><rect x="16" y="0" width="2" height="5" fill="#1c1f21"></rect><path d="m20,3H4c-1.654,0-3,1.346-3,3v12c0,1.654,1.346,3,3,3h16c1.654,0,3-1.346,3-3V6c0-1.654-1.346-3-3-3Zm0,16H4c-.551,0-1-.448-1-1v-9h18v9c0,.552-.449,1-1,1Z" fill="#1c1f21"></path></svg>
+                <span>签到</span>
+            </button>
+            <button class="capsule-btn" data-target="widget-page-usage" data-title="使用时长">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><rect x="1" y="20" width="22" height="2" fill="#1c1f21"></rect><rect x="1" y="7" width="6" height="11" fill="#1c1f21"></rect><rect x="9" y="2" width="6" height="16" fill="#1c1f21"></rect><rect x="17" y="11" width="6" height="7" fill="#1c1f21"></rect></svg>
+                <span>时长</span>
+            </button>
+            <button class="capsule-btn" data-target="widget-page-board" data-title="留言板">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 48 48"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C8.68629 2 6 4.68629 6 8V40C6 43.3137 8.68629 46 12 46H36C39.3137 46 42 43.3137 42 40V8C42 4.68629 39.3137 2 36 2H12ZM12 8H36V22H12V8ZM36 25H12V28H36V25ZM12 31H36V34H12V31ZM26 37H12V40H26V37Z" fill="#1c1f21"></path> </svg>
+                <span>留言板</span>
+            </button>
+            <button class="capsule-btn active" data-target="widget-page-settings" data-title="页面设置">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><path d="m23,13.75v-3.5l-2.384-.841c-.176-.583-.407-1.142-.691-1.668l1.091-2.281-2.475-2.475-2.281,1.091c-.527-.284-1.086-.515-1.668-.691l-.841-2.384h-3.5l-.841,2.384c-.583.176-1.142.407-1.668.691l-2.281-1.091-2.475,2.475,1.091,2.281c-.284.527-.515,1.086-.691,1.668l-2.384.841v3.5l2.384.841c.176.583.407,1.142.691,1.668l-1.091,2.281,2.475,2.475,2.281-1.091c.527.284,1.086.515,1.668.691l.841,2.384h3.5l.841-2.384c.583-.176,1.142-.407,1.668-.691l2.281,1.091,2.475-2.475-1.091-2.281c.284-.527-.515,1.086.691-1.668l2.384-.841Zm-11,2.25c-2.206,0-4-1.794-4-4s1.794-4,4-4,4,1.794,4,4-1.794,4-4,4Z" fill="#1c1f21"></path></svg>
+                <span>设置</span>
+            </button>
+        </div>
+    </div>
+</div>
+<!-- ===== [重构结束] ===== -->
 </body>
 </html>
