@@ -13966,7 +13966,14 @@ const CheckInManager = (() => {
             ui.table.appendChild(thead);
         }
         
-        ui.header.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
+        const flipCard = () => ui.flipper.classList.toggle('flipped');
+
+        ui.header.addEventListener('click', flipCard);
+        ui.header.addEventListener('touchstart', flipCard);
+
+        ui.monthYearEl.addEventListener('click', flipCard);
+        ui.monthYearEl.addEventListener('touchstart', flipCard);
+
         ui.monthYearEl.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
         ui.prevMonthBtn.addEventListener('click', () => {
             displayedDate.setMonth(displayedDate.getMonth() - 1);
