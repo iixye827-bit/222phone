@@ -13966,14 +13966,7 @@ const CheckInManager = (() => {
             ui.table.appendChild(thead);
         }
         
-        const flipCard = () => ui.flipper.classList.toggle('flipped');
-
-        ui.header.addEventListener('click', flipCard);
-        ui.header.addEventListener('touchstart', flipCard);
-
-        ui.monthYearEl.addEventListener('click', flipCard);
-        ui.monthYearEl.addEventListener('touchstart', flipCard);
-
+        ui.header.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
         ui.monthYearEl.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
         ui.prevMonthBtn.addEventListener('click', () => {
             displayedDate.setMonth(displayedDate.getMonth() - 1);
@@ -14018,6 +14011,12 @@ const CheckInManager = (() => {
         
         let moveHandler, endHandler;
         const startHandler = (e) => {
+            // [V5 ULTIMATE FIX] 检查触摸事件是否从日历顶部标题栏开始。
+            // 如果是，则立即返回，不执行任何滑动逻辑，以确保标题栏的 click 事件能正常触发。
+            if (e.target.closest('.calendar-header')) {
+                return;
+            }
+
             const isTouch = !!e.touches;
             document.removeEventListener('mousemove', moveHandler);
             document.removeEventListener('mouseup', endHandler);
@@ -14036,6 +14035,7 @@ const CheckInManager = (() => {
             }
             handleSlideStart(isTouch ? e.touches[0].clientX : e.clientX, isTouch ? e.touches[0].clientY : e.clientY);
         };
+
 
         ui.slidableCard.addEventListener('mousedown', startHandler);
         ui.slidableCard.addEventListener('touchstart', startHandler, { passive: true });
