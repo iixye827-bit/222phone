@@ -12958,7 +12958,12 @@ open: async () => {
             let startY = 0, diffX = 0, diffY = 0, swipeIntention = null; // null, 'horizontal', 'vertical'
 
             function handleTouchStart(e) {
-                // 如果正在滑动中，或者目标是组件等，则忽略新的触摸
+                // [最终修复] 如果触摸起始点在日历组件内部，则完全中止全局滑动逻辑，将事件控制权交还给日历自身。
+                if (e.target.closest('.calendar-flipper')) {
+                    return;
+                }
+
+                // 如果正在滑动中，或者目标是其他交互组件，则忽略新的触摸
                 if (isSwiping || !isEnabled || e.target.closest('.widget, .widget-placeholder, .component-adder')) return;
                 
                 // 重置所有状态
@@ -12975,6 +12980,7 @@ open: async () => {
                 // 标记触摸 sequence 开始
                 isSwiping = true; 
             }
+
 
             function handleTouchMove(e) {
                 if (!isSwiping || !isEnabled) return;
