@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -352,6 +351,23 @@ body.dark-mode .progress-bar-wrapper {
         #memoryModal .header-btn.manage-btn { color: var(--hold-border); }
         #memoryModal .header-btn.wander-btn { font-size: 20px; padding: 6px; }
         #memoryModal .header-controls { display: flex; gap: 8px; align-items:center; }
+.memo-search-input {
+    display: none;
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    padding: 8px 12px;
+    margin: 0 10px;
+    color: inherit;
+    outline: none;
+    border-bottom: 2px solid var(--hold-border);
+}
+/* [新增] 微调搜索按钮内的SVG图标，使其垂直居中 */
+#memoryModal .header-btn svg {
+    transform: translateY(3px);
+}
+
 #memoryModal .list-container { flex-grow: 1; overflow-y: auto; padding: 0 15px 80px 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px; align-content: flex-start; min-height: 0; /* [核心修复] 允许Flex容器在内容溢出时正确收缩 */ }
         #memoryModal #hub-view-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px; }
         #memoryModal .hub-btn { width: 80%; max-width: 300px; padding: 40px 20px; border: none; border-radius: 20px; box-shadow: 10px 10px 20px var(--shadow-dark-day), -10px -10px 20px var(--shadow-light-day); background: var(--bg-day-element); color: var(--text-day); font-size: 24px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
@@ -4285,10 +4301,8 @@ body.dark-mode .leaderboard-info-time {
 
 #monthly-calendar-table th { color: #aaa; font-weight: normal; }
 #monthly-calendar-table td { position: relative; height: 14.28%; }
-#monthly-calendar-table td.today { background-color: #e3f2fd; color: #1565c0; font-weight: bold; border-radius: 50%; }
-#monthly-calendar-table td.other-month { color: #ccc; }
-/* 已签到的小蓝点样式 */
-#monthly-calendar-table td.checked-in::after {
+/* 当天日期的小圆点样式 */
+#monthly-calendar-table td.today::after {
     content: '';
     position: absolute;
     bottom: 4px; /* 调整位置 */
@@ -4299,10 +4313,37 @@ body.dark-mode .leaderboard-info-time {
     background-color: #63b3ed;
     border-radius: 50%;
 }
+#monthly-calendar-table td.other-month { color: #ccc; }
+/* 已打卡的淡蓝色圆形背景样式 */
+#monthly-calendar-table td.checked-in {
+    background-color: #e3f2fd; color: #1565c0; font-weight: bold; border-radius: 50%;
+}
+
         /* [新增] 用于控制挂件显隐的CSS类 */
         .pendant-hidden {
             display: none !important;
         }
+/* =============================================================== */
+/* =============== [新增] 签到提醒摇摆挂件样式 ================= */
+/* =============================================================== */
+
+@keyframes remind-shake {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: rotate(4deg);
+  }
+  20%, 40%, 60%, 80% {
+    transform: rotate(-4deg);
+  }
+}
+
+
+#pendant-all-wrap.remind-active {
+  /* 使用 `!important` 来确保此动画会覆盖默认的 'bob' 动画 */
+  animation: remind-shake 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite both !important;
+}
 
     </style>
 
@@ -4347,12 +4388,12 @@ body.dark-mode .leaderboard-info-time {
     </div>
 
     <!-- ===== [新增] 摇摆挂件的HTML结构 (全局定位) ===== -->
-    <div id="pendant-container">
+    <div id="pendant-container" class="pendant-hidden">
         <div id="pendant-all-wrap" class="all-wrap">
             <div id="pendant-all" class="all">
                 <!-- 使用一个span来方便地更改emoji或图片 -->
                 <span id="pendant-shape">
-                    <img src="https://tc.z.wiki/autoupload/fr/0x9Zm_rdfaeRRjK8iV0xPw5cKjQnMC1OZdesfpjt90qyl5f0KlZfm6UsKj-HyTuv/20251105/Nh10/1024X440/IMG_7008.png?imageMogr2/thumbnail/100x" alt="挂件" id="pendant-img">
+                    <span class="emoji">☁️</span>
                 </span>
             </div>
         </div>
@@ -5193,37 +5234,55 @@ body.dark-mode #floating-jellyfish-ball {
                         <button data-action="goto-cloud" class="hub-btn">文件夹</button>
                     </div>
                 </div>
-                <!-- MEMO / 备忘录部分 -->
-                <div id="memo-section" class="page">
-                    <div id="folder-view" class="page active">
-                        <div class="page-header">
-                            <button data-action="back-to-hub" class="header-btn back-btn">&#10094;</button>
-                            <h1 class="title">我的备忘录</h1>
+            <!-- MEMO / 备忘录部分 -->
+            <div id="memo-section" class="page">
+                <div id="folder-view" class="page active">
+                    <div class="page-header">
+                        <button data-action="back-to-hub" class="header-btn back-btn">&#10094;</button>
+                        <h1 class="title">我的备忘录</h1>
+                        <!-- [新增] 全局搜索输入框 -->
+                        <input type="search" id="global-memo-search-input" class="memo-search-input" placeholder="全局搜索备忘录..." style="display: none;">
+                        <button id="global-memo-search-cancel" class="header-btn" style="display:none; color: var(--hold-border);">取消</button>
+                        
+                        <div class="header-controls">
+                             <!-- [新增] 全局搜索按钮 -->
+                            <button data-action="toggle-global-memo-search" class="header-btn manage-btn" style="padding: 8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="18px" height="18px" viewBox="0 0 18 18"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.1083 11.1083C11.4012 10.8154 11.876 10.8154 12.1689 11.1083L16.2803 15.2197C16.5732 15.5126 16.5732 15.9874 16.2803 16.2803C15.9874 16.5732 15.5126 16.5732 15.2197 16.2803L11.1083 12.1689C10.8154 11.876 10.8154 11.4012 11.1083 11.1083Z" fill="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 7.75C1.5 4.29829 4.29829 1.5 7.75 1.5C11.2017 1.5 14 4.29829 14 7.75C14 11.2017 11.2017 14 7.75 14C4.29829 14 1.5 11.2017 1.5 7.75ZM7.75 3C5.12671 3 3 5.12671 3 7.75C3 10.3733 5.12671 12.5 7.75 12.5C10.3733 12.5 12.5 10.3733 12.5 7.75C12.5 5.12671 10.3733 3 7.75 3Z" fill="currentColor"></path></svg>
+                            </button>
                             <button data-action="toggle-memo-manage" class="header-btn manage-btn">管理</button>
                         </div>
-                        <div id="folder-list-container" class="list-container"></div>
-                        <button data-action="add-memo-folder" class="fab">+</button>
-                        <div id="memo-management-controls" class="management-controls">
-                             <button data-action="select-all-memo" class="modal-button">全选</button>
-                             <button data-action="delete-selected-memo" class="modal-button" style="color:#f56565;">删除选中</button>
+                    </div>
+                    <!-- 将 #folder-list-container 移动到 notes-list-container 一样的结构里，以便共用布局 -->
+                    <div id="folder-list-container" class="list-container"></div>
+                    <button data-action="add-memo-folder" class="fab">+</button>
+                    <div id="memo-management-controls" class="management-controls">
+                         <button data-action="select-all-memo" class="modal-button">全选</button>
+                         <button data-action="delete-selected-memo" class="modal-button" style="color:#f56565;">删除选中</button>
+                    </div>
+                </div>
+                <div id="notes-view" class="page">
+                    <div class="page-header">
+                        <button data-action="back-to-memo-folders" class="header-btn back-btn">&#10094;</button>
+                        <h1 id="notes-view-title" class="title">文件夹</h1>
+                        <!-- [新增] 局部搜索输入框 -->
+                        <input type="search" id="local-memo-search-input" class="memo-search-input" placeholder="在当前文件夹中搜索..." style="display: none;">
+                        <button id="local-memo-search-cancel" class="header-btn" style="display: none; color: var(--hold-border);">取消</button>
+                        <div class="header-controls">
+                            <!-- [新增] 局部搜索按钮 -->
+                             <button data-action="toggle-local-memo-search" class="header-btn manage-btn" style="padding: 8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="18px" height="18px" viewBox="0 0 18 18"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.1083 11.1083C11.4012 10.8154 11.876 10.8154 12.1689 11.1083L16.2803 15.2197C16.5732 15.5126 16.5732 15.9874 16.2803 16.2803C15.9874 16.5732 15.5126 16.5732 15.2197 16.2803L11.1083 12.1689C10.8154 11.876 10.8154 11.4012 11.1083 11.1083Z" fill="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 7.75C1.5 4.29829 4.29829 1.5 7.75 1.5C11.2017 1.5 14 4.29829 14 7.75C14 11.2017 11.2017 14 7.75 14C4.29829 14 1.5 11.2017 1.5 7.75ZM7.75 3C5.12671 3 3 5.12671 3 7.75C3 10.3733 5.12671 12.5 7.75 12.5C10.3733 12.5 12.5 10.3733 12.5 7.75C12.5 5.12671 10.3733 3 7.75 3Z" fill="currentColor"></path></svg>
+                            </button>
+                            <button data-action="toggle-note-manage" class="header-btn manage-btn">管理</button>
                         </div>
                     </div>
-                    <div id="notes-view" class="page">
-                        <div class="page-header">
-                            <button data-action="back-to-memo-folders" class="header-btn back-btn">&#10094;</button>
-                            <h1 id="notes-view-title" class="title">文件夹</h1>
-                            <div class="header-controls">
-                                <button data-action="toggle-note-manage" class="header-btn manage-btn">管理</button>
-                            </div>
-                        </div>
-                        <div id="notes-list-container" class="list-container"></div>
-                        <button data-action="add-note" class="fab">+</button>
-                        <div id="note-management-controls" class="management-controls">
-                             <button data-action="select-all-notes" class="modal-button">全选</button>
-                             <button data-action="move-selected-notes" class="modal-button">移动选中</button>
-                             <button data-action="delete-selected-notes" class="modal-button" style="color:#f56565;">删除选中</button>
-                        </div>
+                    <div id="notes-list-container" class="list-container"></div>
+                    <button data-action="add-note" class="fab">+</button>
+                    <div id="note-management-controls" class="management-controls">
+                         <button data-action="select-all-notes" class="modal-button">全选</button>
+                         <button data-action="move-selected-notes" class="modal-button">移动选中</button>
+                         <button data-action="delete-selected-notes" class="modal-button" style="color:#f56565;">删除选中</button>
                     </div>
+                </div>
                     <div id="note-editor-view" class="page">
                         <div class="editor-header">
                             <button data-action="cancel-note" class="editor-btn">取消</button>
@@ -5623,7 +5682,11 @@ const DataManager = (() => {
     // 模块的默认数据结构
     const moduleDefaults = {
         usageTime: {},
-        checkInData: { dates: [] }
+        checkInData: { 
+            dates: [],
+            background: { type: 'color', value: '#ffffff', blur: 5 },
+            reminder: { enabled: false } 
+        }
     };
 
     /**
@@ -5779,22 +5842,26 @@ const getDefaultConfig = () => ({
             jellyBall: { enabled: false, swipeBack: true, functions: {}, customCSS: '' },
             globalFont: { name: '', url: '' }, 
             fontPresets: [],
-            // [新增] 备份提醒设置的默认结构 V2
+            // [修改] 将挂件设置移入主配置
+            pendant: {
+                enabled: false, // 总开关也在这里
+                lineLength: '5rem',
+                lineColor: '#000000',
+                shapeContent: '☁️' 
+            },
             backupReminder: {
                 enabled: false,
-                timeBasedEnabled: false, // 定时提醒的总开关
-                times: [], // 存储 "HH:MM" 格式的时间字符串
-                message: '是时候该备份你的项目啦！', // 默认提醒文字
-                onExit: false, // 关闭项目时提醒
-                projects: [] // 需要提醒的项目href列表
+                timeBasedEnabled: false,
+                times: [],
+                message: '是时候该备份你的项目啦！',
+                onExit: false,
+                projects: []
             },
-            // [新增] 签到日历颜色设置
             checkinSettings: {
                 headerColor: '#8B4513',
                 cardColor: '#ffffff'
             }
         },
-
         themePresets: [
             {
                 name: "原生主题",
@@ -5809,10 +5876,101 @@ const getDefaultConfig = () => ({
         lockscreenWidgets: {}
     });
 
-
     let currentConfig = getDefaultConfig();
 
-    
+    // [新增] ==========================================================
+// [新增] 使用时长分类筛选 V1.0
+// [新增] ==========================================================
+const UsageTimeFilterManager = (() => {
+    let container;
+
+    // 渲染分类筛选器的UI
+    function renderFilter() {
+        if (!container) return;
+        
+        container.innerHTML = '';
+        const allCategories = currentConfig.categories.map(c => c.name);
+        const selectedCategories = currentConfig.settings.usageTime?.includedCategories || allCategories;
+
+        allCategories.forEach(categoryName => {
+            const isChecked = selectedCategories.includes(categoryName);
+            const itemHtml = `
+                <div class="toggle-section" style="padding: 10px 12px;">
+                    <span>${categoryName}</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" data-category-name="${categoryName}" ${isChecked ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>`;
+            container.innerHTML += itemHtml;
+        });
+    }
+
+    // 处理用户点击开关的事件
+    function handleToggle(event) {
+        if (event.target.matches('input[type="checkbox"]')) {
+            const categoryName = event.target.dataset.categoryName;
+            const isEnabled = event.target.checked;
+
+            if (!currentConfig.settings.usageTime) {
+                currentConfig.settings.usageTime = {};
+            }
+             if (!currentConfig.settings.usageTime.includedCategories) {
+                currentConfig.settings.usageTime.includedCategories = currentConfig.categories.map(c => c.name);
+            }
+
+            const included = currentConfig.settings.usageTime.includedCategories;
+            
+            if (isEnabled) {
+                if (!included.includes(categoryName)) {
+                    included.push(categoryName);
+                }
+            } else {
+                const index = included.indexOf(categoryName);
+                if (index > -1) {
+                    included.splice(index, 1);
+                }
+            }
+            
+            // 将更改保存到主配置文件
+            saveGlobalConfig('Update usage time category filter');
+            
+            // 重新渲染排行榜视图以立即看到效果
+            renderUsageLeaderboard();
+        }
+    }
+
+    // 初始化管理器
+    function init() {
+        container = document.getElementById('usage-time-category-filter');
+        if (container) {
+            renderFilter();
+            container.addEventListener('change', handleToggle);
+        }
+
+        // 监听挂件设置弹窗的打开，以确保每次都重新渲染最新的分类列表
+        const pendantShape = document.getElementById('pendant-shape');
+        if (pendantShape) {
+            const originalClickHandler = pendantShape.onclick;
+            pendantShape.onclick = function(e) {
+                if (originalClickHandler) originalClickHandler.call(this, e);
+                renderFilter(); // 重新渲染筛选器
+            };
+        }
+    }
+
+    return { init };
+})();
+
+// 在 CheckInManager 初始化之后调用 UsageTimeFilterManager 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    // 确保其他模块都初始化完毕
+    setTimeout(() => {
+        UsageTimeFilterManager.init();
+    }, 100); 
+});
+
+
     // ===== [START] FLOATING PROJECT WINDOW MANAGER =====
     const FloatingProjectWindowManager = (() => {
         const container = document.getElementById('floating-projects-container');
@@ -8989,6 +9147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function renderMemoFolders() {
             ui.folderList.innerHTML = '';
             memoryCache.memo.folders.forEach(folder => {
+            ui.folderList.style.gridTemplateColumns = '';
                 // [新增] 计算当前文件夹下的笔记数量
                 const itemCount = memoryCache.memo.notes.filter(note => note.folderId === folder.id).length;
                 const isSelected = state.memoFoldersToDelete.includes(folder.id);
@@ -9699,6 +9858,89 @@ document.addEventListener('DOMContentLoaded', () => {
             'close-move-modal': () => {
                 document.getElementById('movePhotosModal').classList.remove('show');
             },
+            
+            'back-to-hub': () => {
+                // [V2 优化] 在返回主页前，先退出所有管理和搜索模式
+                if (state.isMemoManageMode) actions['toggle-memo-manage'](ui.modal.querySelector('[data-action="toggle-memo-manage"]'));
+                if (state.isAlbumManageMode) actions['toggle-album-manage'](ui.modal.querySelector('[data-action="toggle-album-manage"]'));
+                // [V2 新增] 退出全局搜索模式
+                if (document.getElementById('global-memo-search-input').style.display !== 'none') {
+                    actions['toggle-global-memo-search']();
+                }
+
+                showPage('hub-view'); 
+                state.currentSection = null; 
+                document.getElementById('memory-modal-title').textContent = '记忆'; 
+            },
+
+            'back-to-memo-folders': () => {
+                if (document.getElementById('note-editor-view').classList.contains('active')) {
+                   actions['cancel-note']();
+                } else {
+                   // [V2 优化] 在返回文件夹列表前，退出笔记管理和局部搜索模式
+                   if (state.isNoteManageMode) {
+                        actions['toggle-note-manage'](ui.modal.querySelector('[data-action="toggle-note-manage"]'));
+                   }
+                   // [V2 新增] 退出局部搜索模式
+                   if (document.getElementById('local-memo-search-input').style.display !== 'none') {
+                        actions['toggle-local-memo-search']();
+                   }
+                   showView('folder-view', 'memo-section'); state.currentMemoFolderId = null;
+                }
+            },
+
+            // --- [新增] 备忘录搜索相关逻辑 ---
+            'toggle-global-memo-search': () => {
+
+                const titleEl = document.querySelector('#folder-view .page-header .title');
+                const controlsEl = document.querySelector('#folder-view .header-controls');
+                const searchInput = document.getElementById('global-memo-search-input');
+                const cancelBtn = document.getElementById('global-memo-search-cancel');
+
+                const isSearching = searchInput.style.display !== 'none';
+                if (isSearching) {
+                    // 退出搜索模式
+                    titleEl.style.display = 'block';
+                    controlsEl.style.display = 'flex';
+                    searchInput.style.display = 'none';
+                    cancelBtn.style.display = 'none';
+                    searchInput.value = '';
+                    renderMemoFolders(); // 恢复文件夹列表
+                } else {
+                    // 进入搜索模式
+                    titleEl.style.display = 'none';
+                    controlsEl.style.display = 'none';
+                    searchInput.style.display = 'block';
+                    cancelBtn.style.display = 'inline-block';
+                    searchInput.focus();
+                    // 初始时显示空列表或提示
+                    ui.folderList.innerHTML = '<p class="empty-list-placeholder">请输入关键字进行搜索</p>';
+                }
+            },
+            'toggle-local-memo-search': () => {
+                const titleEl = document.querySelector('#notes-view .page-header .title');
+                const controlsEl = document.querySelector('#notes-view .header-controls');
+                const searchInput = document.getElementById('local-memo-search-input');
+                const cancelBtn = document.getElementById('local-memo-search-cancel');
+
+                const isSearching = searchInput.style.display !== 'none';
+                if (isSearching) {
+                    titleEl.style.display = 'block';
+                    controlsEl.style.display = 'flex';
+                    searchInput.style.display = 'none';
+                    cancelBtn.style.display = 'none';
+                    searchInput.value = '';
+                    renderNotes(); // 恢复当前文件夹的笔记列表
+                } else {
+                    titleEl.style.display = 'none';
+                    controlsEl.style.display = 'none';
+                    searchInput.style.display = 'block';
+                    cancelBtn.style.display = 'inline-block';
+                    searchInput.focus();
+                    ui.notesList.innerHTML = '<p class="empty-list-placeholder">请输入关键字进行搜索</p>';
+                }
+            },
+
             'confirm-move-photos': () => {
                 const destAlbumId = parseInt(document.getElementById('album-destination-selector').value, 10);
                 if (!destAlbumId) {
@@ -10389,31 +10631,35 @@ open: async () => {
         return; 
     }
     
-    // 1. 立即显示模态框
     ui.modal.classList.add('show');
 
-    // 2. 检查数据是否已在内存中
-    if (memoryCache) {
-        // 如果有缓存数据，直接渲染入口页面，不阻塞UI
-        document.getElementById('memory-modal-title').textContent = '记忆';
-        showPage('hub-view');
-        // 可以在后台静默同步一次最新数据，保证数据新鲜度
-        syncWithGithub().then(() => {
-            console.log("Memory data silently synced in background.");
-        });
-    } else {
-        // 3. 如果没有缓存数据，显示加载状态
+    // [V2 新增] 每次打开时，重置所有内部状态，确保从主页开始
+    if (document.getElementById('global-memo-search-input').style.display !== 'none') {
+        actions['toggle-global-memo-search']();
+    }
+    if (document.getElementById('local-memo-search-input').style.display !== 'none') {
+        actions['toggle-local-memo-search']();
+    }
+    if (state.isMemoManageMode) actions['toggle-memo-manage'](ui.modal.querySelector('[data-action="toggle-memo-manage"]'));
+    if (state.isAlbumManageMode) actions['toggle-album-manage'](ui.modal.querySelector('[data-action="toggle-album-manage"]'));
+    if (state.isNoteManageMode) actions['toggle-note-manage'](ui.modal.querySelector('[data-action="toggle-note-manage"]'));
+    if (state.isPhotoManageMode) actions['toggle-photo-manage'](ui.modal.querySelector('[data-action="toggle-photo-manage"]'));
+
+    document.getElementById('memory-modal-title').textContent = '记忆';
+    showPage('hub-view');
+
+    // 如果数据未加载，则异步加载
+    if (!memoryCache) {
         const hubView = document.getElementById('hub-view');
-        const originalHubContent = hubView.innerHTML; // 保存原始HTML以便恢复
+        const originalHubContent = hubView.innerHTML;
         hubView.innerHTML = '<p class="empty-list-placeholder" style="margin-top: 100px; font-size: 16px;">正在从云端加载记忆模块...</p>';
         
-        // 4. 异步等待数据同步完成
         await syncWithGithub();
         
-        // 5. 数据同步完成后，恢复UI并渲染
-        hubView.innerHTML = originalHubContent; // 恢复原来的按钮
-        showPage('hub-view'); // 确保hub-view是激活状态
-        document.getElementById('memory-modal-title').textContent = '记忆';
+        hubView.innerHTML = originalHubContent;
+    } else {
+        // 如果数据已加载，可以在后台静默更新
+        syncWithGithub().then(() => console.log("Memory data silently synced in background."));
     }
 },
 
@@ -10684,6 +10930,83 @@ open: async () => {
                     processPhotoUploadQueue();
                     e.target.value = '';
                 });
+                // --- [新增] 备忘录搜索输入和取消事件绑定 ---
+                const globalSearchInput = document.getElementById('global-memo-search-input');
+                const localSearchInput = document.getElementById('local-memo-search-input');
+
+                const performSearch = (keyword, scope) => {
+                    if (!keyword) {
+                        if (scope === 'global') renderMemoFolders(); // 如果是全局搜索，清空时恢复文件夹视图
+                        else renderNotes(); // 局部搜索清空时恢复笔记列表
+                        return;
+                    }
+
+                    keyword = keyword.toLowerCase();
+                    let notesToSearch = memoryCache.memo.notes;
+                    
+                    // 如果是局部搜索，先过滤出当前文件夹的笔记
+                    if (scope === 'local') {
+                        notesToSearch = notesToSearch.filter(n => n.folderId === state.currentMemoFolderId);
+                    }
+
+                    const rankedResults = notesToSearch.map(note => {
+                        const title = (note.title || '').toLowerCase();
+                        // 移除HTML标签以搜索纯文本内容
+                        const plainContent = (note.content || '').replace(/<[^>]*>/g, '').toLowerCase(); 
+                        
+                        let score = 0;
+                        if (title.includes(keyword)) score += 2;
+                        if (plainContent.includes(keyword)) score += 1;
+                        
+                        return score > 0 ? { ...note, score } : null;
+                    }).filter(Boolean).sort((a, b) => b.score - a.score);
+
+                    const container = (scope === 'global') ? ui.folderList : ui.notesList;
+                    
+                    if (rankedResults.length === 0) {
+                        container.innerHTML = '<p class="empty-list-placeholder">未找到相关备忘录</p>';
+                        return;
+                    }
+                    
+                    // 将文件夹网格布局改为单列列表布局
+                    container.style.gridTemplateColumns = '1fr'; 
+                    container.innerHTML = ''; // 清空容器
+
+                    rankedResults.forEach(note => {
+                        const el = document.createElement('div');
+                        el.className = 'note-item';
+                        el.dataset.noteId = note.id;
+                        el.dataset.action = "open-note";
+                         // [新增] 在搜索结果中，也存储其原始 folderId，以便打开笔记后能正确返回
+                        el.dataset.originalFolderId = note.folderId; 
+
+                        const preview = (note.content || '').substring(0, 100).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        const date = new Date(note.timestamp).toLocaleDateString('zh-CN');
+                        el.innerHTML = `<div class="note-content-area"><div class="note-title">${note.title || '无标题'}</div><div class="note-preview">${preview || '没有内容'}</div><div class="note-timestamp">${date}</div></div>`;
+                        container.appendChild(el);
+                    });
+                };
+                
+                globalSearchInput.addEventListener('input', () => performSearch(globalSearchInput.value, 'global'));
+                localSearchInput.addEventListener('input', () => performSearch(localSearchInput.value, 'local'));
+
+                document.getElementById('global-memo-search-cancel').addEventListener('click', actions['toggle-global-memo-search']);
+                document.getElementById('local-memo-search-cancel').addEventListener('click', actions['toggle-local-memo-search']);
+
+                // [修改] 优化 open-note 逻辑以支持从搜索结果中打开
+                // 重写 open-note 行为以处理搜索结果
+                const originalOpenNote = actions['open-note'];
+                actions['open-note'] = (target) => {
+                    const fromSearch = target.closest('[data-original-folder-id]');
+                    if (fromSearch) {
+                        state.currentMemoFolderId = parseInt(fromSearch.dataset.originalFolderId, 10);
+                        // 从搜索结果打开笔记时，确保非管理模式
+                        if(state.isNoteManageMode) {
+                            actions['toggle-note-manage'](ui.modal.querySelector('[data-action="toggle-note-manage"]'));
+                        }
+                    }
+                    originalOpenNote(target);
+                }
 
                 // [V2 优化] 为照片下载按钮添加平台差异化处理
                 document.getElementById('download-photo-btn').addEventListener('click', async (e) => {
@@ -13579,13 +13902,16 @@ open: async () => {
         // 2. 再调用 init() 为这些元素绑定事件
         BackupReminderManager.init();
         /* =============================================================== */
-        /* ==================== [新增] 初始化挂件管理器 ===================== */
+        /* ==================== [新增] 初始化挂件与签到管理器 ===================== */
         /* =============================================================== */
         PendantManager.init();
+        // [V3.0 最终修复] 确保签到管理器在挂件系统之后初始化，保证数据流正确
+        CheckInManager.init();
 
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
+
     });
 
 
@@ -13734,22 +14060,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. 加载设置的函数
-    function loadSettings() {
-        // 加载挂件设置
-        let savedPendantSettings;
-        try {
-            savedPendantSettings = JSON.parse(localStorage.getItem(PENDANT_CONFIG_KEY));
-        } catch (e) { savedPendantSettings = null; }
-        const pendantSettings = { ...defaultSettings, ...savedPendantSettings };
-        applyPendantSettings(pendantSettings);
+    async function loadSettings() {
+        // [修改] 加载挂件设置 - 从DataManager异步获取
+        const pendantSettings = await DataManager.get('pendantData');
+        applyPendantSettings({ ...defaultSettings, ...pendantSettings });
+
+        // 更新UI
         lineLengthSlider.value = parseFloat(pendantSettings.lineLength);
         lineLengthValue.textContent = `${pendantSettings.lineLength}`;
         lineColorPicker.value = pendantSettings.lineColor;
         shapeInput.value = pendantSettings.shapeContent;
-
-        // 加载签到颜色设置 (从全局配置)
+        
+        // 加载签到颜色设置 (从全局配置) - 此处不变
         applyCheckinColors();
     }
+
 
     // 5. 页面切换函数
     function switchHubPage(targetId, title) {
@@ -13799,25 +14124,38 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file) compressAndSetPendantImage(file, shapeInput, pendantUploadStatus);
     });
 
-    applyBtn.addEventListener('click', () => {
+    applyBtn.addEventListener('click', async () => {
         const newSettings = {
             lineLength: `${lineLengthSlider.value}rem`,
             lineColor: lineColorPicker.value,
-            shapeContent: shapeInput.value.trim() || '🪼'
+            shapeContent: shapeInput.value.trim() || '☁️' // 默认值也改为云朵
         };
-        localStorage.setItem(PENDANT_CONFIG_KEY, JSON.stringify(newSettings));
+        
+        // [修改] 从DataManager获取当前数据对象并更新
+        const pendantData = await DataManager.get('pendantData');
+        Object.assign(pendantData, newSettings);
+        
+        // [修改] 通过DataManager保存到云端
+        await DataManager.save('pendantData', 'Update pendant settings');
+        
         applyPendantSettings(newSettings);
         settingsModal.classList.remove('show');
         if (typeof showTopToast === 'function') showTopToast("挂件设置已保存！", 2000);
     });
 
-    resetBtn.addEventListener('click', () => {
+    resetBtn.addEventListener('click', async () => {
         if (confirm("确定要恢复挂件的默认设置吗？")) {
-            localStorage.removeItem(PENDANT_CONFIG_KEY);
-            loadSettings(); // 加载并应用默认值
+            // [修改] 获取、应用并保存默认设置
+            const pendantData = await DataManager.get('pendantData');
+            Object.assign(pendantData, defaultSettings);
+            await DataManager.save('pendantData', 'Reset pendant settings');
+            
+            loadSettings();
+            applyPendantSettings(defaultSettings); // 立即应用以获得反馈
             settingsModal.classList.remove('show');
         }
     });
+
     
     // --- 签到颜色设置监听 ---
     const setupColorSync = (picker, hexInput, key) => {
@@ -13894,6 +14232,11 @@ const CheckInManager = (() => {
             // 签到成功后，立即更新所有UI
             await updateTearOffCalendar();
             await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
+
+            // [新增] 通知挂件管理器更新签到状态，停止动画
+            if (typeof PendantManager !== 'undefined' && PendantManager.updateCheckInStatus) {
+                PendantManager.updateCheckInStatus(true);
+            }
         }
     }
 
@@ -13940,6 +14283,7 @@ const CheckInManager = (() => {
 
     // 初始化函数
     async function init() {
+         // [最终修复] 如果已经初始化过，只更新UI，不重复绑定事件
          if (isInitialized) {
             await updateTearOffCalendar();
             await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
@@ -13959,6 +14303,12 @@ const CheckInManager = (() => {
             monthYearEl: document.getElementById('current-month-year'),
             table: document.getElementById('monthly-calendar-table')
         };
+        
+        // [最终修复] 增加对UI元素是否存在的检查
+        if (!ui.flipper || !ui.slidableCard || !ui.table) {
+            console.warn("签到日历UI元素不完整，CheckInManager 初始化中止。");
+            return;
+        }
 
         const thead = ui.table.querySelector('thead') || document.createElement('thead');
         if (!thead.innerHTML) {
@@ -14011,159 +14361,281 @@ const CheckInManager = (() => {
         
         let moveHandler, endHandler;
         const startHandler = (e) => {
-            // [V5 ULTIMATE FIX] 检查触摸事件是否从日历顶部标题栏开始。
-            // 如果是，则立即返回，不执行任何滑动逻辑，以确保标题栏的 click 事件能正常触发。
-            if (e.target.closest('.calendar-header')) {
+            // [核心修复] 如果事件目标是日历头部或月历背面，则完全中止滑动逻辑。
+            if (e.target.closest('.calendar-header') || e.target.closest('.calendar-back')) {
                 return;
             }
 
+            // 阻止默认行为（如页面滚动），确保拖拽的流畅性
+            e.preventDefault();
+
             const isTouch = !!e.touches;
+            
+            // 为防止意外的重复绑定，先清理旧的监听器
             document.removeEventListener('mousemove', moveHandler);
             document.removeEventListener('mouseup', endHandler);
             document.body.removeEventListener('touchmove', moveHandler);
             document.body.removeEventListener('touchend', endHandler);
 
-            moveHandler = (moveEvent) => handleSlideMove(isTouch ? moveEvent.touches[0].clientX : moveEvent.clientX, isTouch ? moveEvent.touches[0].clientY : moveEvent.clientY);
-            endHandler = (endEvent) => handleSlideEnd(isTouch ? endEvent.changedTouches[0].clientX : endEvent.clientX, isTouch ? endEvent.changedTouches[0].clientY : endEvent.clientY);
+            // 定义本次拖拽过程中的 move 和 end 处理器
+            moveHandler = (moveEvent) => {
+                const clientX = isTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                const clientY = isTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
+                handleSlideMove(clientX, clientY);
+            };
+            endHandler = (endEvent) => {
+                const clientX = isTouch ? endEvent.changedTouches[0].clientX : endEvent.clientX;
+                const clientY = isTouch ? endEvent.changedTouches[0].clientY : endEvent.clientY;
+                handleSlideEnd(clientX, clientY);
 
+                // [核心修复] 拖拽结束后，务必移除全局监听器，避免干扰其他操作
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('mouseup', endHandler);
+                document.body.removeEventListener('touchmove', moveHandler);
+                document.body.removeEventListener('touchend', endHandler);
+            };
+
+            // 绑定全局监听器
             if (isTouch) {
-                document.body.addEventListener('touchmove', moveHandler, { passive: true });
+                document.body.addEventListener('touchmove', moveHandler, { passive: false });
                 document.body.addEventListener('touchend', endHandler, { once: true });
             } else {
                 document.addEventListener('mousemove', moveHandler);
                 document.addEventListener('mouseup', endHandler, { once: true });
             }
+            
+            // 记录起始位置
             handleSlideStart(isTouch ? e.touches[0].clientX : e.clientX, isTouch ? e.touches[0].clientY : e.clientY);
         };
 
-
+        // [核心修复] 将滑动监听器精确地绑定到可撕下的卡片上
         ui.slidableCard.addEventListener('mousedown', startHandler);
-        ui.slidableCard.addEventListener('touchstart', startHandler, { passive: true });
+        // [核心修复] 将 passive 设置为 false，以便在 moveHandler 中调用 preventDefault() 防止页面滚动
+        ui.slidableCard.addEventListener('touchstart', startHandler, { passive: false });
 
         await updateTearOffCalendar();
         await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
         isInitialized = true;
+    
     }
 
     return { init };
 })();
 
 /* =============================================================== */
-/* ============= [重构/新增] 摇摆挂件总控管理器 V2.1 =============== */
+/* ============= [重构/新增] 摇摆挂件总控管理器 V3.0 (最终修正版) ==== */
 /* =============================================================== */
 const PendantManager = (() => {
-    // [修正] 将 ui 对象声明为空，延迟到 init 函数中再填充
     let ui = {};
-    
-    // 其他变量保持不变
     const VISIBILITY_STORAGE_KEY = 'jellyfish_pendant_visibility';
     let longPressTimer = null;
     let isLongPressTriggered = false;
-    const LONG_PRESS_DURATION = 700; // 700毫秒的长按阈值
+    const LONG_PRESS_DURATION = 700;
 
-    // 更新“显示/隐藏”按钮的文本
+    const defaultPendantSettings = {
+        enabled: false,
+        lineLength: '5rem',
+        lineColor: '#000000',
+        shapeContent: '☁️'
+    };
+
     function updateButtonText() {
-        // [修正] 增加对 ui.visibilityBtn 是否存在的检查
         if (ui.visibilityBtn) {
             const isHidden = ui.container.classList.contains('pendant-hidden');
             ui.visibilityBtn.textContent = isHidden ? '显示挂件' : '隐藏挂件';
         }
     }
 
-    // 主开关的逻辑处理
+    // [核心修正] 将动画控制逻辑独立成 async 函数
+    async function updateReminderAnimation() {
+        try {
+            const checkInData = await DataManager.get('checkInData');
+            // [鲁棒性修复] 检查数据结构是否存在
+            const reminderEnabled = checkInData && checkInData.reminder ? checkInData.reminder.enabled : false;
+            const todayStr = new Date().toISOString().split('T')[0]; // 更可靠的日期格式
+            const hasCheckedInToday = checkInData && checkInData.dates ? checkInData.dates.includes(todayStr) : false;
+
+            const shouldAnimate = reminderEnabled && !hasCheckedInToday;
+
+            if (ui.allWrap) {
+                ui.allWrap.classList.toggle('remind-active', shouldAnimate);
+            }
+        } catch (error) {
+            console.error("更新签到提醒动画失败:", error);
+        }
+    }
+
+    // [核心修正] 暴露给外部调用的接口，现在也改为 async 以便应对未来需求
+    async function updateCheckInStatus(hasCheckedIn) {
+        if (hasCheckedIn) {
+            if (ui.allWrap) {
+                ui.allWrap.classList.remove('remind-active');
+            }
+        } else {
+            // 如果被告知“未签到”，则重新检查动画状态
+            await updateReminderAnimation();
+        }
+    }
+
     function handleMasterToggle(enabled) {
         ui.visibilityControls.style.display = enabled ? 'block' : 'none';
         if (enabled) {
             const isHidden = localStorage.getItem(VISIBILITY_STORAGE_KEY) === 'true';
             ui.container.classList.toggle('pendant-hidden', isHidden);
-            CheckInManager.init(); // 初始化签到日历
+            CheckInManager.init();
+            updateReminderAnimation(); // 开启总开关时，立即检查动画状态
         } else {
             ui.container.classList.add('pendant-hidden');
+            if (ui.allWrap) ui.allWrap.classList.remove('remind-active'); // 关闭时移除动画
         }
         updateButtonText();
     }
 
-    // “显示/隐藏”按钮的点击逻辑
-    function handleVisibilityToggle() {
-        const isCurrentlyHidden = ui.container.classList.toggle('pendant-hidden');
-        localStorage.setItem(VISIBILITY_STORAGE_KEY, isCurrentlyHidden);
-        updateButtonText();
+    function applyPendantSettings(settings) {
+        ui.container.style.setProperty('--line-length', settings.lineLength);
+        ui.container.style.setProperty('--line-color', settings.lineColor);
+        const content = settings.shapeContent || defaultPendantSettings.shapeContent;
+        const isUrl = content.startsWith('http') || content.startsWith('/') || content.startsWith('data:image');
+        ui.shape.innerHTML = isUrl ? `<img src="${content}" alt="挂件" id="pendant-img">` : `<span class="emoji">${content}</span>`;
     }
-    
-    // --- [新增] 分离的长按与短按交互逻辑 ---
+
+    function loadAndDisplaySettings() {
+        const settings = { ...defaultPendantSettings, ...(currentConfig.settings.pendant || {}) };
+        applyPendantSettings(settings);
+        if (ui.lineLengthSlider) {
+           ui.lineLengthSlider.value = parseFloat(settings.lineLength);
+           ui.lineLengthValue.textContent = `${settings.lineLength}`;
+           ui.lineColorPicker.value = settings.lineColor;
+           ui.shapeInput.value = settings.shapeContent;
+        }
+    }
+
     const handlePressStart = (e) => {
-        e.preventDefault();
-        isLongPressTriggered = false;
+        e.preventDefault(); isLongPressTriggered = false;
         longPressTimer = setTimeout(() => {
-            isLongPressTriggered = true;
-            if (navigator.vibrate) navigator.vibrate(50);
+            isLongPressTriggered = true; if (navigator.vibrate) navigator.vibrate(50);
             ui.container.classList.add('pendant-hidden');
             localStorage.setItem(VISIBILITY_STORAGE_KEY, true);
-            updateButtonText();
-            showTopToast("挂件已隐藏，可在主题设置中重新显示", 2500);
+            updateButtonText(); showTopToast("挂件已隐藏，可在主题设置中重新显示", 2500);
         }, LONG_PRESS_DURATION);
     };
-
+    
     const handlePressEnd = (e) => {
         clearTimeout(longPressTimer);
-        // [修正] 在执行短按逻辑前，检查 settingsModal 是否已获取
         if (!isLongPressTriggered && ui.settingsModal) {
             e.stopPropagation();
             ui.settingsModal.classList.add('show');
+            loadAndDisplaySettings();
+            
+            DataManager.get('checkInData').then(data => {
+                if (ui.reminderToggle) {
+                    // [鲁棒性修复] 确保 reminder 对象存在
+                    ui.reminderToggle.checked = data?.reminder?.enabled === true;
+                }
+            });
             const checkinTab = document.querySelector('#widget-hub-capsule [data-target="widget-page-checkin"]');
             if (checkinTab) checkinTab.click();
         }
     };
+    
+    const cancelPress = () => clearTimeout(longPressTimer);
 
-    const cancelPress = () => {
-        clearTimeout(longPressTimer);
-    };
-
-    // 初始化管理器
     function init() {
-        // [核心修正] 在 init 函数内部获取所有 DOM 元素
         ui = {
             masterToggle: document.getElementById('pendantMasterToggle'),
             visibilityControls: document.getElementById('pendantVisibilityControls'),
             visibilityBtn: document.getElementById('togglePendantVisibilityBtn'),
             container: document.getElementById('pendant-container'),
+            allWrap: document.getElementById('pendant-all-wrap'),
             shape: document.getElementById('pendant-shape'),
-            settingsModal: document.getElementById('pendant-settings-modal')
+            settingsModal: document.getElementById('pendant-settings-modal'),
+            lineLengthSlider: document.getElementById('line-length-slider'),
+            lineLengthValue: document.getElementById('line-length-value'),
+            lineColorPicker: document.getElementById('line-color-picker'),
+            shapeInput: document.getElementById('pendant-shape-input'),
+            applyBtn: document.getElementById('apply-pendant-settings'),
+            resetBtn: document.getElementById('reset-pendant-settings'),
+            reminderToggle: null
         };
        
-        // [修正] 增加完整的元素存在性检查
-        if (!ui.masterToggle || !ui.visibilityControls || !ui.visibilityBtn || !ui.container || !ui.shape || !ui.settingsModal) {
-            console.error('PendantManager 初始化失败: 找不到一个或多个必要的HTML元素。');
+        if (!ui.masterToggle || !ui.container) {
+            console.error('PendantManager 初始化失败: 找不到HTML元素。');
             return;
         }
 
-        // --- 初始化总开关 ---
         if (!currentConfig.settings.pendant) {
-            currentConfig.settings.pendant = { enabled: false };
+            currentConfig.settings.pendant = { ...defaultPendantSettings };
         }
+        
+        loadAndDisplaySettings();
         ui.masterToggle.checked = currentConfig.settings.pendant.enabled;
         handleMasterToggle(ui.masterToggle.checked);
+        
+        // [核心修正] 页面加载时，如果挂件是启用的，就立即检查一次签到状态
+        if (ui.masterToggle.checked) {
+            updateReminderAnimation();
+        }
 
-        // --- 绑定事件监听 ---
         ui.masterToggle.addEventListener('change', (e) => {
             currentConfig.settings.pendant.enabled = e.target.checked;
             handleMasterToggle(e.target.checked);
             saveGlobalConfig('Toggle Pendant Feature');
         });
-
-        ui.visibilityBtn.addEventListener('click', handleVisibilityToggle);
+        ui.visibilityBtn.addEventListener('click', () => {
+            const isCurrentlyHidden = ui.container.classList.toggle('pendant-hidden');
+            localStorage.setItem(VISIBILITY_STORAGE_KEY, isCurrentlyHidden);
+            updateButtonText();
+        });
         
-        ui.shape.addEventListener('mousedown', handlePressStart);
-        ui.shape.addEventListener('mouseup', handlePressEnd);
-        ui.shape.addEventListener('mouseleave', cancelPress);
-        ui.shape.addEventListener('touchstart', handlePressStart, { passive: false });
+        ui.shape.addEventListener('mousedown', handlePressStart); ui.shape.addEventListener('mouseup', handlePressEnd);
+        ui.shape.addEventListener('mouseleave', cancelPress); ui.shape.addEventListener('touchstart', handlePressStart, { passive: false });
         ui.shape.addEventListener('touchend', handlePressEnd);
+
+        ui.applyBtn?.addEventListener('click', () => {
+            currentConfig.settings.pendant.lineLength = `${ui.lineLengthSlider.value}rem`;
+            currentConfig.settings.pendant.lineColor = ui.lineColorPicker.value;
+            currentConfig.settings.pendant.shapeContent = ui.shapeInput.value.trim() || '☁️';
+            saveGlobalConfig('Update pendant settings');
+            loadAndDisplaySettings();
+            ui.settingsModal.classList.remove('show');
+            showTopToast("挂件设置已保存！", 2000);
+        });
+
+        ui.resetBtn?.addEventListener('click', () => {
+            if (confirm("确定要恢复挂件的默认设置吗？")) {
+                currentConfig.settings.pendant = { ...defaultPendantSettings, enabled: currentConfig.settings.pendant.enabled };
+                saveGlobalConfig('Reset pendant settings');
+                loadAndDisplaySettings();
+                ui.settingsModal.classList.remove('show');
+            }
+        });
+        
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    const reminderToggle = document.getElementById('checkin-reminder-toggle');
+                    if (reminderToggle && !ui.reminderToggle) {
+                        ui.reminderToggle = reminderToggle;
+                        ui.reminderToggle.addEventListener('change', async (e) => {
+                            const checkInData = await DataManager.get('checkInData');
+                            if (!checkInData.reminder) checkInData.reminder = {};
+                            checkInData.reminder.enabled = e.target.checked;
+                            await DataManager.save('checkInData', 'Toggle check-in reminder');
+                            await updateReminderAnimation(); // 修改开关后立即更新动画状态
+                        });
+                        observer.disconnect();
+                        break;
+                    }
+                }
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    return {
-        init
-    };
+    return { init, applyPendantSettings, updateCheckInStatus };
 })();
+
+
 /* =============================================================== */
 /* ========================= [重构/新增结束] ======================== */
 /* =============================================================== */
@@ -14412,7 +14884,7 @@ const PendantManager = (() => {
             <div class="widget-hub-page" id="widget-page-settings">
 
                 <!-- 折叠框1: 挂件设置 -->
-                <details open>
+                <details>
                     <summary>挂件设置</summary>
                     <div class="details-content" style="display: flex; flex-direction: column; gap: 20px;">
                         <!-- 调节线长 -->
@@ -14452,6 +14924,15 @@ const PendantManager = (() => {
                 <details>
                     <summary>签到设置</summary>
                     <div class="details-content" style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- [新增] 签到提醒开关 -->
+                        <div class="toggle-section" style="margin-top: 5px;">
+                            <span>开启签到提醒</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="checkin-reminder-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
                         <div class="color-picker-group">
                             <label>日历顶部颜色</label>
                             <div class="color-input-wrapper">
@@ -14466,9 +14947,19 @@ const PendantManager = (() => {
                                 <input type="text" class="modal-input hex-display" id="checkinCardColorHex" maxlength="7">
                             </div>
                         </div>
+
                     </div>
                 </details>
-
+<!-- 折叠框3: 使用时长设置 -->
+                <details>
+                    <summary>使用时长设置</summary>
+                    <div class="details-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        <span style="font-size: 14px; font-weight: 600; color: #5a6778;">纳入排行榜的分类</span>
+                        <div id="usage-time-category-filter" style="display: flex; flex-direction: column; gap: 10px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                            <!-- JS将在稍后填充此区域 -->
+                        </div>
+                    </div>
+                </details>
             </div>
 
 
