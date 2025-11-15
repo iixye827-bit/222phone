@@ -5882,15 +5882,15 @@ const getDefaultConfig = () => ({
 // [新增] 使用时长分类筛选 V1.0
 // [新增] ==========================================================
 const UsageTimeFilterManager = (() => {
-    let container;
+    let listContainer, filterContainer, masterToggle;
 
-    // 渲染分类筛选器的UI
-    function renderFilter() {
-        if (!container) return;
+    function renderCategoryList() {
+        if (!listContainer) return;
         
-        container.innerHTML = '';
+        listContainer.innerHTML = '';
         const allCategories = currentConfig.categories.map(c => c.name);
-        const selectedCategories = currentConfig.settings.usageTime?.includedCategories || allCategories;
+        const settings = currentConfig.settings.usageTime || {};
+        const selectedCategories = settings.includedCategories || allCategories;
 
         allCategories.forEach(categoryName => {
             const isChecked = selectedCategories.includes(categoryName);
@@ -5902,66 +5902,71 @@ const UsageTimeFilterManager = (() => {
                         <span class="slider"></span>
                     </label>
                 </div>`;
-            container.innerHTML += itemHtml;
+            listContainer.innerHTML += itemHtml;
         });
     }
 
-    // 处理用户点击开关的事件
-    function handleToggle(event) {
+    function updateVisibility() {
+        const settings = currentConfig.settings.usageTime || {};
+        masterToggle.checked = settings.filterEnabled === true;
+        filterContainer.style.display = masterToggle.checked ? 'block' : 'none';
+    }
+
+    function handleMasterToggle() {
+        if (!currentConfig.settings.usageTime) currentConfig.settings.usageTime = {};
+        currentConfig.settings.usageTime.filterEnabled = masterToggle.checked;
+        updateVisibility();
+        saveGlobalConfig('Toggle usage time category filter');
+        renderUsageLeaderboard(); // 立即刷新排行榜
+    }
+
+    function handleCategoryToggle(event) {
         if (event.target.matches('input[type="checkbox"]')) {
             const categoryName = event.target.dataset.categoryName;
             const isEnabled = event.target.checked;
-
-            if (!currentConfig.settings.usageTime) {
-                currentConfig.settings.usageTime = {};
-            }
-             if (!currentConfig.settings.usageTime.includedCategories) {
+            
+            if (!currentConfig.settings.usageTime) currentConfig.settings.usageTime = {};
+            if (!currentConfig.settings.usageTime.includedCategories) {
                 currentConfig.settings.usageTime.includedCategories = currentConfig.categories.map(c => c.name);
             }
 
             const included = currentConfig.settings.usageTime.includedCategories;
             
             if (isEnabled) {
-                if (!included.includes(categoryName)) {
-                    included.push(categoryName);
-                }
+                if (!included.includes(categoryName)) included.push(categoryName);
             } else {
                 const index = included.indexOf(categoryName);
-                if (index > -1) {
-                    included.splice(index, 1);
-                }
+                if (index > -1) included.splice(index, 1);
             }
             
-            // 将更改保存到主配置文件
-            saveGlobalConfig('Update usage time category filter');
-            
-            // 重新渲染排行榜视图以立即看到效果
+            saveGlobalConfig('Update usage time included categories');
             renderUsageLeaderboard();
         }
     }
 
-    // 初始化管理器
     function init() {
-        container = document.getElementById('usage-time-category-filter');
-        if (container) {
-            renderFilter();
-            container.addEventListener('change', handleToggle);
+        listContainer = document.getElementById('usage-time-category-filter');
+        filterContainer = document.getElementById('usage-time-filter-container');
+        masterToggle = document.getElementById('usage-time-filter-toggle');
+
+        if (listContainer && filterContainer && masterToggle) {
+            updateVisibility();
+            renderCategoryList();
+            masterToggle.addEventListener('change', handleMasterToggle);
+            listContainer.addEventListener('change', handleCategoryToggle);
         }
 
-        // 监听挂件设置弹窗的打开，以确保每次都重新渲染最新的分类列表
-        const pendantShape = document.getElementById('pendant-shape');
-        if (pendantShape) {
-            const originalClickHandler = pendantShape.onclick;
-            pendantShape.onclick = function(e) {
-                if (originalClickHandler) originalClickHandler.call(this, e);
-                renderFilter(); // 重新渲染筛选器
-            };
+        const capsuleButton = document.querySelector('[data-target="widget-page-settings"]');
+        if (capsuleButton) {
+            capsuleButton.addEventListener('click', () => {
+                if (listContainer) renderCategoryList();
+                if (masterToggle) updateVisibility();
+            });
         }
     }
 
     return { init };
 })();
-
 // 在 CheckInManager 初始化之后调用 UsageTimeFilterManager 初始化
 document.addEventListener('DOMContentLoaded', () => {
     // 确保其他模块都初始化完毕
@@ -6259,61 +6264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return parts.join(' ');
     }
 
-// <-- 开始替换为 -->
-    /**
-     * 渲染使用时长排行榜 (V2 - 异步加载)
-     */
-    async function renderUsageLeaderboard() {
-        const listContainer = document.getElementById('usage-leaderboard-list');
-        const placeholder = document.getElementById('usage-leaderboard-placeholder');
-        if (!listContainer || !placeholder) return;
 
-        // [修改] 异步从 DataManager 获取 usageTime 数据
-        const usageData = await DataManager.get('usageTime');
-
-        if (!usageData || Object.keys(usageData).length === 0) {
-            placeholder.textContent = '暂无使用记录';
-            placeholder.style.display = 'block';
-            listContainer.innerHTML = '';
-            return;
-        }
-
-        const leaderboardData = Object.entries(usageData)
-            .map(([href, time]) => {
-                const project = findButtonConfigByHref(href);
-                return {
-                    name: project ? project.text : '未知项目',
-                    time: time
-                };
-            })
-            .sort((a, b) => b.time - a.time);
-
-        if (leaderboardData.length === 0) {
-            placeholder.style.display = 'block';
-            listContainer.innerHTML = '';
-            return;
-        }
-
-        placeholder.style.display = 'none';
-        listContainer.innerHTML = leaderboardData.map((item, index) => {
-            const rank = index + 1;
-            let rankClass = `leaderboard-rank`;
-            if (rank <= 3) {
-                rankClass += ` rank-${rank}`;
-            }
-
-            return `
-                <li class="leaderboard-item">
-                    <div class="${rankClass}">${rank}</div>
-                    <div class="leaderboard-info">
-                        <div class="leaderboard-info-name">${item.name}</div>
-                        <div class="leaderboard-info-time">${formatDuration(item.time)}</div>
-                    </div>
-                </li>
-            `;
-        }).join('');
-    }
-// <-- 结束替换为 -->
 
     /**
      * 开始追踪一个项目的使用时长
@@ -6340,8 +6291,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const placeholder = document.getElementById('usage-leaderboard-placeholder');
         if (!listContainer || !placeholder) return;
 
-        // [修改] 异步从 DataManager 获取 usageTime 数据
         const usageData = await DataManager.get('usageTime');
+        const usageSettings = currentConfig.settings.usageTime || {};
 
         if (!usageData || Object.keys(usageData).length === 0) {
             placeholder.textContent = '暂无使用记录';
@@ -6349,18 +6300,28 @@ document.addEventListener('DOMContentLoaded', () => {
             listContainer.innerHTML = '';
             return;
         }
+        
+        let allEntries = Object.entries(usageData);
 
-        const leaderboardData = Object.entries(usageData)
-            .map(([href, time]) => {
+        // 核心筛选逻辑
+        if (usageSettings.filterEnabled === true) {
+            const includedCategories = usageSettings.includedCategories || [];
+            allEntries = allEntries.filter(([href]) => {
                 const project = findButtonConfigByHref(href);
-                return {
-                    name: project ? project.text : '未知项目',
-                    time: time
-                };
+                return project && includedCategories.includes(project.categoryName);
+            });
+        }
+
+        const leaderboardData = allEntries.map(([href, time]) => {
+                const project = findButtonConfigByHref(href);
+                // 如果项目被删除，findButtonConfigByHref会返回null
+                return project ? { name: project.text, time: time } : null;
             })
+            .filter(Boolean) // 过滤掉找不到的项目
             .sort((a, b) => b.time - a.time);
 
         if (leaderboardData.length === 0) {
+            placeholder.textContent = '当前筛选条件下无记录';
             placeholder.style.display = 'block';
             listContainer.innerHTML = '';
             return;
@@ -6370,10 +6331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         listContainer.innerHTML = leaderboardData.map((item, index) => {
             const rank = index + 1;
             let rankClass = `leaderboard-rank`;
-            if (rank <= 3) {
-                rankClass += ` rank-${rank}`;
-            }
-
+            if (rank <= 3) rankClass += ` rank-${rank}`;
             return `
                 <li class="leaderboard-item">
                     <div class="${rankClass}">${rank}</div>
@@ -6385,6 +6343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
     }
+
 
     /**
      * 停止当前项目的计时并保存数据 (V4 - 模块化)
@@ -12957,7 +12916,7 @@ open: async () => {
             // [V3 终极修复] 重构滑动逻辑，解决事件冲突
             let startY = 0, diffX = 0, diffY = 0, swipeIntention = null; // null, 'horizontal', 'vertical'
 
-            function handleTouchStart(e) {
+             function handleTouchStart(e) {
                 // [最终修复] 如果触摸起始点在日历组件内部，则完全中止全局滑动逻辑，将事件控制权交还给日历自身。
                 if (e.target.closest('.calendar-flipper')) {
                     return;
@@ -14229,20 +14188,24 @@ const CheckInManager = (() => {
         
         if (checkInData.dates.includes(todayStr)) {
             showTopToast("今天已经签过到啦！", 2000);
+            // 如果已经签到，也需要更新挂件状态，以防万一
+            if (typeof PendantManager !== 'undefined' && PendantManager.updateCheckInStatus) {
+                PendantManager.updateCheckInStatus(true);
+            }
+            return false; // 返回false表示未进行新的签到
         } else {
             checkInData.dates.push(todayStr);
             await DataManager.save('checkInData', 'Perform daily check-in');
             
             showTopToast("今日签到成功！", 2000);
             
-            // 签到成功后，立即更新所有UI
-            await updateTearOffCalendar();
-            await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
-
-            // [新增] 通知挂件管理器更新签到状态，停止动画
+            // 通知挂件管理器更新签到状态
             if (typeof PendantManager !== 'undefined' && PendantManager.updateCheckInStatus) {
                 PendantManager.updateCheckInStatus(true);
             }
+            // 核心修复：签到成功后直接返回，避免后续函数重复显示提示
+            // UI的更新将由调用此函数的 resetCard() 统一处理
+            return true; // 返回true表示签到成功
         }
     }
 
@@ -14846,7 +14809,7 @@ const PendantManager = (() => {
                     <!-- 正面：撕页日历 -->
                     <div class="calendar-front">
                         <div class="calendar">
-                            <div class="calendar-header" id="checkin-header">成为水母宝宝已经 0 天</div>
+                            <div class="calendar-header" id="checkin-header">成为水母宝宝已经 </div>
                             <div class="calendar-date-next">
                                 <div class="date-number" id="nextDateNum"></div>
                                 <div class="date-full" id="nextDateFull"></div>
@@ -14956,13 +14919,25 @@ const PendantManager = (() => {
 
                     </div>
                 </details>
-<!-- 折叠框3: 使用时长设置 -->
+                <!-- 折叠框3: 使用时长设置 (已重构) -->
                 <details>
                     <summary>使用时长设置</summary>
                     <div class="details-content" style="display: flex; flex-direction: column; gap: 15px;">
-                        <span style="font-size: 14px; font-weight: 600; color: #5a6778;">纳入排行榜的分类</span>
-                        <div id="usage-time-category-filter" style="display: flex; flex-direction: column; gap: 10px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
-                            <!-- JS将在稍后填充此区域 -->
+                        <!-- 新增: 总开关 -->
+                        <div class="toggle-section">
+                            <span>启用分类筛选</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="usage-time-filter-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- 筛选列表容器 (JS控制显隐) -->
+                        <div id="usage-time-filter-container" style="display: none;">
+                            <span style="font-size: 14px; font-weight: 600; color: #5a6778; display: block; margin-bottom: 12px; margin-top: 5px;">纳入排行榜的分类</span>
+                            <div id="usage-time-category-filter" style="display: flex; flex-direction: column; gap: 10px; max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                                <!-- JS将填充此区域 -->
+                            </div>
                         </div>
                     </div>
                 </details>
