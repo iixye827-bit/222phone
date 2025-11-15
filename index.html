@@ -926,6 +926,75 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         }
         /* ===== [END] FLOATING JELLYFISH BALL STYLES ===== */
 
+        /* ===== [START] MEMO LIST ITEM COPY BUTTON STYLES ===== */
+        .note-item {
+            position: relative; /* 确保子元素能够绝对定位 */
+        }
+
+        /* 复制按钮在备忘录列表项中的样式 */
+        .note-item-copy-btn {
+            position: absolute;
+            bottom: 8px; /* 距离底部 */
+            right: 8px; /* 距离右侧 */
+            width: 24px;   /* 按钮宽度 */
+            height: 24px;  /* 按钮高度 */
+            padding: 4px;  /* 增加点击区域 */
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #ADB5BD; /* 浅灰色 */
+            opacity: 0.5; /* 默认半透明 */
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 2; /* 确保在备忘录内容之上 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; /* 圆形 */
+        }
+        
+        /* 鼠标悬停时 */
+        .note-item-copy-btn:hover {
+            opacity: 1;
+            transform: scale(1.1); /* 稍微放大 */
+            background-color: rgba(128,128,128,0.1); /* 浅色背景 */
+        }
+
+        /* 夜间模式 */
+        body.dark-mode .note-item-copy-btn {
+            color: #718096; /* 夜间模式下的浅灰色 */
+        }
+        body.dark-mode .note-item-copy-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* 磨砂玻璃主题 */
+        body.theme-glass .note-item-copy-btn {
+            background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+        body.theme-glass.dark-mode .note-item-copy-btn {
+             background: rgba(50, 50, 50, 0.25);
+             border-color: rgba(255, 255, 255, 0.1);
+             color: #CCC;
+        }
+
+        /* 调整图标尺寸，以便更好地适应24px的按钮 */
+        .note-item-copy-btn svg {
+            width: 16px; /* SVG图标的实际大小 */
+            height: 16px;
+        }
+
+        /* 隐藏复制按钮在管理模式下，避免干扰 */
+        .note-item.manage-mode .note-item-copy-btn {
+            display: none;
+        }
+        /* ===== [END] MEMO LIST ITEM COPY BUTTON STYLES ===== */
+
+
         /* ===== [START] FLOATING PROJECT WINDOW STYLES ===== */
         .floating-project-window {
             position: fixed;
@@ -4344,6 +4413,195 @@ body.dark-mode .leaderboard-info-time {
   /* 使用 `!important` 来确保此动画会覆盖默认的 'bob' 动画 */
   animation: remind-shake 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite both !important;
 }
+/* =============================================================== */
+/* ============= [新增] 备忘录导入文件名列表样式 ============= */
+/* =============================================================== */
+.memo-import-filename {
+    font-size: 12px;
+    color: #889;
+    padding: 3px 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+body.dark-mode .memo-import-filename {
+    color: #a0aec0;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ================== [新增] 留言板专属样式 V2 ================== */
+/* =============================================================== */
+
+#message-board-container {
+    padding: 15px;
+    display: flex; /* 改为 flex 布局 */
+    flex-direction: column; /* 垂直排列 */
+    gap: 15px; /* 卡片间距 */
+    height: 100%;
+    overflow-y: auto;
+}
+
+.message-card {
+    min-height: 110px; /* [需求修改] 加大卡片高度 */
+    width: 100%;
+    padding: 15px;
+    border-radius: 16px;
+    background: var(--bg-day-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-day), -4px -4px 8px var(--shadow-light-day);
+    color: var(--text-day);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: grab;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+    touch-action: pan-y;
+}
+
+body.dark-mode .message-card {
+    background: var(--bg-night-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-night), -4px -4px 8px var(--shadow-light-night);
+    color: var(--text-night);
+}
+.message-card.swiping {
+    cursor: grabbing; /* 滑动时变为抓紧手势 */
+    transition: none; /* 滑动时移除过渡效果，确保实时响应 */
+}
+
+.message-card-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* 内部元素间距 */
+}
+
+.message-card--add {
+    min-height: 60px;
+    background: transparent;
+    border: 2px dashed rgba(128, 128, 128, 0.4);
+    box-shadow: none;
+    flex-direction: row; /* 水平排列图标和文字 */
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+.message-card--add svg {
+    width: 24px;
+    height: 24px;
+    fill: rgba(128, 128, 128, 0.5);
+    transition: transform 0.3s ease;
+}
+.message-card--add:hover svg {
+    transform: scale(1.1);
+}
+.message-card--add span {
+    font-size: 16px;
+    color: rgba(128, 128, 128, 0.7);
+    font-weight: 600;
+}
+
+.message-card.completed {
+    opacity: 0.6;
+    background: #e9ecef;
+}
+body.dark-mode .message-card.completed {
+    background: #2d3748;
+}
+
+.message-card-header {
+    /* [需求修改] 使用 flex 布局实现左右对齐 */
+    display: flex;
+    justify-content: space-between; /* 核心：两端对齐 */
+    align-items: center; /* 垂直居中 */
+    gap: 15px; /* 标题和链接之间的最小间距 */
+    width: 100%;
+}
+.message-card-time {
+    /* 保持隐藏 */
+    display: none;
+}
+.message-card-title {
+    /* [需求修改] 再次增大字号并改为左对齐 */
+    font-size: 28px;
+    font-weight: 700;
+    text-align: left; /* 靠左显示 */
+    word-break: break-word;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    /* [新增] 确保标题不会被链接挤压 */
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.message-card-link-info {
+    /* [需求修改] 调整链接样式并使其靠右 */
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px; /* 稍微增大字体 */
+    font-weight: 600; /* 加粗 */
+    color: #889;
+    background-color: rgba(128,128,128,0.08);
+    padding: 6px 12px; /* 调整内边距 */
+    border-radius: 8px;
+    /* [移除] margin-left/right: auto，因为父元素已经是 flex 布局 */
+    margin-top: 5px;
+    max-width: 50%; /* 限制最大宽度，防止过长 */
+    flex-shrink: 0; /* 防止被标题挤压 */
+     white-space: nowrap; /* [新增] 确保内容不换行 */
+}
+
+.message-card-link-info .link-icon {
+    /* [需求修改] 隐藏 "链接" 文字 */
+    display: none;
+}
+.message-card-link-info .link-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 弹窗内 segmented-control 样式 */
+#messageBoardModal .segmented-control .slider-indicator { 
+    width: calc(33.33% - 4px); 
+}
+#messageBoardModal input[type="radio"]:checked + label { 
+    color: var(--hold-border); 
+}
+#reminder-type-daily:checked ~ .slider-indicator { transform: translateX(100%); }
+#reminder-type-periodic:checked ~ .slider-indicator { transform: translateX(200%); }
+
+/* [核心修复] 提升留言板编辑弹窗的层级 */
+#messageBoardModal.modal-overlay {
+    z-index: 1010; /* 设置一个比挂件中心(1005)更高的值 */
+}
+
+/* [新增修复] 强制提高弹窗内容区域的不透明度，彻底解决重叠问题 */
+#messageBoardModal .modal-content {
+    /* 使用一个完全不透明的背景颜色，覆盖所有主题（包括磨砂玻璃）的半透明设置 */
+    background-color: var(--day-color1);
+    /* 既然背景不透明，就不再需要背景模糊效果了 */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.dark-mode #messageBoardModal .modal-content {
+    /* 适配夜间模式下的不透明背景色 */
+    background-color: var(--night-color2);
+}
+
+/* [核心修复] 提升留言板编辑弹窗的层级 */
+#messageBoardModal.modal-overlay {
+    z-index: 1010; /* 设置一个比挂件中心(1005)更高的值 */
+}
+
+
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
@@ -5506,6 +5764,36 @@ body.dark-mode #floating-jellyfish-ball {
             </div>
         </div>
     </div>
+    <!-- [新增] 备忘录文件导入模态框 -->
+    <div id="memoImportModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <div class="modal-title-group">导入文本文件</div>
+                <button class="close-btn" data-modal-id="memoImportModal">&times;</button>
+            </div>
+            <div class="modal-body" style="gap: 15px;">
+                <p style="font-size: 14px; color: #889;">支持导入 .txt, .xml, .doc, .docx 文件，将提取纯文本内容。</p>
+                <div class="file-select-wrapper">
+                    <input type="file" id="memoFilePicker" accept=".txt,.xml,.doc,.docx" multiple style="display: none;">
+                    <button id="memoFilePickerBtn" class="modal-button" style="width: 100%;">选择文件</button>
+                </div>
+                <div id="memoImportStatus" class="status-text" style="text-align: left; min-height: 20px; margin-bottom: 5px;"></div>
+                <!-- [新增] 用于显示已选文件名的列表容器 -->
+                <div id="memo-import-file-list" style="max-height: 110px; overflow-y: auto; padding: 8px; border-radius: 8px; background: rgba(0,0,0,0.03); display: none;"></div>
+                <div class="progress-container" id="memoImportProgressContainer">
+                    <div class="progress-bar-wrapper">
+                        <div id="memoImportProgressBar" class="progress-bar"></div>
+                    </div>
+                    <button id="memoImportCancelBtn" title="取消导入">✖</button>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                <button data-action="close-memo-import-modal" class="modal-button">取消</button>
+                <button id="confirmMemoImportBtn" class="modal-button" style="color:var(--hold-border)" disabled>导入</button>
+            </div>
+        </div>
+    </div>
+    <!-- [新增结束] -->
     <!-- ===== [END] MEMORY MODAL ===== -->
 
     <!-- 全屏照片查看器 -->
@@ -5625,7 +5913,36 @@ body.dark-mode #floating-jellyfish-ball {
     
     <!-- Floating Project Windows Container -->
     <div id="floating-projects-container"></div>
-    
+    <!-- ============= [ 新增：项目文件转移模态框 ] ============= -->
+<div class="modal-overlay" id="transferProjectModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">
+            <div class="modal-title-group"><span>转移项目文件</span></div>
+            <button class="close-btn" data-modal-id="transferProjectModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-section">
+                <label>当前项目</label>
+                <input type="text" id="currentProjectName" class="modal-input" readonly>
+            </div>
+            <div class="form-section">
+                <label for="transferTargetCategory">选择目标分类</label>
+                <input type="text" id="transferTargetCategory" class="modal-input" placeholder="选择或创建新分类" list="category-datalist-transfer">
+                <datalist id="category-datalist-transfer"></datalist>
+            </div>
+            <div class="form-section">
+                <label for="transferNewProjectName">输入新项目名称</label>
+                <input type="text" id="transferNewProjectName" class="modal-input" placeholder="新的名称">
+            </div>
+            <div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;">
+                <p>此操作将把项目文件移动到新的云端路径，并更新项目配置。原文件夹将被删除。</p>
+            </div>
+            <button id="confirmTransferBtn" class="modal-button" style="margin-top: 15px;">确认转移</button>
+            <div class="status-text" id="transfer-status" style="text-align: center; min-height: 20px;"></div>
+        </div>
+    </div>
+</div>
+<!-- ============= [ 新增结束 ] ============= -->
        <script>
     // [新增] 字符串哈希函数，用于检测内容变更
     function simpleHash(str) {
@@ -5677,8 +5994,10 @@ const DataManager = (() => {
     // 模块名到文件路径的映射
     const modulePaths = {
         usageTime: 'stats/usage_time.json',
-        checkInData: 'widgets/checkin_data.json'
+        checkInData: 'widgets/checkin_data.json',
+        messageBoardData: 'widgets/message_board.json' // 新增此行
     };
+
     // 模块的默认数据结构
     const moduleDefaults = {
         usageTime: {},
@@ -5686,8 +6005,12 @@ const DataManager = (() => {
             dates: [],
             background: { type: 'color', value: '#ffffff', blur: 5 },
             reminder: { enabled: false } 
+        },
+        messageBoardData: { // 新增此块
+            messages: [] 
         }
     };
+
 
     /**
      * 异步获取一个数据模块
@@ -6387,6 +6710,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'album', icon: '🖼️', title: '相册' },
             { id: 'folder', icon: '📁', title: '文件夹' },
             { id: 'return', icon: '🔙', title: '返回' },
+            { id: 'fullscreen', icon: '⛶', title: '全屏' }, // <-- [新增] 全屏功能
             { id: 'memo', icon: '📝', title: '备忘录' },
             { id: 'quick_switch', icon: '🔗', title: '快速切换' }
         ];
@@ -6548,7 +6872,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     break;
                 case 'quick_switch': _showQuickSwitchMenu(); break;
+                // ============= [新增] 全屏功能逻辑 =============
+                case 'fullscreen':
+                    const iframeModalEl = document.getElementById('iframeModal');
+                    if (iframeModalEl && iframeModalEl.classList.contains('active')) {
+                        // 目标是当前活动的 iframe
+                        const iframeToFullscreen = document.getElementById('iframeContent');
+                        
+                        try {
+                            // 尝试调用标准的 Fullscreen API
+                            if (iframeToFullscreen.requestFullscreen) {
+                                iframeToFullscreen.requestFullscreen();
+                            } else if (iframeToFullscreen.webkitRequestFullscreen) { // Safari 浏览器前缀
+                                iframeToFullscreen.webkitRequestFullscreen();
+                            } else if (iframeToFullscreen.msRequestFullscreen) { // IE11 浏览器前缀
+                                iframeToFullscreen.msRequestFullscreen();
+                            } else {
+                                // 如果浏览器完全不支持，则提示用户
+                                showTopToast('您的浏览器不支持全屏功能。', 2500);
+                            }
+                        } catch (error) {
+                            console.error("全屏请求失败:", error);
+                            showTopToast('全屏请求失败，请稍后再试。', 2500);
+                        }
+                    } else {
+                        // 如果没有打开项目，则提示用户
+                        showTopToast('当前没有可全屏的项目。', 2500);
+                    }
+                    break;
+                // ============= [新增结束] =============
             }
+
             _closeMenu();
         }
 
@@ -8146,6 +8500,8 @@ async function saveGlobalConfig(commitMessage) {
             console.log("后台静默加载非核心数据模块...");
             DataManager.get('usageTime');
             DataManager.get('checkInData');
+            DataManager.get('messageBoardData'); // 新增此行
+
 
         } catch (error) {
             console.error("后台同步失败:", error);
@@ -8424,40 +8780,62 @@ async function saveGlobalConfig(commitMessage) {
         updateAddNavModalUI();
     }
 
-    function openEditModal(buttonData) {
-        isEditingButton = true;
-        editingButtonData = buttonData;
-        const els = addNavModalElements;
+function openEditModal(buttonData) {
+    isEditingButton = true;
+    editingButtonData = buttonData;
+    const els = addNavModalElements;
+    
+    els.modal.classList.add('show');
+    els.title.textContent = '编辑项目';
+    els.createBtn.textContent = '保存更改';
+    
+    els.categoryInput.value = buttonData.categoryName;
+    els.nameInput.value = buttonData.text;
+    
+    const isUploadedProject = buttonData.href.startsWith('projects/');
+    
+    // --- [核心修改开始] ---
+    // 移除可能存在的旧“转移”按钮，防止重复添加
+    const oldTransferBtn = els.modal.querySelector('#transferProjectBtn');
+    if (oldTransferBtn) oldTransferBtn.remove();
+    
+    if (isUploadedProject) {
+        els.urlInput.value = "已上传的项目，路径不可编辑。";
+        els.typeUploadRadio.checked = true;
+        els.linkSection.style.display = 'none';
+        els.uploadSection.style.display = 'flex';
+        els.uploadSection.style.pointerEvents = 'none';
+        els.uploadSection.style.opacity = '0.5';
+        document.querySelector('label[for="type-upload"]').style.display = 'none';
         
-        els.modal.classList.add('show');
-        els.title.textContent = '编辑项目';
-        els.createBtn.textContent = '保存更改';
+        // 动态创建并插入“转移项目文件”按钮
+        const transferBtn = document.createElement('button');
+        transferBtn.id = 'transferProjectBtn';
+        transferBtn.className = 'modal-button';
+        transferBtn.textContent = '转移项目文件…';
+        transferBtn.style.marginTop = '10px';
+        transferBtn.style.color = '#5a6778'; // 使用一个比较柔和的颜色
         
-        els.categoryInput.value = buttonData.categoryName;
-        els.nameInput.value = buttonData.text;
+        // 为按钮绑定新的转移功能函数 (我们将在下一步创建这个函数)
+        transferBtn.onclick = () => openTransferProjectModal(editingButtonData);
         
-        const isUploadedProject = buttonData.href.startsWith('projects/');
+        // 将按钮插入到“加入新项目/保存更改”按钮的上方
+        els.createBtn.parentNode.insertBefore(transferBtn, els.createBtn);
         
-        if (isUploadedProject) {
-            els.urlInput.value = "已上传的项目，路径不可编辑。";
-            els.typeUploadRadio.checked = true;
-            els.linkSection.style.display = 'none';
-            els.uploadSection.style.display = 'flex';
-            els.uploadSection.style.pointerEvents = 'none';
-            els.uploadSection.style.opacity = '0.5';
-            document.querySelector('label[for="type-upload"]').style.display = 'none';
-        } else {
-            els.urlInput.value = buttonData.href;
-            els.typeLinkRadio.checked = true;
-            els.linkSection.style.display = 'block';
-            els.uploadSection.style.display = 'none';
-        }
-        
-        els.openExternallyToggle.checked = buttonData.openExternally || false;
-        
-        populateCategoryDatalist();
-        updateAddNavModalUI();
+    } else {
+        els.urlInput.value = buttonData.href;
+        els.typeLinkRadio.checked = true;
+        els.linkSection.style.display = 'block';
+        els.uploadSection.style.display = 'none';
     }
+    // --- [核心修改结束] ---
+    
+    els.openExternallyToggle.checked = buttonData.openExternally || false;
+    
+    populateCategoryDatalist();
+    updateAddNavModalUI();
+}
+
     
     function openIframeModal(url) { 
         if (!localStorage.getItem('swipeHintShown')) { swipeHint.classList.add('show'); setTimeout(() => { swipeHint.classList.remove('show'); localStorage.setItem('swipeHintShown', 'true'); }, 4000); } 
@@ -8469,6 +8847,145 @@ async function saveGlobalConfig(commitMessage) {
         iframeModal.dataset.originalUrl = url; // [新增] 记录原始URL
         iframeModal.classList.add('active'); 
     }
+// --- [核心新增] 文件转移功能的所有相关函数 ---
+
+let transferProjectData = null; // 用于存储待转移的项目数据
+
+/**
+ * 打开文件转移模态框并初始化
+ * @param {object} buttonData - 当前正在编辑的项目数据
+ */
+function openTransferProjectModal(buttonData) {
+    transferProjectData = buttonData;
+    const modal = document.getElementById('transferProjectModal');
+    const currentNameInput = document.getElementById('currentProjectName');
+    const newNameInput = document.getElementById('transferNewProjectName');
+    const categoryInput = document.getElementById('transferTargetCategory');
+    const transferStatus = document.getElementById('transfer-status');
+    const confirmBtn = document.getElementById('confirmTransferBtn');
+
+    // 初始化UI
+    currentNameInput.value = buttonData.text;
+    newNameInput.value = buttonData.text; // 默认使用原名
+    categoryInput.value = buttonData.categoryName;
+    transferStatus.textContent = '';
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = '确认转移';
+
+    // 填充分类下拉列表
+    const datalist = document.getElementById('category-datalist-transfer');
+    datalist.innerHTML = '';
+    currentConfig.categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat.name;
+        datalist.appendChild(option);
+    });
+
+    // 隐藏旧的“编辑项目”弹窗，显示新的“转移”弹窗
+    document.getElementById('addNavModal').classList.remove('show');
+    modal.classList.add('show');
+}
+
+/**
+ * 执行文件转移的核心逻辑
+ */
+async function executeProjectTransfer() {
+    if (!transferProjectData) return;
+
+    const newName = document.getElementById('transferNewProjectName').value.trim();
+    const newCategoryName = document.getElementById('transferTargetCategory').value.trim() || '全部';
+    const transferStatus = document.getElementById('transfer-status');
+    const confirmBtn = document.getElementById('confirmTransferBtn');
+
+    if (!newName) {
+        alert('新项目名称不能为空！');
+        return;
+    }
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '转移中，请稍候...';
+
+    try {
+        // 1. 获取旧文件夹路径和内容
+        const oldPath = transferProjectData.href;
+        const oldFolderName = oldPath.substring(0, oldPath.lastIndexOf('/'));
+        transferStatus.textContent = '正在读取原项目文件...';
+        const { data: oldFiles, error } = await fetchFromGithub(oldFolderName);
+        if (error || !oldFiles) throw new Error('无法读取原项目文件列表。');
+
+        // 2. 生成新文件夹路径
+        const newFolderName = `projects/${newName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g,"").replace(/\s+/g,"-")||`project-${Date.now()}`}`;
+
+        // 3. 逐个文件进行“读取-创建”操作
+        for (let i = 0; i < oldFiles.length; i++) {
+            const file = oldFiles[i];
+            transferStatus.textContent = `正在迁移文件 (${i + 1}/${oldFiles.length}): ${file.name}`;
+            
+            const { data: fileContentData } = await fetchFromGithub(file.path);
+            if (!fileContentData || !fileContentData.content) throw new Error(`无法读取文件 ${file.name} 的内容。`);
+
+            const newFilePath = `${newFolderName}/${file.name}`;
+            await saveToGithub(newFilePath, fileContentData.content, `Transfer: Create ${file.name}`);
+        }
+
+        // 4. 删除旧文件夹
+        transferStatus.textContent = '正在清理旧文件...';
+        const deleteSuccess = await deleteGithubFolder(oldFolderName);
+        if (!deleteSuccess) throw new Error('清理旧项目文件失败，但新文件已创建。请手动处理。');
+
+        // 5. 更新 config.json
+        transferStatus.textContent = '正在更新配置...';
+        const oldCategory = currentConfig.categories.find(c => c.name === transferProjectData.categoryName);
+        const buttonIndex = oldCategory.buttons.findIndex(b => b.href === transferProjectData.href);
+
+        if (buttonIndex > -1) {
+            // 从旧分类中移除
+            const [movedButton] = oldCategory.buttons.splice(buttonIndex, 1);
+
+            // 更新按钮数据
+            movedButton.text = newName;
+            movedButton.href = `${newFolderName}/index.html`; // 假设主文件总是 index.html
+            
+            // 添加到新分类
+            let newCategory = currentConfig.categories.find(c => c.name === newCategoryName);
+            if (!newCategory) {
+                newCategory = { name: newCategoryName, buttons: [] };
+                currentConfig.categories.push(newCategory);
+            }
+            newCategory.buttons.push(movedButton);
+        }
+
+        // 保存最终配置
+        await saveGlobalConfig(`Transfer project: ${transferProjectData.text} to ${newName}`);
+
+        transferStatus.textContent = '转移成功！';
+        showTopToast('项目文件转移成功！', 3000);
+
+        // 6. 关闭弹窗并刷新界面
+        setTimeout(() => {
+            document.getElementById('transferProjectModal').classList.remove('show');
+            renderCategories();
+            renderButtonsForCategory(newCategoryName); // 切换到新分类
+        }, 1500);
+
+    } catch (err) {
+        const userMessage = await handleApiError("文件转移操作", err);
+        transferStatus.textContent = `转移失败: ${userMessage}`;
+        alert(`转移失败: ${userMessage}`);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '确认转移';
+    }
+}
+
+// 为新模态框的确认按钮绑定事件
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirmTransferBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', executeProjectTransfer);
+    }
+});
+
+// --- [核心新增结束] ---
 
      function closeIframeModal() { 
         // [新增] 停止计时
@@ -9133,10 +9650,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.className = `note-item ${note.isPinned ? 'pinned' : ''} ${state.isNoteManageMode ? 'manage-mode' : ''} ${isSelected ? 'manage-selected' : ''}`; 
                 el.dataset.noteId = note.id;
                 el.dataset.action = "open-note";
-                const preview = (note.content || '').substring(0, 100).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                // 提取纯文本内容用于预览和复制
+                // 创建一个虚拟div来解析HTML并获取纯文本
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = note.content || '';
+                const plainTextContent = tempDiv.textContent;
+
+                const preview = (plainTextContent).substring(0, 100).replace(/</g, "&lt;").replace(/>/g, "&gt;"); // 预览纯文本
                 const date = new Date(note.timestamp).toLocaleDateString('zh-CN');
                 // 添加复选框，并将图标从 📌 替换为 "置顶"
-                el.innerHTML = `<input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}><div class="note-content-area"><div class="note-title">${note.title || '无标题'}</div><div class="note-preview">${preview || '没有内容'}</div><div class="note-timestamp">${date}</div></div><button class="pin-btn" data-action="pin-note" data-note-id="${note.id}" title="置顶">置顶</button>`;
+                el.innerHTML = `
+                    <input type="checkbox" class="manage-checkbox" ${isSelected ? 'checked' : ''}>
+                    <div class="note-content-area">
+                        <div class="note-title">${note.title || '无标题'}</div>
+                        <div class="note-preview">${preview || '没有内容'}</div>
+                        <div class="note-timestamp">${date}</div>
+                    </div>
+                    <button class="pin-btn" data-action="pin-note" data-note-id="${note.id}" title="置顶">置顶</button>
+                    <!-- 新增的复制按钮 -->
+                    <button class="note-item-copy-btn" data-action="copy-note-text" data-note-id="${note.id}" title="复制备忘录正文">
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 20 20">
+                            <path d="m4,7h3c.552,0,1-.448,1-1v-3" fill="currentColor" stroke="currentColor" stroke-linejoin="round" stroke-width="2" data-color="color-2"></path>
+                            <path d="m16,14v-8c0-1.657-1.343-3-3-3h-4.586c-.265,0-.52.105-.707.293l-3.414,3.414c-.188.188-.293.442-.293.707v6.586c0,1.657,1.343,3,3,3h6c1.657,0,3-1.343,3-3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                        </svg>
+                    </button>
+                `;
                 ui.notesList.appendChild(el);
             });
             if (notesInFolder.length === 0) ui.notesList.innerHTML = `<p class="empty-list-placeholder">没有笔记</p>`;
@@ -9516,6 +10054,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderNotes();
                 scheduleSave();
             },
+            // 新增：复制备忘录纯文本的动作
+            'copy-note-text': async (target) => {
+                // 阻止事件冒泡，防止触发父级“open-note”事件
+                // 注意：在 event delegation 场景下，事件参数 `e` 需要被传入 `actions`。
+                // 我会在 `ui.appContainer.addEventListener` 部分进行更正。
+                const noteId = parseInt(target.closest('[data-note-id]').dataset.noteId, 10);
+                const note = memoryCache.memo.notes.find(n => n.id === noteId);
+                if (note && note.content) {
+                    // 创建一个临时div，将HTML内容赋值给它，然后获取textContent以提取纯文本
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = note.content;
+                    const plainText = tempDiv.textContent;
+                    try {
+                        await navigator.clipboard.writeText(plainText);
+                        showTopToast(`"${note.title || '无标题'}" 已复制`, 2000);
+                    } catch (err) {
+                        showTopToast('复制失败，请手动复制', 2000);
+                        console.error('Failed to copy note text:', err);
+                    }
+                } else {
+                    showTopToast('备忘录内容为空，无法复制', 2000);
+                }
+            },
+
 
             'toggle-memo-manage': (target) => {
                 state.isMemoManageMode = !state.isMemoManageMode;
@@ -10639,12 +11201,216 @@ open: async () => {
                 }, { root: ui.photoList, rootMargin: "0px 0px 200px 0px" });
 
 
+                // [核心修改] 重构事件监听以支持长按
+                let pressTimer = null;
+                let isLongPress = false;
+                const FAB_ADD_NOTE_SELECTOR = '.fab[data-action="add-note"]';
+
+                const startPress = (e) => {
+                    const fabButton = e.target.closest(FAB_ADD_NOTE_SELECTOR);
+                    if (fabButton) {
+                        isLongPress = false;
+                        pressTimer = setTimeout(() => {
+                            isLongPress = true;
+                            // 打开导入模态框
+                            openMemoImportModal();
+                        }, 500); // 500毫秒定义为长按
+                    }
+                };
+
+                const cancelPress = (e) => {
+                    clearTimeout(pressTimer);
+                };
+
+                const endPress = (e) => {
+                    clearTimeout(pressTimer);
+                    const fabButton = e.target.closest(FAB_ADD_NOTE_SELECTOR);
+                    if (fabButton && isLongPress) {
+                        e.preventDefault(); // 阻止默认的点击事件
+                        e.stopPropagation(); // 阻止事件冒泡
+                    }
+                };
+
+                ui.appContainer.addEventListener('mousedown', startPress);
+                ui.appContainer.addEventListener('touchstart', startPress);
+                ui.appContainer.addEventListener('mouseup', endPress);
+                ui.appContainer.addEventListener('touchend', endPress);
+                ui.appContainer.addEventListener('mouseleave', cancelPress, true);
+
+
                 ui.appContainer.addEventListener('click', e => {
                     const target = e.target.closest('[data-action]');
+                    if(target && target.matches(FAB_ADD_NOTE_SELECTOR) && isLongPress) {
+                        isLongPress = false; // 重置标志
+                        return; // 如果是长按触发的点击，则忽略
+                    }
+                    
                     if (target && actions[target.dataset.action]) {
-                        actions[target.dataset.action](target);
+                        // 如果是复制备忘录按钮，阻止事件冒泡，防止打开备忘录
+                        if (target.dataset.action === 'copy-note-text') {
+                             e.stopPropagation(); // 阻止事件冒泡到父级的 open-note 处理器
+                        }
+                        actions[target.dataset.action](target, e); // 传递完整的事件对象
                     }
                 });
+
+
+                // [新增] 打开导入备忘录模态框的函数 (V3 - 优化UI和格式处理)
+                const openMemoImportModal = () => {
+                    const modal = document.getElementById('memoImportModal'); 
+                    const fileInput = modal.querySelector('#memoFilePicker');
+                    const filePickerBtn = modal.querySelector('#memoFilePickerBtn');
+                    const statusEl = modal.querySelector('#memoImportStatus');
+                    const fileListEl = modal.querySelector('#memo-import-file-list'); // [新增] 获取文件名列表容器
+                    const progressContainer = modal.querySelector('#memoImportProgressContainer');
+                    const progressBar = modal.querySelector('#memoImportProgressBar');
+                    const cancelImportBtn = modal.querySelector('#memoImportCancelBtn');
+                    const confirmImportBtn = modal.querySelector('#confirmMemoImportBtn');
+                    const cancelModalBtn = modal.querySelector('[data-action="close-memo-import-modal"]');
+                    const closeIconBtn = modal.querySelector('.close-btn');
+
+                    let activeFileReading = true;
+                    
+                    const closeModal = () => {
+                        activeFileReading = false;
+                        modal.classList.remove('show');
+                    }
+                    
+                    // 重置UI
+                    fileInput.value = '';
+                    statusEl.textContent = '最多可选择 20 个文件';
+                    fileListEl.innerHTML = ''; // [新增] 清空文件名列表
+                    fileListEl.style.display = 'none'; // [新增] 隐藏列表容器
+                    confirmImportBtn.disabled = true;
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    activeFileReading = true;
+                    
+                    cancelModalBtn.onclick = closeModal;
+                    closeIconBtn.onclick = closeModal;
+
+                    filePickerBtn.onclick = () => fileInput.click();
+                    
+                    // 文件选择后的处理 (已修改)
+                    fileInput.onchange = (e) => {
+                        const files = e.target.files;
+                        fileListEl.innerHTML = ''; // 每次选择都清空
+
+                        if (files.length > 20) {
+                            alert("一次最多只能选择20个文件！");
+                            fileInput.value = '';
+                            fileListEl.style.display = 'none';
+                            statusEl.textContent = '最多可选择 20 个文件';
+                            return;
+                        }
+                        if (files.length > 0) {
+                            statusEl.textContent = `已选择 ${files.length} 个文件`;
+                            // [Requirement 1 实现] 遍历文件并显示文件名
+                            Array.from(files).forEach(file => {
+                                const fileEl = document.createElement('div');
+                                fileEl.className = 'memo-import-filename';
+                                fileEl.textContent = file.name;
+                                fileListEl.appendChild(fileEl);
+                            });
+                            fileListEl.style.display = 'block';
+                            confirmImportBtn.disabled = false;
+                        } else {
+                            statusEl.textContent = '最多可选择 20 个文件';
+                            fileListEl.style.display = 'none';
+                            confirmImportBtn.disabled = true;
+                        }
+                    };
+                    
+                    // 绑定 "导入" 按钮 (已修改)
+                    confirmImportBtn.onclick = async () => {
+                        const files = fileInput.files;
+                        if (files.length === 0) return;
+                        
+                        confirmImportBtn.disabled = true;
+                        cancelModalBtn.style.display = 'none';
+                        progressContainer.style.display = 'flex';
+                        statusEl.textContent = '准备解析文件...';
+
+                        const cancelImportHandler = () => {
+                           activeFileReading = false;
+                           showTopToast('导入已取消', 2000);
+                           closeModal();
+                        };
+                        cancelImportBtn.addEventListener('click', cancelImportHandler, { once: true });
+                        
+                        const filePromises = Array.from(files).map((file, index) => {
+                            return new Promise(async (resolve, reject) => {
+                                if (!activeFileReading) return reject(new Error('Cancelled'));
+                                
+                                try {
+                                    statusEl.textContent = `正在解析: ${file.name}`;
+                                    const reader = new FileReader();
+                                    const getFileNameWithoutExtension = (fileName) => fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+                                    const title = getFileNameWithoutExtension(file.name);
+                                    let content = '';
+                                    if (file.name.endsWith('.docx')) {
+                                        const arrayBuffer = await new Promise((res, rej) => {
+                                            reader.onload = e => res(e.target.result); reader.onerror = rej; reader.readAsArrayBuffer(file);
+                                        });
+                                        const result = await mammoth.extractRawText({ arrayBuffer });
+                                        content = result.value;
+                                    } else {
+                                        content = await new Promise((res, rej) => {
+                                            reader.onload = e => res(e.target.result); reader.onerror = rej; reader.readAsText(file, 'UTF-8');
+                                        });
+                                    }
+                                     // [Requirement 2 实现] 格式化文本以保留换行和空格
+                                    let formattedContent = content
+                                        .replace(/&/g, "&amp;")
+                                        .replace(/</g, "&lt;")
+                                        .replace(/>/g, "&gt;")
+                                        .replace(/"/g, "&quot;")
+                                        .replace(/'/g, "&#039;")
+                                        .replace(/\r\n/g, '\n') // 统一换行符
+                                        .replace(/  /g, ' &nbsp;') // 替换连续空格
+                                        .replace(/\n/g, '<br>'); // 替换换行为<br>
+
+
+                                    resolve({ title, content: formattedContent });
+
+                                } catch (err) {
+                                    console.error(`解析文件 ${file.name} 失败:`, err);
+                                    reject(new Error(`无法解析 ${file.name}`));
+                                } finally {
+                                     const progressPercent = ((index + 1) / files.length) * 100;
+                                     progressBar.style.width = `${progressPercent}%`;
+                                }
+                            });
+                        });
+                        
+                        try {
+                            const results = await Promise.all(filePromises);
+                            
+                            statusEl.textContent = '解析完成，正在保存...';
+                            const now = Date.now();
+                            results.forEach((result, index) => {
+                                memoryCache.memo.notes.push({ id: now + index, folderId: state.currentMemoFolderId, title: result.title, content: result.content, timestamp: now + index, isPinned: false });
+                            });
+                            
+                            await scheduleSave();
+                            renderNotes();
+                            showTopToast(`${results.length} 篇备忘录导入成功！`, 2500);
+                            closeModal();
+                        } catch (error) {
+                            if (error.message !== 'Cancelled') {
+                               alert(error.message);
+                            }
+                        } finally {
+                           confirmImportBtn.disabled = false;
+                           cancelModalBtn.style.display = 'block';
+                           progressContainer.style.display = 'none';
+                           cancelImportBtn.removeEventListener('click', cancelImportHandler);
+                        }
+                    };
+
+                    modal.classList.add('show');
+                };
+
 
                 // [新增] 长图双击缩放逻辑
                 const viewerImg = ui.photoViewer.querySelector('#viewer-img');
@@ -13879,6 +14645,453 @@ open: async () => {
 
     });
 
+/* =============================================================== */
+/* ================== [新增] 留言板功能管理器 V2 ================== */
+/* =============================================================== */
+const MessageBoardManager = (() => {
+    let ui = {};
+    let isEditing = false;
+    let editingMessageId = null;
+    let reminderInterval = null;
+    let pendingBgImageDataUrl = null;
+
+    function init() {
+        ui = {
+            container: document.getElementById('message-board-container'),
+            modal: document.getElementById('messageBoardModal'),
+            modalTitle: document.getElementById('messageModalTitle'),
+            titleInput: document.getElementById('messageTitleInput'),
+            linkProjectSelect: document.getElementById('messageLinkProjectSelect'),
+            reminderToggle: document.getElementById('messageReminderToggle'),
+            reminderDetails: document.getElementById('messageReminderDetails'),
+            reminderTimeInput: document.getElementById('messageReminderTime'),
+            allDayToggle: document.getElementById('messageAllDayToggle'),
+            saveBtn: document.getElementById('saveMessageBtn'),
+            deleteBtn: document.getElementById('deleteMessageBtn'), // [需求新增] 删除按钮
+            bgImagePicker: document.getElementById('messageBgImagePicker'),
+            uploadBgBtn: document.getElementById('uploadMessageBgBtn'),
+            clearBgBtn: document.getElementById('clearMessageBgBtn'),
+        };
+
+        ui.container.addEventListener('mousedown', handleSwipeStart);
+        ui.container.addEventListener('touchstart', handleSwipeStart, { passive: true });
+        
+        ui.reminderToggle.addEventListener('change', () => {
+            ui.reminderDetails.style.display = ui.reminderToggle.checked ? 'flex' : 'none';
+        });
+
+        // [需求修改] 全天提醒开关控制时间选择器的显隐
+        ui.allDayToggle.addEventListener('change', () => {
+             // 获取时间输入框的父容器（通常是 .form-section）
+            const timeInputContainer = ui.reminderTimeInput.closest('.form-section') || ui.reminderTimeInput;
+            const isAllDay = ui.allDayToggle.checked;
+            
+            timeInputContainer.style.display = isAllDay ? 'none' : 'block';
+
+            if(isAllDay) {
+                // 如果是全天，可以自动填充一个默认时间，但这部分对用户不可见
+                const today = new Date();
+                today.setHours(9, 0, 0, 0);
+                ui.reminderTimeInput.value = today.toISOString().slice(0, 16);
+            }
+        });
+
+        ui.saveBtn.addEventListener('click', saveMessage);
+        
+        // [需求新增] 为删除按钮绑定事件
+        ui.deleteBtn.addEventListener('click', deleteMessage);
+
+        ui.uploadBgBtn.addEventListener('click', () => ui.bgImagePicker.click());
+        ui.bgImagePicker.addEventListener('change', handleImageUpload);
+        ui.clearBgBtn.addEventListener('click', () => {
+            pendingBgImageDataUrl = 'CLEARED';
+            ui.uploadBgBtn.textContent = '上传图片';
+            showTopToast("背景图已清除，保存后生效", 2000);
+        });
+        
+        startReminderChecker();
+    }
+
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            pendingBgImageDataUrl = e.target.result;
+            ui.uploadBgBtn.textContent = '已选择图片';
+            showTopToast("图片已选择，保存后生效", 2000);
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    }
+
+    async function renderBoard() {
+        if (!ui.container) return;
+        
+        const messageData = await DataManager.get('messageBoardData');
+        if (!messageData.messages) messageData.messages = [];
+
+        ui.container.innerHTML = ''; 
+
+        const sortedMessages = [...messageData.messages].sort((a, b) => (a.isCompleted ? 1 : 0) - (b.isCompleted ? 1 : 0));
+
+        sortedMessages.forEach(msg => {
+            const card = document.createElement('div');
+            card.className = `message-card ${msg.isCompleted ? 'completed' : ''}`;
+            card.dataset.messageId = msg.id;
+
+            if (msg.background) {
+                card.style.backgroundImage = `url(${msg.background})`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+                card.style.color = '#FFFFFF';
+            }
+            
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'message-card-content-wrapper';
+
+            // [需求修改] 标题和链接在同一个容器内左右对齐
+            const headerContainer = document.createElement('div');
+            headerContainer.className = 'message-card-header';
+
+            const titleHtml = `<div class="message-card-title">${msg.title}</div>`;
+            headerContainer.innerHTML = titleHtml;
+
+            if (msg.linkedProjectHref) {
+                const project = findButtonConfigByHref(msg.linkedProjectHref);
+                const projectName = project ? project.text : '未知项目';
+                const linkStyle = msg.background ? 'style="background-color: rgba(0,0,0,0.3);"' : '';
+                const linkHtml = `
+                    <div class="message-card-link-info" ${linkStyle}>
+                        <span class="link-icon">链接</span>
+                        <span class="link-name">${projectName}</span>
+                    </div>`;
+                headerContainer.innerHTML += linkHtml;
+            }
+
+            contentWrapper.appendChild(headerContainer);
+            card.appendChild(contentWrapper);
+            ui.container.appendChild(card);
+        });
+
+        const addCard = document.createElement('div');
+        addCard.className = 'message-card message-card--add';
+        addCard.dataset.action = 'add-message-card';
+        addCard.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg><span>添加新留言</span>`;
+        addCard.addEventListener('click', () => openModal());
+        ui.container.appendChild(addCard);
+    }
+    
+    let isDragging = false, startX = 0, currentX = 0, targetCard = null, isClick = true;
+
+    function handleSwipeStart(e) {
+        targetCard = e.target.closest('.message-card:not(.message-card--add)');
+        if (!targetCard) return;
+
+        isClick = true;
+        isDragging = true;
+        startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        targetCard.classList.add('swiping');
+        
+        document.addEventListener('mousemove', handleSwipeMove);
+        document.addEventListener('touchmove', handleSwipeMove, { passive: false });
+        document.addEventListener('mouseup', handleSwipeEnd, { once: true });
+        document.addEventListener('touchend', handleSwipeEnd, { once: true });
+    }
+
+    function handleSwipeMove(e) {
+        if (!isDragging || !targetCard) return;
+        
+        currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        let diffX = currentX - startX;
+
+        if (Math.abs(diffX) > 10) {
+            isClick = false; 
+        }
+
+        if (diffX < 0) diffX = 0;
+
+        targetCard.style.transform = `translateX(${diffX}px)`;
+        targetCard.style.opacity = 1 - (diffX / (targetCard.offsetWidth * 0.7));
+    }
+
+    async function handleSwipeEnd(e) {
+        if (!isDragging || !targetCard) return;
+        isDragging = false;
+        
+        document.removeEventListener('mousemove', handleSwipeMove);
+        document.removeEventListener('touchmove', handleSwipeMove);
+
+        const diffX = currentX - startX;
+        const threshold = targetCard.offsetWidth * 0.4;
+
+        if (diffX > threshold) {
+            const messageId = parseInt(targetCard.dataset.messageId, 10);
+            const messageData = await DataManager.get('messageBoardData');
+            const msg = messageData.messages.find(m => m.id === messageId);
+
+            if (msg) {
+                // [需求修改] 条件滑动逻辑
+                if (msg.reminder.type === 'once' && msg.reminder.enabled) {
+                    // "仅一次"提醒，彻底删除
+                    targetCard.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                    targetCard.style.transform = `translateX(${targetCard.offsetWidth}px)`;
+                    targetCard.style.opacity = '0';
+                    
+                    messageData.messages = messageData.messages.filter(m => m.id !== messageId);
+                    await DataManager.save('messageBoardData', 'Remove one-time message');
+                    showTopToast("留言已完成并移除", 2000);
+                    setTimeout(() => targetCard.remove(), 300);
+                } else {
+                    // "每日"提醒或无提醒，标记为完成
+                    msg.isCompleted = true;
+                    await DataManager.save('messageBoardData', 'Complete message');
+                    // 重新渲染以显示完成状态
+                    renderBoard();
+                }
+            } else {
+                // 找不到数据也恢复卡片
+                resetCardPosition();
+            }
+
+} else if (isClick) {
+        // [需求修复] 区分点击链接和点击卡片主体
+        const linkElement = e.target.closest('.message-card-link-info');
+        const messageId = parseInt(targetCard.dataset.messageId, 10);
+        
+        if (linkElement) {
+            // 如果点击的是链接区域
+            const messageData = await DataManager.get('messageBoardData');
+            const msg = messageData.messages.find(m => m.id === messageId);
+            if (msg && msg.linkedProjectHref) {
+                openIframeModal(msg.linkedProjectHref);
+            }
+        } else {
+            // 如果点击的是卡片其他区域，则打开编辑模态框
+            openModal(messageId);
+        }
+        // 无论哪种点击，都重置卡片位置
+        resetCardPosition();
+    } else {
+        resetCardPosition();
+    }
+
+        
+        function resetCardPosition() {
+            targetCard.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            targetCard.style.transform = 'translateX(0px)';
+            targetCard.style.opacity = '1';
+            setTimeout(() => {
+                targetCard.classList.remove('swiping');
+                targetCard.style.transition = '';
+            }, 300);
+        }
+        
+        targetCard = null;
+        startX = 0;
+        currentX = 0;
+    }
+
+
+    function populateProjectSelector() {
+        const select = ui.linkProjectSelect;
+        select.innerHTML = '<option value="">不链接任何项目</option>';
+        const allButtons = currentConfig.categories.flatMap(c => c.buttons);
+        const uniqueButtons = Array.from(new Map(allButtons.map(item => [item.href, item])).values());
+        uniqueButtons.forEach(btn => {
+            select.innerHTML += `<option value="${btn.href}">${btn.text}</option>`;
+        });
+    }
+
+    async function openModal(messageId = null) {
+        isEditing = !!messageId;
+        editingMessageId = messageId;
+        populateProjectSelector();
+        pendingBgImageDataUrl = null; 
+        ui.uploadBgBtn.textContent = '上传图片';
+        
+        // [需求修改] 控制删除按钮的显隐
+        ui.deleteBtn.style.display = isEditing ? 'block' : 'none';
+
+        if (isEditing) {
+            ui.modalTitle.textContent = '编辑留言';
+            const messageData = await DataManager.get('messageBoardData');
+            const msg = messageData.messages.find(m => m.id === messageId);
+            if (!msg) { console.error('找不到要编辑的留言'); return; }
+
+            ui.titleInput.value = msg.title;
+            ui.linkProjectSelect.value = msg.linkedProjectHref || '';
+            ui.reminderToggle.checked = msg.reminder?.enabled || false;
+            ui.reminderDetails.style.display = ui.reminderToggle.checked ? 'flex' : 'none';
+
+            if (msg.background) {
+                ui.uploadBgBtn.textContent = '已设置背景';
+            }
+
+            if (msg.reminder && msg.reminder.enabled) {
+                ui.allDayToggle.checked = msg.reminder.isAllDay;
+                // [需求修改] 控制时间输入框显隐
+                const timeInputContainer = ui.reminderTimeInput.closest('.form-section') || ui.reminderTimeInput;
+                timeInputContainer.style.display = msg.reminder.isAllDay ? 'none' : 'block';
+
+                if (msg.reminder.time) {
+                    const reminderDate = new Date(msg.reminder.time);
+                    ui.reminderTimeInput.value = reminderDate.toISOString().slice(0, 16);
+                } else {
+                     ui.reminderTimeInput.value = '';
+                }
+                
+                document.querySelector(`input[name="reminder-type"][value="${msg.reminder.type}"]`).checked = true;
+            } else {
+                resetReminderFields();
+            }
+
+        } else {
+            ui.modalTitle.textContent = '添加新留言';
+            ui.titleInput.value = '';
+            ui.linkProjectSelect.value = '';
+            ui.reminderToggle.checked = false;
+            ui.reminderDetails.style.display = 'none';
+            resetReminderFields();
+        }
+        
+        ui.modal.classList.add('show');
+    }
+
+    function resetReminderFields() {
+        ui.reminderTimeInput.value = '';
+        const timeInputContainer = ui.reminderTimeInput.closest('.form-section') || ui.reminderTimeInput;
+        timeInputContainer.style.display = 'block';
+        ui.allDayToggle.checked = false;
+        document.getElementById('reminder-type-once').checked = true;
+    }
+
+    async function saveMessage() {
+        const title = ui.titleInput.value.trim();
+        if (!title) return alert('标题不能为空！');
+        
+        const messageData = await DataManager.get('messageBoardData');
+        
+        let message;
+        if (isEditing) {
+            const index = messageData.messages.findIndex(m => m.id === editingMessageId);
+            if (index > -1) message = messageData.messages[index];
+            else isEditing = false;
+        }
+        
+        if (!isEditing) {
+            message = { id: Date.now(), isCompleted: false };
+        }
+        
+        message.title = title;
+        message.linkedProjectHref = ui.linkProjectSelect.value;
+        message.reminder = {
+            enabled: ui.reminderToggle.checked,
+            time: ui.reminderTimeInput.value,
+            isAllDay: ui.allDayToggle.checked,
+            type: document.querySelector('input[name="reminder-type"]:checked').value
+        };
+
+        if (pendingBgImageDataUrl) {
+            if (pendingBgImageDataUrl === 'CLEARED') delete message.background;
+            else message.background = pendingBgImageDataUrl;
+        }
+
+        if (isEditing) {
+            const index = messageData.messages.findIndex(m => m.id === editingMessageId);
+            messageData.messages[index] = message;
+        } else {
+            messageData.messages.push(message);
+        }
+
+        await DataManager.save('messageBoardData', isEditing ? 'Edit message' : 'Add new message');
+        ui.modal.classList.remove('show');
+        renderBoard();
+        showTopToast(isEditing ? '留言已更新' : '留言已添加', 2000);
+    }
+
+    // [需求新增] 删除留言的函数
+    async function deleteMessage() {
+        if (!isEditing || !editingMessageId) return;
+
+        if (confirm("确定要永久删除这条留言吗？")) {
+            const messageData = await DataManager.get('messageBoardData');
+            messageData.messages = messageData.messages.filter(m => m.id !== editingMessageId);
+            
+            await DataManager.save('messageBoardData', 'Delete message');
+            ui.modal.classList.remove('show');
+            renderBoard();
+            showTopToast('留言已删除', 2000);
+        }
+    }
+
+    function startReminderChecker() {
+        if (reminderInterval) clearInterval(reminderInterval);
+        
+        reminderInterval = setInterval(async () => {
+            const messageData = await DataManager.get('messageBoardData');
+            if (!messageData.messages || messageData.messages.length === 0) return;
+
+            const now = new Date();
+            let needsAction = false;
+
+            for (const msg of messageData.messages) {
+                if (!msg.reminder || !msg.reminder.enabled || !msg.reminder.time || msg.isCompleted) continue;
+
+                const reminderTime = new Date(msg.reminder.time);
+                
+                let shouldTrigger = false;
+                if (msg.reminder.type === 'once') {
+                    if (now >= reminderTime) shouldTrigger = true;
+                } else if (msg.reminder.type === 'daily') {
+                    const reminderHours = reminderTime.getHours();
+                    const reminderMinutes = reminderTime.getMinutes();
+                    if (now.getHours() === reminderHours && now.getMinutes() === reminderMinutes) shouldTrigger = true;
+                }
+                
+                if (shouldTrigger && msg.id.toString() !== localStorage.getItem('lastTriggeredMessage')) {
+                    const pendantWrap = document.getElementById('pendant-all-wrap');
+                    if (pendantWrap) {
+                        pendantWrap.classList.add('remind-active');
+                        setTimeout(() => pendantWrap.classList.remove('remind-active'), 5000);
+                    }
+                    
+                    showTopToast(`留言提醒: ${msg.title}`, 5000);
+                    localStorage.setItem('lastTriggeredMessage', msg.id.toString());
+                    
+                    if(msg.reminder.type === 'once') needsAction = true;
+                }
+            }
+            if(needsAction) {
+                // 对于一次性提醒，我们不再自动完成，仅提醒
+            }
+
+        }, 30 * 1000);
+    }
+
+    return { init, renderBoard };
+})();
+
+// 在主 DOMContentLoaded 事件中初始化留言板管理器
+document.addEventListener('DOMContentLoaded', () => {
+    // 确保其他模块都初始化完毕
+    setTimeout(() => {
+        MessageBoardManager.init();
+    }, 150); // 稍微延迟以确保 DataManager 等已准备好
+
+    // 当切换到留言板页面时，强制刷新
+    const capsuleButton = document.querySelector('[data-target="widget-page-board"]');
+    if (capsuleButton) {
+        capsuleButton.addEventListener('click', () => {
+            MessageBoardManager.renderBoard();
+        });
+    }
+});
+
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
 
             // [新增] 锁屏组件交互事件监听
@@ -14399,6 +15612,7 @@ const PendantManager = (() => {
     const VISIBILITY_STORAGE_KEY = 'jellyfish_pendant_visibility';
     let longPressTimer = null;
     let isLongPressTriggered = false;
+    let reminderCheckInterval = null;
     const LONG_PRESS_DURATION = 700;
 
     const defaultPendantSettings = {
@@ -14415,35 +15629,47 @@ const PendantManager = (() => {
         }
     }
 
-    // [核心修正] 将动画控制逻辑独立成 async 函数
-    async function updateReminderAnimation() {
+    // [需求新增] 新的、独立的留言板提醒检查函数
+    async function updateMessageBoardReminder() {
         try {
-            const checkInData = await DataManager.get('checkInData');
-            // [鲁棒性修复] 检查数据结构是否存在
-            const reminderEnabled = checkInData && checkInData.reminder ? checkInData.reminder.enabled : false;
-            const todayStr = new Date().toISOString().split('T')[0]; // 更可靠的日期格式
-            const hasCheckedInToday = checkInData && checkInData.dates ? checkInData.dates.includes(todayStr) : false;
+            const messageData = await DataManager.get('messageBoardData');
+            if (!messageData || !messageData.messages) return false;
 
-            const shouldAnimate = reminderEnabled && !hasCheckedInToday;
-
-            if (ui.allWrap) {
-                ui.allWrap.classList.toggle('remind-active', shouldAnimate);
-            }
+            const hasUncompleted = messageData.messages.some(msg => !msg.isCompleted);
+            return hasUncompleted;
         } catch (error) {
-            console.error("更新签到提醒动画失败:", error);
+            console.error("更新留言板提醒状态失败:", error);
+            return false;
         }
     }
 
-    // [核心修正] 暴露给外部调用的接口，现在也改为 async 以便应对未来需求
-    async function updateCheckInStatus(hasCheckedIn) {
-        if (hasCheckedIn) {
-            if (ui.allWrap) {
-                ui.allWrap.classList.remove('remind-active');
-            }
-        } else {
-            // 如果被告知“未签到”，则重新检查动画状态
-            await updateReminderAnimation();
+    async function updateCheckinReminder() {
+        try {
+            const checkInData = await DataManager.get('checkInData');
+            const reminderEnabled = checkInData?.reminder?.enabled === true;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const hasCheckedInToday = checkInData?.dates?.includes(todayStr) || false;
+            return reminderEnabled && !hasCheckedInToday;
+        } catch (error) {
+            console.error("更新签到提醒状态失败:", error);
+            return false;
         }
+    }
+
+    async function updateReminderAnimation() {
+        const shouldAnimateForCheckin = await updateCheckinReminder();
+        const shouldAnimateForBoard = await updateMessageBoardReminder();
+        
+        const shouldAnimate = shouldAnimateForCheckin || shouldAnimateForBoard;
+
+        if (ui.allWrap) {
+            ui.allWrap.classList.toggle('remind-active', shouldAnimate);
+        }
+    }
+
+    async function updateCheckInStatus(hasCheckedIn) {
+        // 这个函数现在只负责签到部分，但最终的动画状态由 updateReminderAnimation 决定
+         await updateReminderAnimation();
     }
 
     function handleMasterToggle(enabled) {
@@ -14452,10 +15678,17 @@ const PendantManager = (() => {
             const isHidden = localStorage.getItem(VISIBILITY_STORAGE_KEY) === 'true';
             ui.container.classList.toggle('pendant-hidden', isHidden);
             CheckInManager.init();
-            updateReminderAnimation(); // 开启总开关时，立即检查动画状态
+            updateReminderAnimation();
+            if (!reminderCheckInterval) {
+                 reminderCheckInterval = setInterval(updateReminderAnimation, 60 * 1000); // 每分钟检查一次
+            }
         } else {
             ui.container.classList.add('pendant-hidden');
-            if (ui.allWrap) ui.allWrap.classList.remove('remind-active'); // 关闭时移除动画
+            if (ui.allWrap) ui.allWrap.classList.remove('remind-active');
+            if (reminderCheckInterval) {
+                clearInterval(reminderCheckInterval);
+                reminderCheckInterval = null;
+            }
         }
         updateButtonText();
     }
@@ -14498,7 +15731,6 @@ const PendantManager = (() => {
             
             DataManager.get('checkInData').then(data => {
                 if (ui.reminderToggle) {
-                    // [鲁棒性修复] 确保 reminder 对象存在
                     ui.reminderToggle.checked = data?.reminder?.enabled === true;
                 }
             });
@@ -14540,7 +15772,6 @@ const PendantManager = (() => {
         ui.masterToggle.checked = currentConfig.settings.pendant.enabled;
         handleMasterToggle(ui.masterToggle.checked);
         
-        // [核心修正] 页面加载时，如果挂件是启用的，就立即检查一次签到状态
         if (ui.masterToggle.checked) {
             updateReminderAnimation();
         }
@@ -14590,7 +15821,7 @@ const PendantManager = (() => {
                             if (!checkInData.reminder) checkInData.reminder = {};
                             checkInData.reminder.enabled = e.target.checked;
                             await DataManager.save('checkInData', 'Toggle check-in reminder');
-                            await updateReminderAnimation(); // 修改开关后立即更新动画状态
+                            await updateReminderAnimation();
                         });
                         observer.disconnect();
                         break;
@@ -14601,9 +15832,8 @@ const PendantManager = (() => {
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    return { init, applyPendantSettings, updateCheckInStatus };
+    return { init, applyPendantSettings, updateCheckInStatus, updateReminderAnimation };
 })();
-
 
 /* =============================================================== */
 /* ========================= [重构/新增结束] ======================== */
@@ -14765,6 +15995,35 @@ const PendantManager = (() => {
         </div>
     </div>
     <!-- [新增结束] -->
+    <!-- ============= [ 新增：备忘录导入模态框 ] ============= -->
+    <div class="modal-overlay" id="importMemoModal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <div class="modal-title-group"><span>导入备忘录</span></div>
+                <button class="close-btn" data-modal-id="importMemoModal">&times;</button>
+            </div>
+            <div class="modal-body" style="gap: 15px;">
+                <div class="important-note" style="margin-top: 0;">
+                    <p style="margin: 0; line-height: 1.6;">支持导入 <strong>.txt, .doc, .docx, .xml</strong> 格式的文件。将提取纯文本，并以文件名作为标题批量创建备忘录。</p>
+                </div>
+                
+                <div class="file-select-wrapper" style="flex-direction: column; gap: 15px;">
+                    <input type="file" id="memoFilePicker" multiple accept=".txt,.doc,.docx,.xml" style="display: none;">
+                    <button id="memoFilePickerBtn" class="modal-button" style="width: 100%;">选择文件</button>
+                    <span id="memoFilePickerStatus" class="status-text" style="text-align: center; min-height: 20px;">未选择任何文件</span>
+                </div>
+                
+                <div id="memoImportProgressContainer" style="display: none; text-align: center; color: #889;">
+                    <div class="music-loader" style="margin-bottom: 8px;"></div>
+                    <span id="memoImportStatus"></span>
+                </div>
+
+                <button id="startMemoImportBtn" class="modal-button" disabled>开始导入</button>
+            </div>
+        </div>
+    </div>
+    <!-- ============= [ 新增结束 ] ============= -->
+
     <!-- [新增] 选择性数据清理模态框 -->
     <div class="modal-overlay" id="selectiveClearModal">
         <div class="modal-content" style="max-width: 450px;">
@@ -14844,11 +16103,16 @@ const PendantManager = (() => {
               <p id="usage-leaderboard-placeholder" class="placeholder-content" style="display: none;">暂无使用记录</p>
             </div>
 
-            <!-- 页面3: 留言板 -->
+             <!-- 页面3: 留言板 -->
             <div class="widget-hub-page" id="widget-page-board">
-                <p class="placeholder-content">留言板功能开发中...</p>
+                <!-- JS动态填充留言板卡片 -->
+                <div id="message-board-container">
+                    <!-- 示例: 添加按钮 -->
+                    <!-- <div class="message-card message-card--add" data-action="add-message-card">
+                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path></svg>
+                    </div> -->
+                </div>
             </div>
-            
             <!-- 页面4: 页面设置 (重构后) -->
             <div class="widget-hub-page" id="widget-page-settings">
 
@@ -14966,5 +16230,104 @@ const PendantManager = (() => {
     </div>
 </div>
 <!-- ===== [重构结束] ===== -->
+<!-- ============= [ 新增：备忘录导入模态框 ] ============= -->
+<div class="modal-overlay" id="importMemoModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">
+            <div class="modal-title-group"><span>导入备忘录</span></div>
+            <button class="close-btn" data-modal-id="importMemoModal">&times;</button>
+        </div>
+        <div class="modal-body" style="gap: 15px;">
+            <div class="important-note" style="margin-top: 0;">
+                <p style="margin: 0; line-height: 1.6;">支持导入 <strong>.txt, .doc, .docx, .xml</strong> 格式的文件。将提取纯文本，并以文件名作为标题批量创建备忘录。</p>
+            </div>
+            
+            <div class="file-select-wrapper" style="flex-direction: column; gap: 15px;">
+                <input type="file" id="memoFilePicker" multiple accept=".txt,.doc,.docx,.xml" style="display: none;">
+                <button id="memoFilePickerBtn" class="modal-button" style="width: 100%;">选择文件</button>
+                <span id="memoFilePickerStatus" class="status-text" style="text-align: center; min-height: 20px;">未选择任何文件</span>
+            </div>
+            
+            <div id="memoImportProgressContainer" style="display: none; text-align: center; color: #889;">
+                <div class="music-loader" style="margin-bottom: 8px;"></div>
+                <span id="memoImportStatus"></span>
+            </div>
+
+            <button id="startMemoImportBtn" class="modal-button" disabled>开始导入</button>
+        </div>
+    </div>
+</div>
+<!-- ============= [ 新增：留言板功能弹窗 ] ============= -->
+    <div class="modal-overlay" id="messageBoardModal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <div class="modal-title-group"><span id="messageModalTitle">添加新留言</span></div>
+                <button class="close-btn" data-modal-id="messageBoardModal">&times;</button>
+            </div>
+            <div class="modal-body" style="gap: 18px;">
+                <div class="form-section">
+                    <label for="messageTitleInput">标题</label>
+                    <input type="text" id="messageTitleInput" class="modal-input" placeholder="必填，如：项目汇报">
+                </div>
+                <div class="form-section">
+                    <label for="messageLinkProjectSelect">链接项目 (可选)</label>
+                    <select id="messageLinkProjectSelect" class="modal-select">
+                        <option value="">不链接任何项目</option>
+                        <!-- JS动态填充项目 -->
+                    </select>
+                </div>
+                <!-- [需求新增] 卡片背景图片上传功能 -->
+                <div class="form-section">
+                    <label>卡片背景 (可选)</label>
+                    <div class="file-select-wrapper">
+                        <input type="file" id="messageBgImagePicker" accept="image/*" style="display: none;">
+                        <button id="uploadMessageBgBtn" class="modal-button" style="padding: 10px 15px; font-size: 14px; flex-grow: 1;">上传图片</button>
+                        <button id="clearMessageBgBtn" class="modal-button delete" style="padding: 10px 15px; font-size: 14px;">清除</button>
+                    </div>
+                </div>
+                <div class="toggle-section" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span>设置提醒</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="messageReminderToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div id="messageReminderDetails" style="width: 100%; display: none; flex-direction: column; gap: 15px; margin-top: 10px;">
+                        <!-- 新增：全天开关 -->
+                        <div class="toggle-section">
+                            <span>全天提醒</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="messageAllDayToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <!-- 修改：时间选择器 -->
+                        <input type="datetime-local" id="messageReminderTime" class="modal-input">
+                        <!-- 提醒类型保持不变 -->
+                        <div class="segmented-control three-segments">
+                            <input type="radio" id="reminder-type-once" name="reminder-type" value="once" checked hidden>
+                            <label for="reminder-type-once">仅一次</label>
+                            <input type="radio" id="reminder-type-daily" name="reminder-type" value="daily" hidden>
+                            <label for="reminder-type-daily">每日</label>
+                            <input type="radio" id="reminder-type-periodic" name="reminder-type" value="periodic" hidden disabled>
+                            <label for="reminder-type-periodic" style="opacity:0.5; cursor: not-allowed;">定期</label>
+                            <div class="slider-indicator"></div>
+                        </div>
+                        <!-- "提醒后消失" 的 <label> 已被移除 -->
+                    </div>
+                </div>
+                <!-- [需求修改] 将保存和删除按钮放在一个容器中，方便布局 -->
+                <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button id="deleteMessageBtn" class="modal-button delete" style="display: none; margin-right: auto;">删除</button>
+                    <button id="saveMessageBtn" class="modal-button primary">保存留言</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============= [ 新增结束 ] ============= -->
+<!-- ============= [ 新增结束 ] ============= -->
+<!-- 将这个 script 标签放在 </body> 之前 -->
+<script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
 </body>
 </html>
