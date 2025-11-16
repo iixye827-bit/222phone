@@ -14899,7 +14899,16 @@ const MessageBoardManager = (() => {
     let reminderInterval = null;
     let pendingBgImageDataUrl = null;
 
+    // [新增] 日期格式化辅助函数
+    function getFormattedDate(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     function init() {
+
         ui = {
             container: document.getElementById('message-board-container'),
             modal: document.getElementById('messageBoardModal'),
@@ -14972,11 +14981,36 @@ const MessageBoardManager = (() => {
 
     async function renderBoard() {
         if (!ui.container) return;
-        
+
         const messageData = await DataManager.get('messageBoardData');
         if (!messageData.messages) messageData.messages = [];
 
-        ui.container.innerHTML = ''; 
+        // --- [核心刷新逻辑开始] ---
+        const todayStr = getFormattedDate(new Date());
+        const lastResetDate = localStorage.getItem('lastMessageBoardResetDate');
+        let wasReset = false;
+
+        if (todayStr !== lastResetDate) {
+            console.log("新的一天，开始重置每日提醒卡片...");
+            messageData.messages.forEach(msg => {
+                if (msg.reminder && msg.reminder.enabled && msg.reminder.type === 'daily' && msg.isCompleted) {
+                    msg.isCompleted = false;
+                    wasReset = true;
+                }
+            });
+
+            if (wasReset) {
+                await DataManager.save('messageBoardData', 'Reset daily message cards');
+                localStorage.setItem('lastMessageBoardResetDate', todayStr);
+                showTopToast("每日提醒已刷新！", 2000);
+            } else {
+                // 即使没有需要重置的卡片，也更新日期，避免当天重复检查
+                localStorage.setItem('lastMessageBoardResetDate', todayStr);
+            }
+        }
+        // --- [核心刷新逻辑结束] ---
+
+        ui.container.innerHTML = '';
 
         const sortedMessages = [...messageData.messages].sort((a, b) => (a.isCompleted ? 1 : 0) - (b.isCompleted ? 1 : 0));
 
@@ -14991,11 +15025,10 @@ const MessageBoardManager = (() => {
                 card.style.backgroundPosition = 'center';
                 card.style.color = '#FFFFFF';
             }
-            
+
             const contentWrapper = document.createElement('div');
             contentWrapper.className = 'message-card-content-wrapper';
 
-            // [需求修改] 标题和链接在同一个容器内左右对齐
             const headerContainer = document.createElement('div');
             headerContainer.className = 'message-card-header';
 
@@ -15026,6 +15059,7 @@ const MessageBoardManager = (() => {
         addCard.addEventListener('click', () => openModal());
         ui.container.appendChild(addCard);
     }
+
     
     let isDragging = false, startX = 0, currentX = 0, targetCard = null, isClick = true;
 
