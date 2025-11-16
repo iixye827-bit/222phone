@@ -362,7 +362,9 @@ body.dark-mode .progress-bar-wrapper {
     color: inherit;
     outline: none;
     border-bottom: 2px solid var(--hold-border);
+    min-width: 0; /* [核心新增] 允许输入框在Flex布局中被压缩，防止溢出 */
 }
+
 /* [新增] 微调搜索按钮内的SVG图标，使其垂直居中 */
 #memoryModal .header-btn svg {
     transform: translateY(3px);
@@ -375,13 +377,13 @@ body.dark-mode .progress-bar-wrapper {
         #memoryModal .hub-btn:active { box-shadow: inset 6px 6px 12px var(--shadow-dark-day), inset -6px -6px 12px var(--shadow-light-day); } body.dark-mode #memoryModal .hub-btn:active { box-shadow: inset 6px 6px 12px var(--shadow-dark-night), inset -6px -6px 12px var(--shadow-light-night); }
         #memoryModal #notes-list-container { grid-template-columns: 1fr; }
         #memoryModal .folder-item, #memoryModal .album-item { margin-bottom: 10px; position: relative; padding: 20px 15px; border: none; border-radius: 14px; box-shadow: 8px 8px 16px var(--shadow-dark-day), -8px -8px 16px var(--shadow-light-day); background: var(--bg-day-element); font-size: 16px; font-weight: 600; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; user-select: none; -webkit-tap-highlight-color: transparent; text-align: left; }
-        #memoryModal .note-item { position: relative; padding: 20px 15px; border: none; border-radius: 14px; box-shadow: 8px 8px 16px var(--shadow-dark-day), -8px -8px 16px var(--shadow-light-day); background: var(--bg-day-element); font-size: 16px; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; user-select: none; -webkit-tap-highlight-color: transparent; text-align: left; }
+#memoryModal .note-item { position: relative; padding: 20px 15px; border: none; border-radius: 14px; box-shadow: 8px 8px 16px var(--shadow-dark-day), -8px -8px 16px var(--shadow-light-day); background: var(--bg-day-element); font-size: 16px; color: var(--text-day); cursor: pointer; transition: all 0.3s ease; user-select: none; -webkit-tap-highlight-color: transparent; text-align: left; min-width: 0; /* <<< [核心修复] 新增此行 */ }
         body.dark-mode #memoryModal .folder-item, body.dark-mode #memoryModal .note-item, body.dark-mode #memoryModal .album-item { box-shadow: 8px 8px 16px var(--shadow-dark-night), -8px -8px 16px var(--shadow-light-night); background: var(--bg-night-element); color: var(--text-night); }
         #memoryModal .folder-item:active, #memoryModal .note-item:active, #memoryModal .album-item:active { box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day); transform: translateY(0); }
         body.dark-mode #memoryModal .folder-item:active, body.dark-mode #memoryModal .note-item:active, body.dark-mode #memoryModal .album-item:active { box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night); }
         #memoryModal .folder-icon { font-size: 24px; margin-bottom: 10px; }
-        #memoryModal .note-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #memoryModal .note-preview { font-size: 14px; font-weight: normal; color: #6a7889; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#memoryModal .note-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* [优化] 移除无效的 word-break: break-all; */ }
+        #memoryModal .note-preview { font-size: 14px; font-weight: normal; color: #6a7889; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
         body.dark-mode #memoryModal .note-preview { color: #a0aec0; }
         #memoryModal .note-timestamp { font-size: 12px; font-weight: 300; color: #9A86A4; margin-top: 12px; }
         #memoryModal .album-item { aspect-ratio: 1 / 1; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; }
@@ -2750,11 +2752,11 @@ body.theme-glass.dark-mode .memo-toolbar {
 
 #phoneCollectionModal .list-container {
     /* 垂直内边距保持，水平内边距交由布局自动处理 */
-    padding: 35px 0;
+    padding: 35px 15px; /* [核心修正] 增加左右内边距 */
     display: flex; /* ★ 核心修改：使用 Flexbox 布局 */
     flex-wrap: wrap; /* ★ 核心修改：允许泡泡换行 */
-    justify-content: space-evenly; /* ★ 核心修改：实现所有水平间距（包括两端）相等 */
-    row-gap: 40px; /* ★ 核心修改：设置一个充足的行间距，以适应泡泡的错落效果 */
+    justify-content: center; /* [核心修正] 改为 center 避免溢出 */
+    gap: 20px 15px; /* [核心修正] 使用 gap 控制间距 (行间距 列间距) */
     align-content: flex-start;
     overflow-y: auto;
     min-height: 0;
@@ -4805,7 +4807,7 @@ body.dark-mode #messageBoardModal .modal-content {
                 <div class="help-content-wrapper">
                     <div id="help-page-0" class="help-page-content">
                         <h3>从零开始 (必需)</h3><p>此流程仅需您创建一个安全的“钥匙”(PAT)和一个云端“私人数据仓库”，让本应用可以为您安全地存储和同步所有数据。</p><ol><li><strong>访问创建页面</strong>：<a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener noreferrer">点击此链接直接进入 GitHub Token 创建页面</a>。</li><li><strong>填写基本信息</strong>：备注(Note)填写 <code>JellyfishIslandToken</code>，有效期(Expiration)选择 <code>No expiration</code> (永不过期)。</li><li><strong>分配权限 (关键)</strong>：只需 <strong>勾选 <code>repo</code></strong> 这一项。</li><li><strong>生成并复制</strong>：滑动到页面最底部，点击 <strong><code>Generate token</code></strong> 按钮。<strong>【⚠️极其重要⚠️】</strong> GitHub 只会显示这一次完整的 Token。请 <strong>立即点击复制按钮</strong> 将其保存到安全的地方，下一步会马上用到。它应该以 <code>ghp_</code> 开头。</li></ol>
-                        <h4>步骤 2：创建私人数据仓库</h4><p>此步骤将创建一个独立的、完全私密的仓库，专门用来存放您的所有配置和文件。</p><ol><li><strong>访问创建页面</strong>：<a href="https://github.com/new" target="_blank" rel="noopener noreferrer">点击此链接直接进入 GitHub 仓库创建页面</a>。</li><li><strong>填写仓库信息</strong>：<ul><li><strong>Repository name (仓库名称)</strong>：起一个清晰的名字，例如 <code>My-Jellyfish-Data</code>。</li><li><strong>关键：选择 <code>Private</code> (私有)</strong>。这是您的私人数据，必须设为私有。</li><li><strong>勾选 <code>Add a README file</code></strong>：确保仓库被成功初始化。</li></ul></li><li><strong>点击 <code>Create repository</code></strong> 按钮完成创建。</li></ol>
+                        <h4>步骤 2：创建私人数据仓库</h4><p>此步骤将创建一个独立的、完全私密的仓库，专门用来存放您的所有配置和文件。</p><ol><li><strong>访问创建页面</strong>：<a href="https://github.com/new" target="_blank" rel="noopener noreferrer">点击此链接直接进入 GitHub 仓库创建页面</a>。</li><li><strong>填写仓库信息</strong>：<ul><li><strong>Repository name (仓库名称)</strong>：起一个清晰的名字，例如 <code>My-Jellyfish-Data</code>。</li><li><strong>关键：选择 <code>Private</code> (私有)</strong>。这是您的私人数据，必须设为私有。</li></ul></li><li><strong>点击 <code>Create repository</code></strong> 按钮完成创建。</li></ol>
                         <h4>步骤 3：在 Jellyfish Island
  内完成最终配置</h4><p>现在，我们将“钥匙”和“数据仓库”信息告诉本应用。</p><ol><li><strong>打开配置面板</strong>：长按右下角的 🌞/🌜 按钮展开菜单 → 点击 <strong>☁️ (数据同步)</strong>。</li><li><strong>填入信息</strong>：<ul><li><strong>仓库</strong>：填写您在 <strong>步骤2</strong> 创建的**私人数据仓库**地址，格式为 <code>你的GitHub用户名/My-Jellyfish-Data</code>。</li><li><strong>Personal Access Token</strong>：粘贴您在 <strong>步骤1</strong> 创建并复制好的完整 Token。</li></ul></li><li><strong>保存并同步</strong>：点击 <strong><code>保存配置</code></strong> 按钮。</li></ol><p><strong>恭喜！</strong> 您的 Jellyfish Island 现已与云端完全同步，可以开始使用了！</p>
                     </div>
@@ -4838,11 +4840,12 @@ body.dark-mode #messageBoardModal .modal-content {
         <div class="details-content">
             <p><strong>分类导航</strong>: 您可以左右滑动顶部的分类导航栏来切换不同的项目分类。此导航栏可在“管理项目”中通过“分页展示”开关控制其显示或隐藏。</p>
             <p><strong>添加/编辑项目</strong>: 在"管理项目"弹窗中进行操作。进入“按钮管理模式”（在“管理项目”弹窗内点击）后，点击已存在的按钮即可进入编辑模式。</p>
-            <p><strong>删除分类</strong>: 在“管理项目”弹窗中，选择一个分类后，即可看到“删除当前分类”按钮。您可以选择：</p>
+<p><strong>删除分类</strong>: 在“管理项目”弹窗中，选择一个分类后，即可看到“删除当前分类”按钮。您可以选择：</p>
             <ul>
                 <li><strong>仅删除分类</strong>: 项目将被保留并移至“全部”分类下。</li>
                 <li><strong>删除分类和所有项目</strong>: 永久删除该分类及其包含的所有项目（需二次确认）。</li>
             </ul>
+            <p><strong>删除项目时的文件转移</strong>: 当删除一个关联了“文件夹（云盘）”文件的项目时，系统会提示您是否需要将这些文件转移到一个新的或已有的项目中，以防数据丢失。</p>
         </div>
     </details>
     <details>
@@ -4855,10 +4858,11 @@ body.dark-mode #messageBoardModal .modal-content {
                 <h4>🪼 悬浮窗与悬浮球</h4>
                 <p>通过 <code>主题设置 → 网页内悬浮球</code>，您可以在应用内网页中开启一个便捷的悬浮助手。</p>
                 <p><strong>悬浮球操作</strong>:</p>
-                <ul>
+<ul>
                     <li><strong>拖动</strong>: 按住并拖动可移动位置，松手后自动贴边。</li>
                     <li><strong>闲置隐藏</strong>: 静置3秒后会自动半透明隐藏，减少干扰。</li>
                     <li><strong>功能菜单</strong>: <strong>长按</strong>悬浮球会弹出环形功能菜单，滑动到目标功能上松手即可触发。</li>
+                    <li><strong>全屏功能 (⛶)</strong>: 在应用内打开网页时，通过菜单中的“全屏”按钮可将当前网页全屏化（此功能仅在部分安卓设备上可用）。</li>
                 </ul>
                 <p><strong>“快速切换”悬浮窗</strong>:</p>
                 <p>这是悬浮球菜单中的一个强大功能（🔗），它允许您将任何项目在独立的悬浮窗口中打开。</p>
@@ -4919,8 +4923,25 @@ body.dark-mode #messageBoardModal .modal-content {
         <p><strong>QQ交流群:</strong> 563191005</p>
     </div>
         <!-- ★ 在这里新增下面的代码块 ★ -->
+    <h4>v6.0.0 <span class="update-date">- 2025.11.16</span></h4>
+    <ul>
+        <li><span class="tag new">新功能</span> 新增「挂件中心」模块，集成签到、使用时长统计和留言板功能。</li>
+        <li><span class="tag new">新功能</span> 备忘录功能大幅增强：
+            <ul>
+                <li style="margin-top: 8px;">支持从 .txt, .docx, .xml 等文件批量导入纯文本内容。</li>
+                <li>新增全局及文件夹内搜索功能。</li>
+                <li>列表项新增“复制全文”按钮。</li>
+                <li>编辑器内新增“一键回顶”按钮，方便浏览长篇笔记。</li>
+            </ul>
+        </li>
+        <li><span class="tag new">新功能</span> 删除项目时，新增选项可将其关联的云盘文件转移至新项目或已有项目中。</li>
+        <li><span class="tag new">新功能</span> 悬浮球菜单新增“全屏”功能（仅安卓可用），可将应用内打开的网页全屏化。</li>
+        <li><span class="tag opt">优化</span> 更新了部分UI图标，提升了视觉美感。</li>
+        <li><span class="tag fix">修复</span> 解决了备忘录在内容过长时可能溢出显示区域的问题。</li>
+    </ul>
+</div>
 <div class="update-log-entry">
-    <h4>v6.0.0 <span class="update-date">- 2025.11.06</span></h4>
+    <h4>v5.9.5 <span class="update-date">- 2025.11.06</span></h4>
     <ul>
         <li><span class="tag new">新功能</span> 备忘录工具栏加强，支持调整文字大小和一键复制全文。</li>
         <li><span class="tag new">新功能</span> 漫游模式支持上传 <code>.m4a</code> 格式的音乐文件。</li>
@@ -5913,6 +5934,70 @@ body.dark-mode #floating-jellyfish-ball {
     
     <!-- Floating Project Windows Container -->
     <div id="floating-projects-container"></div>
+<!-- ============= [ 重构：项目文件转移模态框 V2 ] ============= -->
+<div class="modal-overlay" id="transferProjectModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">
+            <div class="modal-title-group"><span>转移云盘文件</span></div>
+            <button class="close-btn" data-modal-id="transferProjectModal">&times;</button>
+        </div>
+        <div class="modal-body" style="gap: 20px;">
+            <div class="form-section">
+                <label>从项目</label>
+                <input type="text" id="currentProjectName" class="modal-input" readonly style="opacity: 0.7;">
+            </div>
+
+            <!-- [核心新增] 转入现有项目的选择器 -->
+            <div class="form-section">
+                <label for="existingProjectSelector">选择一个现有项目接收文件 (可选)</label>
+                <select id="existingProjectSelector" class="modal-select">
+                    <option value="">-- 或 --</option>
+                    <!-- JS 动态填充 -->
+                </select>
+            </div>
+
+            <!-- [修改] 创建新项目部分，现在是备选方案 -->
+            <div id="createNewProjectForTransfer">
+                <div class="form-section">
+                    <label for="transferTargetCategory">转移到新分类 (可选)</label>
+                    <input type="text" id="transferTargetCategory" class="modal-input" placeholder="选择或创建新分类" list="category-datalist-transfer">
+                    <datalist id="category-datalist-transfer"></datalist>
+                </div>
+                <div class="form-section">
+                    <label for="transferNewProjectName">并创建新项目名为</label>
+                    <input type="text" id="transferNewProjectName" class="modal-input" placeholder="新的项目名称">
+                </div>
+            </div>
+
+            <div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;">
+                <p>文件将被移动到目标项目关联的云盘路径下，然后原项目按钮将被删除。</p>
+            </div>
+            <button id="confirmTransferBtn" class="modal-button">确认转移</button>
+            <div class="status-text" id="transfer-status" style="text-align: center; min-height: 20px;"></div>
+        </div>
+    </div>
+</div>
+<!-- ============= [ 重构结束 ] ============= -->
+    <!-- ============= [ 新增：删除项目选项模态框 ] ============= -->
+    <div class="modal-overlay" id="deleteOptionsModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <div id="deleteOptionsTitle" class="modal-title-group">删除项目</div>
+            </div>
+            <div class="modal-body" style="gap: 15px;">
+                <p id="deleteOptionsMessage" style="line-height: 1.6;">您想如何处理这个项目？</p>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                    <!-- 转移按钮, 仅在有文件时显示 -->
+                    <button id="transferOptionBtn" class="modal-button" style="color: var(--hold-border);">转移文件并删除项目</button>
+                    <!-- 删除按钮 -->
+                    <button id="deleteOptionBtn" class="modal-button" style="color: #e53e3e;">直接删除项目和文件</button>
+                    <!-- 取消按钮 -->
+                    <button id="cancelOptionBtn" class="modal-button">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============= [ 新增结束 ] ============= -->
     <!-- ============= [ 新增：项目文件转移模态框 ] ============= -->
 <div class="modal-overlay" id="transferProjectModal">
     <div class="modal-content" style="max-width: 420px;">
@@ -6211,7 +6296,8 @@ const UsageTimeFilterManager = (() => {
         if (!listContainer) return;
         
         listContainer.innerHTML = '';
-        const allCategories = currentConfig.categories.map(c => c.name);
+        // ★ 核心修复：直接过滤掉“全部”这个分类
+        const allCategories = currentConfig.categories.map(c => c.name).filter(name => name !== '全部');
         const settings = currentConfig.settings.usageTime || {};
         const selectedCategories = settings.includedCategories || allCategories;
 
@@ -7860,37 +7946,58 @@ async function saveGlobalConfig(commitMessage) {
     }
 
     document.getElementById('enterManageModeBtn').addEventListener('click', () => { document.getElementById('addNavModal').classList.remove('show'); setTimeout(() => toggleManagementMode(true), 150); });
-    navContainer.addEventListener('click', async (e) => { 
-        if (!e.target.classList.contains('delete-icon')) return; 
+    navContainer.addEventListener('click', async (e) => {
+        if (!e.target.classList.contains('delete-icon')) return;
         e.stopPropagation();
-        const btnToDelete = e.target.closest('.nav-btn'); 
-        const buttonName = btnToDelete.firstChild.textContent.trim(); 
-        if (!confirm(`确定要删除 "${buttonName}" 吗？\n警告：如果这是上传的项目，其在GitHub上的整个文件夹都将被永久删除！`)) return; 
-        btnToDelete.style.cssText = 'transition: all 0.3s ease; transform: scale(0.8); opacity: 0;'; 
-        setTimeout(async () => { 
-            btnToDelete.remove(); 
-            const href = btnToDelete.dataset.href; 
-            let categoryModified = false;
-            currentConfig.categories.forEach(cat => {
-                const initialLength = cat.buttons.length;
-                cat.buttons = cat.buttons.filter(b => b.href !== href);
-                if (cat.buttons.length < initialLength) categoryModified = true;
-            });
+        
+        const btnToDelete = e.target.closest('.nav-btn');
+        const buttonName = btnToDelete.firstChild.textContent.trim();
+        const href = btnToDelete.dataset.href;
+        
+        const hasCloudFiles = await checkProjectFolderForFiles(buttonName);
 
-            currentConfig.categories = currentConfig.categories.filter(cat => cat.name === '全部' || cat.buttons.length > 0);
+        showDeleteOptionsDialog(buttonName, hasCloudFiles, async (choice) => {
+            if (choice === 'transfer') {
+                const buttonData = findButtonConfigByHref(href);
+                if (buttonData) {
+                    openTransferProjectModal(buttonData);
+                } else {
+                    alert('找不到项目数据，无法进行转移。');
+                }
+            } else if (choice === 'delete') {
+                // 即使是自定义弹窗，对破坏性操作进行二次确认仍然是好习惯
+                if (!confirm(`再次确认：确定要永久删除 "${buttonName}" 及其所有关联文件吗？此操作不可逆！`)) return;
 
-            if (href.startsWith('projects/')) {
-                const folderPath = href.substring(0, href.lastIndexOf('/'));
-                const success = await deleteGithubFolder(folderPath);
-                if (!success) { alert('删除云端文件夹失败!'); location.reload(); return; }
+                showTopToast(`正在删除 "${buttonName}"...`, 2000);
+                btnToDelete.style.cssText = 'transition: all 0.3s ease; transform: scale(0.8); opacity: 0;';
+                
+                setTimeout(async () => {
+                    btnToDelete.remove();
+                    
+                    // 从配置中移除按钮
+                    currentConfig.categories.forEach(cat => {
+                        cat.buttons = cat.buttons.filter(b => b.href !== href);
+                    });
+                    currentConfig.categories = currentConfig.categories.filter(cat => cat.name === '全部' || cat.buttons.length > 0);
+
+                    // 删除云端文件和文件夹
+                    if (href.startsWith('projects/')) {
+                        const projectFolderPath = href.substring(0, href.lastIndexOf('/'));
+                        await deleteGithubFolder(projectFolderPath);
+                    }
+                    const cloudFolderName = buttonName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+                    await deleteGithubFolder(`jellyfish_drive/${cloudFolderName}`);
+
+                    // 保存更新后的配置
+                    await saveGlobalConfig(`Delete project: ${buttonName}`);
+                    renderCategories();
+                    renderButtonsForCategory(currentCategory);
+                }, 300);
             }
-            if (categoryModified) {
-                await saveGlobalConfig(`Delete button: ${buttonName}`);
-                renderCategories();
-                renderButtonsForCategory(currentCategory);
-            }
-        }, 300); 
+            // 如果 choice 是 'cancel'，则什么也不做
+        });
     });
+
     document.getElementById('title').addEventListener('click', () => { if(isManagementMode) return; const newTitle = prompt('新标题：', currentConfig.title); if (newTitle?.trim() && newTitle.trim() !== currentConfig.title) { document.getElementById('title').textContent = newTitle.trim(); currentConfig.title = newTitle.trim(); saveGlobalConfig('Update main title'); } });
     document.getElementById('subtitle').addEventListener('click', () => { if(isManagementMode) return; const newSubtitle = prompt('新描述：', currentConfig.subtitle); if (newSubtitle !== null && newSubtitle.trim() !== currentConfig.subtitle) { document.getElementById('subtitle').textContent = newSubtitle.trim(); currentConfig.subtitle = newSubtitle.trim(); saveGlobalConfig('Update subtitle'); } });
     
@@ -8761,6 +8868,44 @@ async function saveGlobalConfig(commitMessage) {
             addNavModalElements.createBtn.textContent = isEditingButton ? "保存更改" : "加入新项目";
         }
     });
+    function showDeleteOptionsDialog(projectName, hasCloudFiles, callback) {
+        const modal = document.getElementById('deleteOptionsModal');
+        const titleEl = document.getElementById('deleteOptionsTitle');
+        const messageEl = document.getElementById('deleteOptionsMessage');
+        const transferBtn = document.getElementById('transferOptionBtn');
+        const deleteBtn = document.getElementById('deleteOptionBtn');
+        const cancelBtn = document.getElementById('cancelOptionBtn');
+
+        // 填充内容
+        titleEl.textContent = `删除项目 "${projectName}"`;
+        messageEl.innerHTML = `您想如何处理这个项目？${hasCloudFiles ? '<br><strong style="color: #e53e3e;">警告：此项目关联的云盘中有文件。</strong>' : ''}`;
+
+        // 根据是否有文件显示/隐藏“转移”按钮
+        transferBtn.style.display = hasCloudFiles ? 'block' : 'none';
+
+        // 定义一次性事件处理器
+        const handler = (choice) => {
+            modal.classList.remove('show');
+            // 移除监听器以防止内存泄漏
+            transferBtn.removeEventListener('click', transferHandler);
+            deleteBtn.removeEventListener('click', deleteHandler);
+            cancelBtn.removeEventListener('click', cancelHandler);
+            // 调用回调函数并传入用户的选择
+            callback(choice);
+        };
+
+        const transferHandler = () => handler('transfer');
+        const deleteHandler = () => handler('delete');
+        const cancelHandler = () => handler('cancel');
+
+        // 绑定事件
+        transferBtn.addEventListener('click', transferHandler);
+        deleteBtn.addEventListener('click', deleteHandler);
+        cancelBtn.addEventListener('click', cancelHandler);
+
+        // 显示模态框
+        modal.classList.add('show');
+    }
 
 
     function openAddModal() {
@@ -8847,12 +8992,36 @@ function openEditModal(buttonData) {
         iframeModal.dataset.originalUrl = url; // [新增] 记录原始URL
         iframeModal.classList.add('active'); 
     }
+
 // --- [核心新增] 文件转移功能的所有相关函数 ---
 
 let transferProjectData = null; // 用于存储待转移的项目数据
 
 /**
- * 打开文件转移模态框并初始化
+ * 检查指定项目的云盘文件夹是否含有文件
+ * @param {string} projectName - 项目的显示名称
+ * @returns {Promise<boolean>} - 如果文件夹存在且非空，则返回 true
+ */
+async function checkProjectFolderForFiles(projectName) {
+    if (!projectName) return false;
+    // 根据项目名称生成云盘文件夹路径
+    const folderName = projectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+    const projectPath = `jellyfish_drive/${folderName}`;
+    
+    // 使用 GitHub API 获取文件夹内容
+    const { data: files, response } = await fetchFromGithub(projectPath);
+
+    // 如果文件夹不存在 (404)，或者API调用出错，都认为没有文件
+    if (response && response.status === 404) {
+        return false;
+    }
+    
+    // 如果文件夹存在，并且返回的文件列表是数组且长度大于0，则认为有文件
+    return Array.isArray(files) && files.length > 0;
+}
+
+/**
+ * [V2] 打开文件转移模态框并初始化
  * @param {object} buttonData - 当前正在编辑的项目数据
  */
 function openTransferProjectModal(buttonData) {
@@ -8863,16 +9032,20 @@ function openTransferProjectModal(buttonData) {
     const categoryInput = document.getElementById('transferTargetCategory');
     const transferStatus = document.getElementById('transfer-status');
     const confirmBtn = document.getElementById('confirmTransferBtn');
+    
+    // [新增] 获取新UI元素
+    const existingProjectSelector = document.getElementById('existingProjectSelector');
+    const createNewProjectSection = document.getElementById('createNewProjectForTransfer');
 
     // 初始化UI
     currentNameInput.value = buttonData.text;
-    newNameInput.value = buttonData.text; // 默认使用原名
+    newNameInput.value = '';
     categoryInput.value = buttonData.categoryName;
     transferStatus.textContent = '';
     confirmBtn.disabled = false;
     confirmBtn.textContent = '确认转移';
 
-    // 填充分类下拉列表
+    // 填充分类datalist
     const datalist = document.getElementById('category-datalist-transfer');
     datalist.innerHTML = '';
     currentConfig.categories.forEach(cat => {
@@ -8880,92 +9053,157 @@ function openTransferProjectModal(buttonData) {
         option.value = cat.name;
         datalist.appendChild(option);
     });
+    
+    // [新增] 填充现有项目下拉菜单
+    existingProjectSelector.innerHTML = '<option value="">不选择现有项目</option>'; // 重置并添加默认选项
+    currentConfig.categories.forEach(cat => {
+        cat.buttons.forEach(btn => {
+            if (btn.href !== buttonData.href) { // 排除自身
+                 const option = document.createElement('option');
+                 option.value = btn.text; // 使用项目名称作为值
+                 option.textContent = `${btn.text} (${cat.name})`;
+                 existingProjectSelector.appendChild(option);
+            }
+        });
+    });
 
-    // 隐藏旧的“编辑项目”弹窗，显示新的“转移”弹窗
-    document.getElementById('addNavModal').classList.remove('show');
+    // [新增] 联动逻辑：当选择现有项目时，禁用“创建新项目”部分
+    existingProjectSelector.onchange = () => {
+        const shouldDisable = !!existingProjectSelector.value;
+        createNewProjectSection.style.opacity = shouldDisable ? '0.5' : '1';
+        createNewProjectSection.style.pointerEvents = shouldDisable ? 'none' : 'auto';
+        if (shouldDisable) {
+            newNameInput.value = '';
+        }
+    };
+    // 初始状态
+    createNewProjectSection.style.opacity = '1';
+    createNewProjectSection.style.pointerEvents = 'auto';
+
     modal.classList.add('show');
 }
 
+
 /**
- * 执行文件转移的核心逻辑
+ * [V2] 执行文件转移的核心逻辑
  */
 async function executeProjectTransfer() {
     if (!transferProjectData) return;
 
+    const existingProjectName = document.getElementById('existingProjectSelector').value;
     const newName = document.getElementById('transferNewProjectName').value.trim();
     const newCategoryName = document.getElementById('transferTargetCategory').value.trim() || '全部';
     const transferStatus = document.getElementById('transfer-status');
     const confirmBtn = document.getElementById('confirmTransferBtn');
 
-    if (!newName) {
-        alert('新项目名称不能为空！');
+    // [修改] 验证逻辑：必须选择一个现有项目 或 输入一个新项目名
+    if (!existingProjectName && !newName) {
+        alert('请选择一个现有项目或输入一个新项目名称！');
+        return;
+    }
+    if (existingProjectName && newName) {
+        alert('不能同时选择现有项目和创建新项目！');
         return;
     }
 
+    const targetProjectName = existingProjectName || newName;
+    
     confirmBtn.disabled = true;
     confirmBtn.textContent = '转移中，请稍候...';
 
     try {
-        // 1. 获取旧文件夹路径和内容
-        const oldPath = transferProjectData.href;
-        const oldFolderName = oldPath.substring(0, oldPath.lastIndexOf('/'));
+        // ... (从 "try" 到 "await deleteGithubFolder(oldFolderPath);" 的所有代码保持不变) ...
+
+        // 1. 生成旧文件夹路径
+        const oldProjectName = transferProjectData.text;
+        const oldFolderNameBasedOnName = oldProjectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+        const oldFolderPath = `jellyfish_drive/${oldFolderNameBasedOnName}`;
+
+        // 2. 获取旧文件夹内容
         transferStatus.textContent = '正在读取原项目文件...';
-        const { data: oldFiles, error } = await fetchFromGithub(oldFolderName);
-        if (error || !oldFiles) throw new Error('无法读取原项目文件列表。');
+        const { data: oldFiles, response } = await fetchFromGithub(oldFolderPath);
+        if (response.status === 404 || !Array.isArray(oldFiles) || oldFiles.length === 0) {
+            throw new Error('原项目云盘文件夹为空或不存在，无需转移。');
+        }
 
-        // 2. 生成新文件夹路径
-        const newFolderName = `projects/${newName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g,"").replace(/\s+/g,"-")||`project-${Date.now()}`}`;
+        // 3. 生成新文件夹路径
+        const newFolderNameBasedOnName = targetProjectName.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, "").replace(/\s+/g, "-");
+        const newFolderPath = `jellyfish_drive/${newFolderNameBasedOnName}`;
+        
+        // 4. 检查新文件夹是否已存在且非空，防止覆盖
+        transferStatus.textContent = '正在检查目标位置...';
+        const { data: existingNewFiles } = await fetchFromGithub(newFolderPath);
+        if (Array.isArray(existingNewFiles) && existingNewFiles.length > 0) {
+             // 如果是转入现有项目，且该项目已有文件，则询问是否合并
+            if (existingProjectName) {
+                if (!confirm(`目标项目 "${targetProjectName}" 已存在文件。确定要将文件合并过去吗？（同名文件将被覆盖！）`)) {
+                    throw new Error('用户取消了合并操作。');
+                }
+            } else {
+                throw new Error(`新项目名称 "${targetProjectName}" 已被占用，请更换。`);
+            }
+        }
 
-        // 3. 逐个文件进行“读取-创建”操作
+        // 5. 逐个文件进行“读取-创建”操作，实现移动
         for (let i = 0; i < oldFiles.length; i++) {
             const file = oldFiles[i];
             transferStatus.textContent = `正在迁移文件 (${i + 1}/${oldFiles.length}): ${file.name}`;
             
-            const { data: fileContentData } = await fetchFromGithub(file.path);
-            if (!fileContentData || !fileContentData.content) throw new Error(`无法读取文件 ${file.name} 的内容。`);
+            const fileResponse = await fetch(file.download_url);
+            if (!fileResponse.ok) throw new Error(`无法读取文件 ${file.name} 的内容。`);
+            
+            const fileBlob = await fileResponse.blob();
+            const contentB64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(fileBlob);
+            });
 
-            const newFilePath = `${newFolderName}/${file.name}`;
-            await saveToGithub(newFilePath, fileContentData.content, `Transfer: Create ${file.name}`);
+            const newFilePath = `${newFolderPath}/${file.name}`;
+            await saveToGithub(newFilePath, contentB64, `Transfer: Create ${file.name}`);
         }
 
-        // 4. 删除旧文件夹
+        // 6. 删除旧文件夹
         transferStatus.textContent = '正在清理旧文件...';
-        const deleteSuccess = await deleteGithubFolder(oldFolderName);
-        if (!deleteSuccess) throw new Error('清理旧项目文件失败，但新文件已创建。请手动处理。');
+        await deleteGithubFolder(oldFolderPath);
 
-        // 5. 更新 config.json
+        // 7. [修改] 更新 config.json 的逻辑
         transferStatus.textContent = '正在更新配置...';
+
+        // 从旧分类中移除原项目按钮
         const oldCategory = currentConfig.categories.find(c => c.name === transferProjectData.categoryName);
-        const buttonIndex = oldCategory.buttons.findIndex(b => b.href === transferProjectData.href);
+        if (oldCategory) {
+            oldCategory.buttons = oldCategory.buttons.filter(b => b.href !== transferProjectData.href);
+        }
 
-        if (buttonIndex > -1) {
-            // 从旧分类中移除
-            const [movedButton] = oldCategory.buttons.splice(buttonIndex, 1);
-
-            // 更新按钮数据
-            movedButton.text = newName;
-            movedButton.href = `${newFolderName}/index.html`; // 假设主文件总是 index.html
-            
-            // 添加到新分类
+        // 如果是创建新项目，则需要添加到配置中
+        if (newName) {
+            const newButtonData = {
+                text: newName,
+                href: transferProjectData.href,
+                openExternally: transferProjectData.openExternally
+            };
             let newCategory = currentConfig.categories.find(c => c.name === newCategoryName);
             if (!newCategory) {
                 newCategory = { name: newCategoryName, buttons: [] };
                 currentConfig.categories.push(newCategory);
             }
-            newCategory.buttons.push(movedButton);
+            newCategory.buttons.push(newButtonData);
         }
-
+        
         // 保存最终配置
-        await saveGlobalConfig(`Transfer project: ${transferProjectData.text} to ${newName}`);
+        await saveGlobalConfig(`Move project files from "${oldProjectName}" to "${targetProjectName}"`);
 
         transferStatus.textContent = '转移成功！';
         showTopToast('项目文件转移成功！', 3000);
 
-        // 6. 关闭弹窗并刷新界面
+        // 8. 关闭弹窗并刷新界面
         setTimeout(() => {
             document.getElementById('transferProjectModal').classList.remove('show');
+            document.getElementById('addNavModal')?.classList.remove('show');
             renderCategories();
-            renderButtonsForCategory(newCategoryName); // 切换到新分类
+            renderButtonsForCategory(currentCategory); // 刷新当前分类视图
         }, 1500);
 
     } catch (err) {
@@ -8977,6 +9215,7 @@ async function executeProjectTransfer() {
     }
 }
 
+
 // 为新模态框的确认按钮绑定事件
 document.addEventListener('DOMContentLoaded', () => {
     const confirmBtn = document.getElementById('confirmTransferBtn');
@@ -8986,6 +9225,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- [核心新增结束] ---
+
 
      function closeIframeModal() { 
         // [新增] 停止计时
@@ -13792,7 +14032,7 @@ open: async () => {
             };
         })();
 
-        function renderLockscreenWidgets() {
+         function renderLockscreenWidgets() {
             const grid = document.getElementById('lockscreenGrid');
             if (!grid) return;
             grid.innerHTML = '';
@@ -13948,8 +14188,12 @@ open: async () => {
                 componentContainer.appendChild(widgetEl);
                 grid.appendChild(componentContainer);
             });
-        }
 
+            // ★ 核心修复：在此处添加判断逻辑
+            if (Object.keys(widgetsData).length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-day); opacity: 0.6; font-size: 16px; text-align: center; line-height: 1.5;">无组件<br>右滑进入主屏幕</p>';
+            }
+        }
 
         // 初始化手机模式管理器
         MobileModeManager.init();
@@ -14816,6 +15060,7 @@ const MessageBoardManager = (() => {
         targetCard.style.opacity = 1 - (diffX / (targetCard.offsetWidth * 0.7));
     }
 
+// (这是替换后的新代码)
     async function handleSwipeEnd(e) {
         if (!isDragging || !targetCard) return;
         isDragging = false;
@@ -14841,12 +15086,14 @@ const MessageBoardManager = (() => {
                     
                     messageData.messages = messageData.messages.filter(m => m.id !== messageId);
                     await DataManager.save('messageBoardData', 'Remove one-time message');
+                    PendantManager.updateReminderAnimation(); // ★ 核心修复：立即更新挂件状态
                     showTopToast("留言已完成并移除", 2000);
                     setTimeout(() => targetCard.remove(), 300);
                 } else {
                     // "每日"提醒或无提醒，标记为完成
                     msg.isCompleted = true;
                     await DataManager.save('messageBoardData', 'Complete message');
+                    PendantManager.updateReminderAnimation(); // ★ 核心修复：立即更新挂件状态
                     // 重新渲染以显示完成状态
                     renderBoard();
                 }
@@ -14855,27 +15102,27 @@ const MessageBoardManager = (() => {
                 resetCardPosition();
             }
 
-} else if (isClick) {
-        // [需求修复] 区分点击链接和点击卡片主体
-        const linkElement = e.target.closest('.message-card-link-info');
-        const messageId = parseInt(targetCard.dataset.messageId, 10);
-        
-        if (linkElement) {
-            // 如果点击的是链接区域
-            const messageData = await DataManager.get('messageBoardData');
-            const msg = messageData.messages.find(m => m.id === messageId);
-            if (msg && msg.linkedProjectHref) {
-                openIframeModal(msg.linkedProjectHref);
+        } else if (isClick) {
+            // [需求修复] 区分点击链接和点击卡片主体
+            const linkElement = e.target.closest('.message-card-link-info');
+            const messageId = parseInt(targetCard.dataset.messageId, 10);
+            
+            if (linkElement) {
+                // 如果点击的是链接区域
+                const messageData = await DataManager.get('messageBoardData');
+                const msg = messageData.messages.find(m => m.id === messageId);
+                if (msg && msg.linkedProjectHref) {
+                    openIframeModal(msg.linkedProjectHref);
+                }
+            } else {
+                // 如果点击的是卡片其他区域，则打开编辑模态框
+                openModal(messageId);
             }
+            // 无论哪种点击，都重置卡片位置
+            resetCardPosition();
         } else {
-            // 如果点击的是卡片其他区域，则打开编辑模态框
-            openModal(messageId);
+            resetCardPosition();
         }
-        // 无论哪种点击，都重置卡片位置
-        resetCardPosition();
-    } else {
-        resetCardPosition();
-    }
 
         
         function resetCardPosition() {
@@ -14892,7 +15139,6 @@ const MessageBoardManager = (() => {
         startX = 0;
         currentX = 0;
     }
-
 
     function populateProjectSelector() {
         const select = ui.linkProjectSelect;
@@ -15006,6 +15252,7 @@ const MessageBoardManager = (() => {
         }
 
         await DataManager.save('messageBoardData', isEditing ? 'Edit message' : 'Add new message');
+        PendantManager.updateReminderAnimation(); // ★ 核心修复：立即更新挂件状态
         ui.modal.classList.remove('show');
         renderBoard();
         showTopToast(isEditing ? '留言已更新' : '留言已添加', 2000);
@@ -15463,10 +15710,8 @@ const CheckInManager = (() => {
         }
     }
 
-    // 初始化函数
     async function init() {
-         // [最终修复] 如果已经初始化过，只更新UI，不重复绑定事件
-         if (isInitialized) {
+        if (isInitialized) {
             await updateTearOffCalendar();
             await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
             return;
@@ -15486,7 +15731,6 @@ const CheckInManager = (() => {
             table: document.getElementById('monthly-calendar-table')
         };
         
-        // [最终修复] 增加对UI元素是否存在的检查
         if (!ui.flipper || !ui.slidableCard || !ui.table) {
             console.warn("签到日历UI元素不完整，CheckInManager 初始化中止。");
             return;
@@ -15498,8 +15742,13 @@ const CheckInManager = (() => {
             ui.table.appendChild(thead);
         }
         
+        // --- 核心修改：重构事件监听逻辑 ---
+
+        // 1. 翻转事件：只监听在日历头部和月历标题上的点击
         ui.header.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
         ui.monthYearEl.addEventListener('click', () => ui.flipper.classList.toggle('flipped'));
+
+        // 2. 月份切换事件：保持不变
         ui.prevMonthBtn.addEventListener('click', () => {
             displayedDate.setMonth(displayedDate.getMonth() - 1);
             renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
@@ -15509,11 +15758,14 @@ const CheckInManager = (() => {
             renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
         });
 
-        let startX = 0, startY = 0, isSliding = false;
-        const slideThreshold = 20;
+        // 3. 拖拽签到逻辑：只监听在可滑动卡片上的 mousedown/touchstart
+        let startX = 0, startY = 0, isDragging = false, hasMoved = false;
+        const dragThreshold = 10; // 移动超过10px才算拖拽
 
         const resetCard = async (shouldCheckIn) => {
-            if (shouldCheckIn) await handleCheckIn();
+            if (shouldCheckIn) {
+                await handleCheckIn();
+            }
             setTimeout(async () => {
                 ui.slidableCard.style.transition = 'none';
                 ui.slidableCard.style.transform = 'translate(0, 0) rotate(0deg)';
@@ -15521,84 +15773,77 @@ const CheckInManager = (() => {
                 await updateTearOffCalendar();
                 setTimeout(() => {
                     ui.slidableCard.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1.2)';
-                    ui.slidableCard.style.pointerEvents = 'auto';
                 }, 50);
             }, 500);
         };
-        const handleSlideStart = (x, y) => { startX = x; startY = y; isSliding = false; };
-        const handleSlideMove = (x, y) => {
-            const deltaX = x - startX, deltaY = y - startY;
-            if (!isSliding && (Math.abs(deltaX) > slideThreshold || Math.abs(deltaY) > slideThreshold)) isSliding = true;
-            if (isSliding) ui.slidableCard.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX / 10}deg)`;
-        };
-        const handleSlideEnd = (x, y) => {
-            if (!isSliding) return;
-            const deltaX = x - startX, deltaY = y - startY;
-            ui.slidableCard.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1.2)';
-            ui.slidableCard.style.transform = `translate(${deltaX * 5}px, ${deltaY * 5}px) rotate(${deltaX > 0 ? 45 : -45}deg)`;
-            ui.slidableCard.style.opacity = '0';
-            ui.slidableCard.style.pointerEvents = 'none';
-            resetCard(true);
-        };
         
-        let moveHandler, endHandler;
-        const startHandler = (e) => {
-            // [核心修复] 如果事件目标是日历头部或月历背面，则完全中止滑动逻辑。
-            if (e.target.closest('.calendar-header') || e.target.closest('.calendar-back')) {
-                return;
-            }
+        const onDragStart = (e) => {
+            // 只有当事件直接发生在 slidableCard 上时才启动拖拽
+             if (e.target.closest('.calendar-header')) return;
 
-            // 阻止默认行为（如页面滚动），确保拖拽的流畅性
-            e.preventDefault();
+            isDragging = true;
+            hasMoved = false;
+            ui.slidableCard.style.transition = 'none';
+            const touch = e.touches ? e.touches[0] : e;
+            startX = touch.clientX;
+            startY = touch.clientY;
 
-            const isTouch = !!e.touches;
-            
-            // 为防止意外的重复绑定，先清理旧的监听器
-            document.removeEventListener('mousemove', moveHandler);
-            document.removeEventListener('mouseup', endHandler);
-            document.body.removeEventListener('touchmove', moveHandler);
-            document.body.removeEventListener('touchend', endHandler);
-
-            // 定义本次拖拽过程中的 move 和 end 处理器
-            moveHandler = (moveEvent) => {
-                const clientX = isTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
-                const clientY = isTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
-                handleSlideMove(clientX, clientY);
-            };
-            endHandler = (endEvent) => {
-                const clientX = isTouch ? endEvent.changedTouches[0].clientX : endEvent.clientX;
-                const clientY = isTouch ? endEvent.changedTouches[0].clientY : endEvent.clientY;
-                handleSlideEnd(clientX, clientY);
-
-                // [核心修复] 拖拽结束后，务必移除全局监听器，避免干扰其他操作
-                document.removeEventListener('mousemove', moveHandler);
-                document.removeEventListener('mouseup', endHandler);
-                document.body.removeEventListener('touchmove', moveHandler);
-                document.body.removeEventListener('touchend', endHandler);
-            };
-
-            // 绑定全局监听器
-            if (isTouch) {
-                document.body.addEventListener('touchmove', moveHandler, { passive: false });
-                document.body.addEventListener('touchend', endHandler, { once: true });
-            } else {
-                document.addEventListener('mousemove', moveHandler);
-                document.addEventListener('mouseup', endHandler, { once: true });
-            }
-            
-            // 记录起始位置
-            handleSlideStart(isTouch ? e.touches[0].clientX : e.clientX, isTouch ? e.touches[0].clientY : e.clientY);
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd, { once: true });
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('touchend', onDragEnd, { once: true });
         };
 
-        // [核心修复] 将滑动监听器精确地绑定到可撕下的卡片上
-        ui.slidableCard.addEventListener('mousedown', startHandler);
-        // [核心修复] 将 passive 设置为 false，以便在 moveHandler 中调用 preventDefault() 防止页面滚动
-        ui.slidableCard.addEventListener('touchstart', startHandler, { passive: false });
+        const onDragMove = (e) => {
+            if (!isDragging) return;
+
+            const touch = e.touches ? e.touches[0] : e;
+            const deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+
+            if (!hasMoved && (Math.abs(deltaX) > dragThreshold || Math.abs(deltaY) > dragThreshold)) {
+                hasMoved = true;
+            }
+            
+            //  [核心修复] 只有当真正开始拖拽移动后，才阻止默认行为
+            if (hasMoved) {
+                e.preventDefault();
+                ui.slidableCard.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX / 15}deg)`;
+            }
+        };
+
+        const onDragEnd = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchmove', onDragMove);
+            document.removeEventListener('touchend', onDragEnd);
+
+            // 只有当确实发生了拖拽移动时，才执行签到和动画
+            if (hasMoved) {
+                const touch = e.changedTouches ? e.changedTouches[0] : e;
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                ui.slidableCard.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1.2)';
+                ui.slidableCard.style.transform = `translate(${deltaX * 3}px, ${deltaY * 3}px) rotate(${deltaX > 0 ? 30 : -30}deg)`;
+                ui.slidableCard.style.opacity = '0';
+                resetCard(true); // 触发签到
+            } else {
+                // 如果只是点击（没有明显移动），则仅恢复卡片位置
+                ui.slidableCard.style.transform = 'translate(0, 0) rotate(0deg)';
+            }
+        };
+
+        ui.slidableCard.addEventListener('mousedown', onDragStart);
+        ui.slidableCard.addEventListener('touchstart', onDragStart, { passive: false });
+        
+        // --- 核心修改结束 ---
 
         await updateTearOffCalendar();
         await renderMonthlyCalendar(displayedDate.getFullYear(), displayedDate.getMonth());
         isInitialized = true;
-    
     }
 
     return { init };
