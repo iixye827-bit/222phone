@@ -4923,13 +4923,13 @@ body.dark-mode .tag-actions-toggle-btn:active {
     transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.4s ease;
     max-height: 0;
     opacity: 0;
-    margin-top: 0;
+    margin-top: -30px; /* [核心修改] 收起时，使用-15px的负外边距来抵消父容器的gap间隙 */
 }
 
 #tag-actions-wrapper.expanded {
     max-height: 60px; /* [修改] 调整为按钮的高度 + padding */
     opacity: 1;
-    margin-top: 0px;
+    margin-top: 1px; /* [核心修改] 展开时，恢复15px的顶部外边距，保持与其他元素的间距 */
 }
 
 #tag-actions-wrapper .tag-action-btn {
