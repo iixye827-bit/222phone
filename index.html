@@ -4941,6 +4941,106 @@ body.dark-mode .tag-actions-toggle-btn:active {
     font-size: 13px; /* [可选] 也可以稍微减小字体大小 */
 }
 /* =============================================================== */
+/* =============================================================== */
+/* ============= [新增] 标签绑定设置栏移动端优化 V1.0 ======= */
+/* =============================================================== */
+
+/* 缩小整个操作栏的上下内边距 */
+#tag-binding-controls {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 8px; /* 减小元素间距 */
+}
+
+/* 缩小下拉选择框的高度和字体 */
+#tag-binding-controls .modal-select {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 14px;
+    /* [核心] 允许其在flex布局中被压缩，但不要过度压缩 */
+    flex-grow: 1;
+    min-width: 120px; /* 保证一个最小的可视宽度 */
+}
+
+/* 缩小按钮的高度和字体 */
+#tag-binding-controls .modal-button {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 14px;
+    /* [核心] 禁止按钮在flex布局中被拉伸或压缩 */
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* =========== [新增] 文件标签功能磨砂玻璃主题适配 V1.0 ========== */
+/* =============================================================== */
+
+/* 1. 适配标签功能折叠/展开按钮 */
+body.theme-glass .tag-actions-toggle-btn,
+body.theme-glass.dark-mode .tag-actions-toggle-btn {
+    /* 继承磨砂玻璃主题下通用按钮的样式 */
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px; /* 保持与容器一致的圆角 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+
+    /* 覆盖从 .tag-action-btn 继承的透明背景和无阴影设置 */
+    background-color: rgba(255, 255, 255, 0.2) !important; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+}
+
+/* 夜间模式下的适配 */
+body.theme-glass.dark-mode .tag-actions-toggle-btn {
+    background-color: rgba(30, 30, 30, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* 2. 适配“按标签查看”模态框中的标签选项按钮 */
+body.theme-glass .filter-tag-option,
+body.theme-glass.dark-mode .filter-tag-option {
+    /* 继承磨砂玻璃主题下通用按钮的样式 */
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    
+    /* 覆盖拟态主题的内外阴影 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+}
+
+/* 夜间模式适配 */
+body.theme-glass.dark-mode .filter-tag-option {
+    background: rgba(30, 30, 30, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 按钮激活/点击时的效果，替换掉拟态的内阴影效果 */
+body.theme-glass .filter-tag-option:active {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    transform: translateY(1px);
+}
+
+/* [V2] 选中状态的样式适配：在磨砂玻璃主题下，通过轻微放大来表示选中 */
+body.theme-glass .filter-tag-option.selected {
+    /* 移除 opacity 和 background-color 改变，保持原样 */
+    transform: scale(1.05); /* 轻微放大 */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1); /* 可以稍微增强阴影，更有“浮起”感 */
+}
+
+
+body.theme-glass.dark-mode .filter-tag-option.selected {
+    background-color: rgba(10, 10, 10, 0.2);
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
