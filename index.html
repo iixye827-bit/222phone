@@ -5042,6 +5042,226 @@ body.theme-glass.dark-mode .filter-tag-option.selected {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 
+
+/* =============================================================== */
+/* ================= [新增] 悬浮球专属样式 v1.0 ================== */
+/* =============================================================== */
+#floating-ball {
+    position: fixed;
+    z-index: 1000;
+    top: 50%; /* 初始垂直位置在屏幕中间 */
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: var(--text-day);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none; /* 防止页面滚动 */
+
+    /* 核心：通过 transition 实现平滑的吸附和形状变化 */
+    transition: left 0.3s ease-out, border-radius 0.3s ease-out;
+}
+
+body.dark-mode #floating-ball {
+    background: rgba(30, 30, 30, 0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-night);
+}
+
+/* 状态 1: 吸附在左侧 (半胶囊) */
+#floating-ball.snap-left {
+    left: 0;
+    /* 通过 border-radius 创建左侧半圆，右侧直角的效果 */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 30px; /* 高度的一半 */
+    border-bottom-right-radius: 30px; /* 高度的一半 */
+    /* 将球体向左移动一半宽度，实现半隐藏效果 */
+    transform: translate(-50%, -50%);
+}
+
+/* 状态 2: 吸附在右侧 (半胶囊) */
+#floating-ball.snap-right {
+    left: 100%;
+    /* 通过 border-radius 创建右侧半圆，左侧直角的效果 */
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+    /* 将球体向右移动一半宽度，实现半隐藏效果 */
+    transform: translate(-50%, -50%);
+}
+
+/* 状态 3: 拖拽中 (圆形) */
+#floating-ball.dragging {
+    border-radius: 50%; /* 变为完美的圆形 */
+    transform: translate(-50%, -50%) scale(1.1); /* 拖动时稍微放大，并保持中心对齐 */
+    cursor: grabbing;
+    transition: none; /* 拖拽时禁用所有过渡动画，确保实时跟随 */
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ============== [新增] 独立悬浮工具球专属样式 v2.0 ============== */
+/* =============================================================== */
+/* V2.0 修复了z-index冲突，优化了定位和动画逻辑，并增加了位置持久化支持 */
+
+#custom-floating-tool {
+    position: fixed;
+    z-index: 1010; /* V2 修复：提升层级，高于大部分弹窗 */
+    width: 50px;   /* V2 优化：设定一个固定的尺寸 */
+    height: 50px;
+    
+    /* V2 优化：使用更可靠的背景和模糊效果，并适配主题 */
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    color: var(--text-day);
+    
+    /* V2 优化：使用 Flexbox 轻松居中图标 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+
+    /* V2 核心：使用独立的 transition 属性，动画更平滑、可控 */
+    transition: left 0.3s ease-out, transform 0.3s ease-out, border-radius 0.3s ease-out;
+}
+
+/* 夜间模式适配 */
+body.dark-mode #custom-floating-tool {
+    background: rgba(30, 30, 30, 0.5);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-night);
+}
+
+/* 拖拽状态：变为圆形并放大 */
+#custom-floating-tool.dragging {
+    border-radius: 50%; /* 变为完美的圆形 */
+    transform: scale(1.1); /* 拖动时稍微放大 */
+    cursor: grabbing;
+    transition: none; /* 拖拽时禁用所有过渡动画，确保实时跟随 */
+}
+
+/* 吸附在左侧的状态：半隐藏的半胶囊形状 */
+#custom-floating-tool.snap-left {
+    left: 0;
+    /* V2 核心：通过 border-radius 创建左侧半圆，右侧直角的效果 */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 25px; /* 高度的一半 */
+    border-bottom-right-radius: 25px; /* 高度的一半 */
+    /* V2 核心：将球体向左移动一半宽度，实现半隐藏效果 */
+    transform: translateX(-50%);
+}
+
+/* 吸附在右侧的状态：半隐藏的半胶囊形状 */
+#custom-floating-tool.snap-right {
+    left: 100%;
+    /* V2 核心：通过 border-radius 创建右侧半圆，左侧直角的效果 */
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    /* V2 核心：将球体向右移动一半宽度，实现半隐藏效果 */
+    transform: translateX(-50%);
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ============= [修正] 功能提示标签样式 V2.0 ============ */
+/* =============================================================== */
+
+/* 解决提示框被遮挡的问题 */
+#addNavModal .modal-content {
+    overflow: visible;
+}
+
+/* 包含文字和提示按钮的容器 (移除了相对定位) */
+.toggle-label-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 文字和按钮之间的间距 */
+}
+
+/* 提示按钮本身 (新增相对定位，作为对齐基准) */
+.info-tooltip-trigger {
+    position: relative; /* 核心修改：让提示框相对于此按钮定位 */
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: help;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a0aec0;
+    transition: color 0.2s;
+    /* 新增：移除浏览器默认的点击轮廓，解决“方形”问题 */
+    outline: none;
+}
+body.dark-mode .info-tooltip-trigger {
+    color: #718096;
+}
+.info-tooltip-trigger:hover,
+.info-tooltip-trigger:focus {
+    color: var(--hold-border);
+}
+/* 提示框主体 */
+.info-tooltip-box {
+    position: absolute;
+    bottom: calc(100% + 8px); /* 优化：减小与按钮的间距 */
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    width: 280px;
+    padding: 12px 15px;
+    background: var(--bg-night-element);
+    color: var(--text-night);
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: left;
+    z-index: 100; /* 核心修改：提高层级，确保在弹窗内显示在最上层 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* [V2 修正] 已移除造成“方形”元素的 ::after 伪元素 */
+
+/* 显示提示框的逻辑 */
+.info-tooltip-trigger:hover + .info-tooltip-box,
+.info-tooltip-trigger:focus + .info-tooltip-box {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+/* =============================================================== */
+/* ========================= [修正结束] ========================== */
+/* =============================================================== */
+
     </style>
 
  <style id="custom-jelly-ball-styles"></style>
@@ -5360,6 +5580,19 @@ body.theme-glass.dark-mode .filter-tag-option.selected {
         <p><strong>QQ交流群:</strong> 563191005</p>
     </div>
         <!-- ★ 在这里新增下面的代码块 ★ -->
+        <div class="update-log-entry">
+            <h4>v6.0.1 <span class="update-date">- 2025.11.30</span></h4>
+            <ul>
+                <li><span class="tag new">新功能</span> 相册新增视频上传功能。</li>
+                <li><span class="tag new">新功能</span> “记忆”功能新增数据恢复机制，当数据损坏时可从历史版本一键恢复。</li>
+                <li><span class="tag new">新功能</span> “文件夹”新增文件标签系统，支持添加、管理并按标签筛选文件。</li>
+                <li><span class="tag fix">修复</span> 解决了“挂件中心-签到”日历点击无法正常翻转的问题。</li>
+                <li><span class="tag fix">修复</span> 修复了“备忘录”复制功能无法保留换行和空行格式的Bug。</li>
+                <li><span class="tag fix">修复</span> 修复了“留言板”中的链接在特定情况下无法打开的问题。</li>
+                <li><span class="tag opt">优化</span> “留言板”完成任务的交互体验，状态即时更新，无需等待动画。</li>
+                <li><span class="tag opt">优化</span> 提升了“记忆”模块的加载速度与开启流畅度。</li>
+            </ul>
+        </div>
     <div class="update-log-entry">
     <h4>v6.0.0 <span class="update-date">- 2025.11.16</span></h4>
     <ul>
@@ -5539,7 +5772,7 @@ body.theme-glass.dark-mode .filter-tag-option.selected {
     </div>
     
     <footer class="update-footer">
-        当前版本: v6.0.0
+        当前版本: v6.0.1
     </footer>
 </div>
                     <div id="help-page-3" class="help-page-content">
@@ -5571,7 +5804,24 @@ body.theme-glass.dark-mode .filter-tag-option.selected {
     </div>
     <!-- [新增结束] -->
     
-    <div class="segmented-control two-segments"><input type="radio" id="type-link" name="nav-type" value="link" checked hidden><label for="type-link">外部链接</label><input type="radio" id="type-upload" name="nav-type" value="upload" hidden><label for="type-upload">上传项目</label><div class="slider-indicator"></div></div><div class="form-section"><label for="newButtonCategoryInput">分类名称</label><input type="text" id="newButtonCategoryInput" class="modal-input" placeholder="选择或创建分类" list="category-datalist"><datalist id="category-datalist"></datalist></div><div id="category-management-section" style="display: none;"><button id="deleteCategoryBtn" class="modal-button" style="color:#e53e3e;">删除当前分类</button></div><div class="form-section"><label for="newButtonNameInput">按钮名称</label><input type="text" id="newButtonNameInput" class="modal-input" placeholder="例如: 我的博客"></div><div id="link-section"><div class="form-section"><label for="newButtonUrlInput">网址链接</label><input type="text" id="newButtonUrlInput" class="modal-input" placeholder="https://example.com"></div><div class="toggle-section" style="margin-top: 10px;"><span>在新标签页中打开</span><label class="toggle-switch"><input type="checkbox" id="openExternallyToggle"><span class="slider"></span></label></div></div><div id="upload-section" class="form-section" style="display: none;"><label>选择项目的主HTML文件</label><div class="file-select-wrapper"><input type="file" id="projectHtmlPicker" accept=".html,.htm" style="display: none;"><button id="filePickerBtn" class="modal-button">选择文件</button><span id="file-picker-status" class="status-text">未选择任何文件</span></div><div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;"><p>上传的项目无法编辑链接，如需更新请删除后重新上传。</p></div></div><button id="createNavBtn" class="modal-button">加入新项目</button><div class="status-text" id="upload-status"></div></div></div></div>
+    <div class="segmented-control two-segments"><input type="radio" id="type-link" name="nav-type" value="link" checked hidden><label for="type-link">外部链接</label><input type="radio" id="type-upload" name="nav-type" value="upload" hidden><label for="type-upload">上传项目</label><div class="slider-indicator"></div></div><div class="form-section"><label for="newButtonCategoryInput">分类名称</label><input type="text" id="newButtonCategoryInput" class="modal-input" placeholder="选择或创建分类" list="category-datalist"><datalist id="category-datalist"></datalist></div><div id="category-management-section" style="display: none;"><button id="deleteCategoryBtn" class="modal-button" style="color:#e53e3e;">删除当前分类</button></div><div class="form-section"><label for="newButtonNameInput">按钮名称</label><input type="text" id="newButtonNameInput" class="modal-input" placeholder="例如: 我的博客"></div><div id="link-section"><div class="form-section"><label for="newButtonUrlInput">网址链接</label><input type="text" id="newButtonUrlInput" class="modal-input" placeholder="https://example.com"></div><div class="toggle-section" style="margin-top: 10px;">
+    <!-- [修改] 使用新的包裹容器，将文字和提示按钮组合在一起 -->
+    <div class="toggle-label-wrapper">
+        <span>在新标签页中打开</span>
+        <!-- [新增] 功能提示触发按钮 -->
+        <button class="info-tooltip-trigger" aria-label="查看说明">
+            <svg t="1764002945835" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2916" width="16" height="16" fill="currentColor"><path d="M512 964c-249.24 0-452-202.76-452-452S262.76 60 512 60s452 202.76 452 452-202.76 452-452 452z m0-832c-209.52 0-380 170.48-380 380s170.48 380 380 380 380-170.48 380-380-170.48-380-380-380z" p-id="2917"></path><path d="M512 643.88c-19.88 0-36-16-36-35.88 0-62.64 37.96-119.08 96.72-143.96C611.76 447.52 636 416.84 636 384c0-50.72-55.64-92-124-92S388 333.28 388 384a36 36 0 0 1-72 0c0-90.44 87.92-164 196-164s196 73.56 196 164c0 62.28-41.08 118.36-107.2 146.36-32.08 13.6-52.8 43.96-52.8 77.4 0 19.88-16.12 36.12-36 36.12z" p-id="2918"></path><path d="M512 768m-56 0a56 56 0 1 0 112 0 56 56 0 1 0-112 0Z" p-id="2919"></path></svg>
+        </button>
+        <!-- [新增] 提示框内容 -->
+        <div class="info-tooltip-box">
+            部分网站（尤其是需要登录的网站）出于安全策略，禁止在网页内嵌框架（iframe）中打开。若您遇到白屏或无法登录等问题，请开启此开关。
+        </div>
+    </div>
+    <label class="toggle-switch">
+        <input type="checkbox" id="openExternallyToggle">
+        <span class="slider"></span>
+    </label>
+</div></div><div id="upload-section" class="form-section" style="display: none;"><label>选择项目的主HTML文件</label><div class="file-select-wrapper"><input type="file" id="projectHtmlPicker" accept=".html,.htm" style="display: none;"><button id="filePickerBtn" class="modal-button">选择文件</button><span id="file-picker-status" class="status-text">未选择任何文件</span></div><div class="important-note" style="font-size: 13px; padding: 8px 12px; margin-top: 5px;"><p>上传的项目无法编辑链接，如需更新请删除后重新上传。</p></div></div><button id="createNavBtn" class="modal-button">加入新项目</button><div class="status-text" id="upload-status"></div></div></div></div>
     <div class="modal-overlay" id="settingsModal"><div class="modal-content"><div class="modal-header"><div class="modal-title-group"><span>数据同步</span></div><button class="close-btn" data-modal-id="settingsModal">&times;</button></div><div class="modal-body"><div class="form-section"><label for="githubRepoInput">仓库 (格式: 用户名/仓库名)</label><input type="text" id="githubRepoInput" class="modal-input" placeholder="例如: my-username/JellyfishPhones"></div><div class="form-section"><label for="githubTokenInput">Personal Access Token</label><input type="password" id="githubTokenInput" class="modal-input" placeholder="ghp_xxxxxxxxxx"></div><button id="saveSettingsBtn" class="modal-button">保存配置</button><button id="manualSyncBtn" class="modal-button" style="color:#5a6778; margin-top: 10px;">手动同步与修复</button><!-- [修改] 将"清空所有数据"按钮改为"高级数据清理"，链接到新的选择性清理弹窗 -->
 <div class="nuke-section"><button id="openClearDataModalBtn" class="modal-button" style="color: #e53e3e;">清空所有云端及本地数据</button></div></div></div></div>
     <div class="modal-overlay" id="colorPaletteModal">
@@ -7415,48 +7665,45 @@ document.addEventListener('DOMContentLoaded', () => {
         function _toggleMenu() { const isOpen=ball.classList.toggle('menu-open'); const menuBtns=ball.querySelectorAll('.jelly-menu-btn'); if(isOpen){const rect=wrapper.getBoundingClientRect();const n=menuBtns.length,r=65,m=10;let s,e;const c={x:rect.left+rect.width/2,y:rect.top+rect.height/2};if(c.x<r+m){s=-Math.PI/2;e=Math.PI/2;}else if(c.x>window.innerWidth-r-m){s=Math.PI/2;e=3*Math.PI/2;}else if(c.y<r+m){s=0;e=Math.PI;}else if(c.y>window.innerHeight-r-m){s=Math.PI;e=2*Math.PI;}else{s=-Math.PI/2;e=3*Math.PI/2;} const a=n>1?(e-s)/(n-1):0; menuBtns.forEach((b,i)=>{const t=s+i*a;b.style.setProperty('--transform-end',`translate(${Math.cos(t)*r}px, ${Math.sin(t)*r}px)`);});}}
         function _closeMenu(){ if(ball&&ball.classList.contains('menu-open')) ball.classList.remove('menu-open'); }
         
-        function _onMenuClick(button){
-            if(!button) return;
+        function _onMenuClick(button) {
+            if (!button) return;
             const actionId = button.dataset.actionId;
             const memoryModal = document.getElementById('memoryModal');
-            
-            function openMemoryAndSwitch(viewName) {
-                MemoryApp.open();
-                memoryModal.style.zIndex = '2015'; // Ensure it's above floating windows
-                const closeHandler=()=>{memoryModal.style.zIndex='';memoryModal.querySelector('.close-btn').removeEventListener('click',closeHandler);};
-                memoryModal.querySelector('.close-btn').addEventListener('click',closeHandler,{once:true});
-                memoryModal.querySelector(`[data-action="goto-${viewName}"]`)?.click();
-            }
 
-            switch(actionId) {
-                case 'album': openMemoryAndSwitch('album'); break;
-                case 'memo': openMemoryAndSwitch('memo'); break;
-                case 'folder': openMemoryAndSwitch('cloud'); break;
+            // 不再需要 openMemoryAndSwitch 函数
+
+            switch (actionId) {
+                // 直接调用新的带参数的 MemoryApp.open 方法
+                case 'album':
+                    MemoryApp.open('album');
+                    break;
+                case 'memo':
+                    MemoryApp.open('memo');
+                    break;
+                case 'folder':
+                    MemoryApp.open('cloud');
+                    break;
                 case 'return':
                     if (iframeModal.classList.contains('active')) {
-                        // ★ 新增：在这里同样触发退出提醒
                         BackupReminderManager.triggerOnExitReminder();
                         closeIframeModal();
                     }
                     break;
-                case 'quick_switch': _showQuickSwitchMenu(); break;
-                // ============= [新增] 全屏功能逻辑 =============
+                case 'quick_switch':
+                    _showQuickSwitchMenu();
+                    break;
                 case 'fullscreen':
                     const iframeModalEl = document.getElementById('iframeModal');
                     if (iframeModalEl && iframeModalEl.classList.contains('active')) {
-                        // 目标是当前活动的 iframe
                         const iframeToFullscreen = document.getElementById('iframeContent');
-                        
                         try {
-                            // 尝试调用标准的 Fullscreen API
                             if (iframeToFullscreen.requestFullscreen) {
                                 iframeToFullscreen.requestFullscreen();
-                            } else if (iframeToFullscreen.webkitRequestFullscreen) { // Safari 浏览器前缀
+                            } else if (iframeToFullscreen.webkitRequestFullscreen) {
                                 iframeToFullscreen.webkitRequestFullscreen();
-                            } else if (iframeToFullscreen.msRequestFullscreen) { // IE11 浏览器前缀
+                            } else if (iframeToFullscreen.msRequestFullscreen) {
                                 iframeToFullscreen.msRequestFullscreen();
                             } else {
-                                // 如果浏览器完全不支持，则提示用户
                                 showTopToast('您的浏览器不支持全屏功能。', 2500);
                             }
                         } catch (error) {
@@ -7464,16 +7711,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             showTopToast('全屏请求失败，请稍后再试。', 2500);
                         }
                     } else {
-                        // 如果没有打开项目，则提示用户
                         showTopToast('当前没有可全屏的项目。', 2500);
                     }
                     break;
-                // ============= [新增结束] =============
             }
 
             _closeMenu();
         }
-
 
         function _showQuickSwitchMenu() {
             let existingMenu = document.getElementById('quick-switch-menu-overlay');
@@ -9063,7 +9307,7 @@ async function saveGlobalConfig(commitMessage) {
         }
 
         if (!isCacheAvailable) {
-            navContainer.innerHTML = '<p id="loading-status" style="text-align: center; color: #889;">首次加载，正在从云端初始化配置...</p>';
+            navContainer.innerHTML = '<p id="loading-status" style="text-align: center; color: #889;">正在从云端加载记忆...</p>';
         }
 
         // --- 阶段 2: 异步在后台与云端同步 ---
@@ -12418,44 +12662,46 @@ document.addEventListener('DOMContentLoaded', () => {
         // ============= [ 新增结束 ] =============
 
         return {
-// [修改] 优化加载逻辑，避免白屏
-open: async () => {
-    if (!checkConfig(true)) { 
-        document.getElementById('settingsModal').classList.add('show'); 
-        return; 
-    }
-    
-    ui.modal.classList.add('show');
+            open: async (targetView = null) => { // 新增 targetView 参数，并设默认值为 null
+                if (!checkConfig(true)) {
+                    document.getElementById('settingsModal').classList.add('show');
+                    return;
+                }
+                
+                ui.modal.classList.add('show');
 
-    // [V2 新增] 每次打开时，重置所有内部状态，确保从主页开始
-    if (document.getElementById('global-memo-search-input').style.display !== 'none') {
-        actions['toggle-global-memo-search']();
-    }
-    if (document.getElementById('local-memo-search-input').style.display !== 'none') {
-        actions['toggle-local-memo-search']();
-    }
-    if (state.isMemoManageMode) actions['toggle-memo-manage'](ui.modal.querySelector('[data-action="toggle-memo-manage"]'));
-    if (state.isAlbumManageMode) actions['toggle-album-manage'](ui.modal.querySelector('[data-action="toggle-album-manage"]'));
-    if (state.isNoteManageMode) actions['toggle-note-manage'](ui.modal.querySelector('[data-action="toggle-note-manage"]'));
-    if (state.isPhotoManageMode) actions['toggle-photo-manage'](ui.modal.querySelector('[data-action="toggle-photo-manage"]'));
+                // 只有在数据未加载时才显示加载提示并同步
+                if (memoryCache === null) {
+                    const hubView = document.getElementById('hub-view');
+                    const originalHubContent = hubView.innerHTML;
+                     // 只有在hub-view内部没有加载提示时才添加，避免重复
+                    if (!hubView.querySelector('.empty-list-placeholder')) {
+                        hubView.innerHTML = '<p class="empty-list-placeholder" style="margin-top: 100px; font-size: 16px;">正在从云端加载记忆...</p>';
+                    }
+                    
+                    await syncWithGithub();
 
-    document.getElementById('memory-modal-title').textContent = '记忆';
-    showPage('hub-view');
+                     // 加载完成后恢复 hub-view 的原始内容
+                    hubView.innerHTML = originalHubContent;
+                }
 
-    // [核心修复] 移除缓存判断，强制每次打开都重新加载数据，并显示加载状态
-    const hubView = document.getElementById('hub-view');
-    const originalHubContent = hubView.innerHTML;
-    // 只有在hub-view内部没有加载提示时才添加，避免重复
-    if (!hubView.querySelector('.empty-list-placeholder')) {
-        hubView.innerHTML = '<p class="empty-list-placeholder" style="margin-top: 100px; font-size: 16px;">正在从云端加载记忆模块...</p>';
-    }
-    
-    // 强制重新同步数据
-    await syncWithGithub();
-    
-    // 加载完成后恢复 hub-view 的原始内容
-    hubView.innerHTML = originalHubContent;
-},
+                // 如果有指定目标视图，则直接跳转
+                if (targetView) {
+                    const button = ui.appContainer.querySelector(`[data-action="goto-${targetView}"]`);
+                    if (button) {
+                        button.click();
+                    }
+                } else {
+                    // 否则，重置到主页视图
+                    if (state.isMemoManageMode) actions['toggle-memo-manage'](ui.modal.querySelector('[data-action="toggle-memo-manage"]'));
+                    if (state.isAlbumManageMode) actions['toggle-album-manage'](ui.modal.querySelector('[data-action="toggle-album-manage"]'));
+                    if (document.getElementById('global-memo-search-input').style.display !== 'none') {
+                        actions['toggle-global-memo-search']();
+                    }
+                     document.getElementById('memory-modal-title').textContent = '记忆';
+                    showPage('hub-view');
+                }
+            },
 
             init: () => {
                  photoObserver = new IntersectionObserver((entries, observer) => {
@@ -16213,7 +16459,6 @@ const MessageBoardManager = (() => {
         targetCard.style.opacity = 1 - (diffX / (targetCard.offsetWidth * 0.7));
     }
 
-// (这是替换后的新代码)
     async function handleSwipeEnd(e) {
         if (!isDragging || !targetCard) return;
         isDragging = false;
@@ -16231,21 +16476,35 @@ const MessageBoardManager = (() => {
 
             if (msg) {
                 if (msg.reminder.type === 'once' && msg.reminder.enabled) {
+                    // 对于“仅一次”的提醒，立即播放消失动画并从本地数据移除
                     targetCard.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
                     targetCard.style.transform = `translateX(${targetCard.offsetWidth}px)`;
                     targetCard.style.opacity = '0';
+                    
+                    // 从本地数据模型中过滤掉此消息
                     messageData.messages = messageData.messages.filter(m => m.id !== messageId);
-                    await DataManager.save('messageBoardData', 'Remove one-time message');
+                   
+                    // 异步保存，不等待其完成
+                    DataManager.save('messageBoardData', 'Remove one-time message');
                     PendantManager.updateReminderAnimation();
                     showTopToast("留言已完成并移除", 2000);
+                    
+                    // 动画结束后从DOM中移除元素
                     setTimeout(() => targetCard.remove(), 300);
+
                 } else {
+                    // 对于“每日”提醒，立即在本地标记为完成并重新渲染整个列表
                     msg.isCompleted = true;
-                    await DataManager.save('messageBoardData', 'Complete message');
+                    
+                    // 异步保存，不等待其完成
+                    DataManager.save('messageBoardData', 'Complete message');
                     PendantManager.updateReminderAnimation();
+                    
+                    // 立即重新渲染，UI会瞬间更新
                     renderBoard();
                 }
             } else {
+                // 如果找不到消息，优雅地恢复卡片位置
                 resetCardPosition();
             }
 
@@ -16254,16 +16513,13 @@ const MessageBoardManager = (() => {
             const messageId = parseInt(targetCard.dataset.messageId, 10);
             
             if (linkElement) {
-                // --- [需求 1 实现] ---
                 const messageData = await DataManager.get('messageBoardData');
                 const msg = messageData.messages.find(m => m.id === messageId);
                 if (msg && msg.linkedProjectHref) {
                     const projectConfig = findButtonConfigByHref(msg.linkedProjectHref);
-                    // 检查项目配置是否存在以及 openExternally 是否为 true
                     if (projectConfig && projectConfig.openExternally) {
                         window.open(msg.linkedProjectHref, '_blank', 'noopener,noreferrer');
                     } else {
-                        // 否则，在应用内打开
                         openIframeModal(msg.linkedProjectHref);
                     }
                 }
@@ -16271,7 +16527,6 @@ const MessageBoardManager = (() => {
                 openModal(messageId);
             }
             resetCardPosition();
-            // --- [需求 1 实现结束] ---
         } else {
             resetCardPosition();
         }
@@ -17738,7 +17993,117 @@ const PendantManager = (() => {
     </div>
     <!-- ============= [ 新增结束 ] ============= -->
 <!-- ============= [ 新增结束 ] ============= -->
+
+<!-- =============================================================== -->
+<!-- ================= [新增] 悬浮球 HTML 结构 =================== -->
+<!-- =============================================================== -->
+<div id="floating-ball">✦</div>
+<!-- =============================================================== -->
+<!-- ========================= [新增结束] ========================== -->
+<!-- =============================================================== -->
+
+
 <!-- 将这个 script 标签放在 </body> 之前 -->
 <script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
+
+<!-- =============================================================== -->
+<!-- ================= [新增] 悬浮球 JS 交互逻辑 ================== -->
+<!-- =============================================================== -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ball = document.getElementById('floating-ball');
+    if (!ball) return;
+
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    // --- 辅助函数 ---
+    const snapToEdge = () => {
+        const ballRect = ball.getBoundingClientRect();
+        const screenWidth = window.innerWidth;
+        
+        // 判断球体中心点在哪一侧
+        if (ballRect.left + ballRect.width / 2 < screenWidth / 2) {
+            // 吸附到左侧
+            ball.classList.remove('snap-right');
+            ball.classList.add('snap-left');
+        } else {
+            // 吸附到右侧
+            ball.classList.remove('snap-left');
+            ball.classList.add('snap-right');
+        }
+    };
+
+    // --- 事件处理函数 ---
+    const onDragStart = (e) => {
+        isDragging = true;
+        ball.classList.add('dragging');
+        // 移除吸附状态的类
+        ball.classList.remove('snap-left', 'snap-right');
+
+        // 统一处理触摸和鼠标事件
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+        const rect = ball.getBoundingClientRect();
+        // 计算鼠标/手指在球体内的偏移量
+        offsetX = clientX - rect.left;
+        offsetY = clientY - rect.top;
+
+        // 添加移动和结束事件的监听器
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('touchmove', onDragMove, { passive: false });
+        document.addEventListener('mouseup', onDragEnd, { once: true });
+        document.addEventListener('touchend', onDragEnd, { once: true });
+    };
+
+    const onDragMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault(); // 阻止页面滚动等默认行为
+
+        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+        let newX = clientX - offsetX;
+        let newY = clientY - offsetY;
+
+        // 边界检测，防止球体移出屏幕
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        const ballWidth = ball.offsetWidth;
+        const ballHeight = ball.offsetHeight;
+        
+        newX = Math.max(0, Math.min(newX, screenWidth - ballWidth));
+        newY = Math.max(0, Math.min(newY, screenHeight - ballHeight));
+        
+        // 直接更新 left 和 top
+        ball.style.left = `${newX + ballWidth / 2}px`;
+        ball.style.top = `${newY + ballHeight / 2}px`;
+    };
+
+    const onDragEnd = (e) => {
+        isDragging = false;
+        ball.classList.remove('dragging');
+        
+        snapToEdge(); // 松手时执行吸附
+
+        // 移除监听器
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('touchmove', onDragMove);
+    };
+
+    // --- 初始化 ---
+    // 初始位置吸附在右侧
+    ball.classList.add('snap-right'); 
+    
+    // 绑定开始拖拽的事件
+    ball.addEventListener('mousedown', onDragStart);
+    ball.addEventListener('touchstart', onDragStart, { passive: false });
+});
+</script>
+<!-- =============================================================== -->
+<!-- ========================= [新增结束] ========================== -->
+<!-- =============================================================== -->
+
 </body>
 </html>
