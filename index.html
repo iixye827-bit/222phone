@@ -4975,8 +4975,141 @@ body.dark-mode .tag-actions-toggle-btn:active {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 /* =============================================================== */
+/* ============= [新增] 通行密钥弹窗及层级修复样式 ============= */
+/* =============================================================== */
+#passkey-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000; /* 确保在最顶层 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+#passkey-modal {
+    width: 90%;
+    max-width: 320px;
+    padding: 25px;
+    background: var(--bg-day-element);
+    color: var(--text-day);
+    border-radius: 16px;
+    box-shadow: 12px 12px 24px var(--shadow-dark-day), -12px -12px 24px var(--shadow-light-day);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+body.dark-mode #passkey-modal {
+    background: var(--bg-night-element);
+    color: var(--text-night);
+    box-shadow: 12px 12px 24px var(--shadow-dark-night), -12px -12px 24px var(--shadow-light-night);
+}
+
+#passkey-modal h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+#passkey-modal p {
+    font-size: 14px;
+    color: #889;
+    margin-top: -10px;
+}
+
+#passkey-input {
+    /* 复用现有样式 */
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    text-align: center;
+    background: var(--bg-day-element);
+    color: var(--text-day);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+    transition:all .3s ease;
+    caret-color:var(--hold-border)
+}
+body.dark-mode #passkey-input {
+    background: var(--bg-night-element);
+    color: var(--text-night);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+#passkey-input:focus {
+    outline: none;
+    box-shadow:inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day),0 0 0 2px var(--hold-border);
+}
+body.dark-mode #passkey-input:focus {
+    box-shadow:inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night),0 0 0 2px var(--hold-border);
+}
+
+#passkey-submit {
+    /* 复用现有样式 */
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--hold-border);
+    background: var(--bg-day-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-day),-4px -4px 8px var(--shadow-light-day);
+    transition: all .2s ease;
+}
+body.dark-mode #passkey-submit {
+    background: var(--bg-night-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-night),-4px -4px 8px var(--shadow-light-night);
+}
+#passkey-submit:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day);
+}
+body.dark-mode #passkey-submit:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night);
+}
+
+#passkey-error {
+    color: #e53e3e;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none; /* 默认隐藏 */
+}
+
+/* 错误提示时的晃动动画 */
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+#passkey-modal.shake {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* 修复层级：当弹窗显示时，模糊背景内容 */
+body.passkey-pending > *:not(#passkey-overlay) {
+    filter: blur(5px);
+    pointer-events: none;
+    transition: filter 0.3s ease;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
+
+/* =============================================================== */
 /* =========== [新增] 文件标签功能磨砂玻璃主题适配 V1.0 ========== */
 /* =============================================================== */
+
 
 /* 1. 适配标签功能折叠/展开按钮 */
 body.theme-glass .tag-actions-toggle-btn,
@@ -5190,6 +5323,36 @@ body.dark-mode #custom-floating-tool {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 /* =============================================================== */
+/* =========== [更新] 悬浮球应用层级修复 V1.1 =========== */
+/* =============================================================== */
+
+/* 1. 提升“记忆”主应用窗口的层级，使其高于项目iframe (2000) 和悬浮球本身 (2005) */
+#memoryModal.modal-overlay {
+    z-index: 3000;
+}
+
+/* 2. 提升“记忆”应用内部所有子弹窗的层级，确保它们在主窗口之上 */
+#memoryFolderModal.modal-overlay,
+#memoryPhotoDetailsModal.modal-overlay,
+#movePhotosModal.modal-overlay,
+#moveNotesModal.modal-overlay,
+#memoImportModal.modal-overlay,
+#tagManagementModal.modal-overlay,     /* <-- 新增 */
+#viewByTagModal.modal-overlay          /* <-- 新增 */
+{
+    z-index: 3010; /* 比父窗口(3000)更高 */
+}
+
+/* 3. 提升照片查看器的层级，确保它能覆盖所有内容 */
+#memoryPhotoViewerOverlay {
+    z-index: 5000; /* 保持或设置一个非常高的值 */
+}
+/* =============================================================== */
+/* ========================= [更新结束] ========================== */
+/* =============================================================== */
+
+
+/* =============================================================== */
 /* ============= [修正] 功能提示标签样式 V2.0 ============ */
 /* =============================================================== */
 
@@ -5268,6 +5431,18 @@ body.dark-mode .info-tooltip-trigger {
 
     <!-- [新增] 用于全局字体的样式标签 -->
     <style id="global-font-style"></style>
+    <!-- ============= [新增] 通行密钥弹窗 ============= -->
+    <div id="passkey-overlay">
+        <div id="passkey-modal">
+            <h3>请输入通行密钥</h3>
+            <p>通行密钥每月更新</p>
+            <input type="password" id="passkey-input" placeholder="在此输入密钥" autocomplete="off">
+            <button id="passkey-submit">进入</button>
+            <p id="passkey-error">密钥错误，请重试</p>
+        </div>
+    </div>
+    <!-- ===================== [新增结束] ===================== -->
+
     <!-- 手机模式滑动容器 -->
     <div class="main-wrapper" id="mainWrapper">
         <div class="page-slider" id="pageSlider">
@@ -6761,8 +6936,86 @@ body.dark-mode #floating-jellyfish-ball {
     </div>
     <!-- ============= [ 新增结束 ] ============= -->
        <script>
+    // ============= [新增] 通行密钥验证逻辑 V1.0 =============
+    (function handlePasskeyAuthentication() {
+        // --- 请在这里替换每月密钥 ---
+        const currentPasskeys = [
+            'Fp9xVz2r', 'jK4gA8sL', 'nB6hT1wE', 'gD5pQ7zY', 'zC8vE3uF',
+            'rW7mI2oP', 'tY1sK9bN', 'uE3jH5fA', 'aV4cQ6xZ', 'iO9lP1wE',
+            'kR2sB8nM', 'qL7gT3dV', 'xU6hF4cY', 'oP1iEa5b', 'wM5zK9pV',
+            'vC3jD7fX', 'eG9xV1zR', 'bN4hT6wQ', 'sA2kL8mJ', 'yU8iO6pZ'
+        ];
+        // ------------------------------------
+
+        const overlay = document.getElementById('passkey-overlay');
+        // 确保在执行脚本时弹窗元素已存在
+        if (!overlay) {
+            // 如果DOM还没加载完，就延迟执行
+            document.addEventListener('DOMContentLoaded', handlePasskeyAuthentication);
+            return;
+        }
+
+        const modal = document.getElementById('passkey-modal');
+        const input = document.getElementById('passkey-input');
+        const submitBtn = document.getElementById('passkey-submit');
+        const errorMsg = document.getElementById('passkey-error');
+
+        // 使用 "年-月" 作为唯一标识，例如 "2024-10"
+        const currentMonthIdentifier = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+        const validatedMonth = localStorage.getItem('passkeyValidatedMonth');
+
+        // 检查当月是否已经验证过
+        if (currentMonthIdentifier === validatedMonth) {
+            overlay.style.display = 'none'; // 如果已验证，直接隐藏弹窗
+            return;
+        }
+
+        // 如果未验证，模糊背景内容
+        document.body.classList.add('passkey-pending');
+
+        const validate = () => {
+            const enteredKey = input.value.trim();
+            if (currentPasskeys.includes(enteredKey)) {
+                // 密钥正确
+                localStorage.setItem('passkeyValidatedMonth', currentMonthIdentifier);
+                
+                // 移除模糊并播放弹窗消失动画
+                document.body.classList.remove('passkey-pending');
+                overlay.style.opacity = '0';
+                overlay.addEventListener('transitionend', () => {
+                    overlay.style.display = 'none';
+                }, { once: true });
+
+            } else {
+                // 密钥错误
+                errorMsg.style.display = 'block';
+                modal.classList.add('shake');
+                input.focus();
+
+                setTimeout(() => {
+                    modal.classList.remove('shake');
+                    errorMsg.style.display = 'none';
+                    input.value = '';
+                }, 820);
+            }
+        };
+
+        submitBtn.addEventListener('click', validate);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 防止回车键触发表单提交等默认行为
+                validate();
+            }
+        });
+        
+        // 页面加载完成后立即让输入框获得焦点，方便用户直接输入
+        input.focus();
+    })();
+    // ===================== [新增结束] =====================
+
     // [新增] 字符串哈希函数，用于检测内容变更
     function simpleHash(str) {
+
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
@@ -17991,24 +18244,10 @@ const PendantManager = (() => {
             </div>
         </div>
     </div>
-    <!-- ============= [ 新增结束 ] ============= -->
-<!-- ============= [ 新增结束 ] ============= -->
-
-<!-- =============================================================== -->
-<!-- ================= [新增] 悬浮球 HTML 结构 =================== -->
-<!-- =============================================================== -->
 <div id="floating-ball">✦</div>
-<!-- =============================================================== -->
-<!-- ========================= [新增结束] ========================== -->
-<!-- =============================================================== -->
-
 
 <!-- 将这个 script 标签放在 </body> 之前 -->
 <script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
-
-<!-- =============================================================== -->
-<!-- ================= [新增] 悬浮球 JS 交互逻辑 ================== -->
-<!-- =============================================================== -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const ball = document.getElementById('floating-ball');
@@ -18101,9 +18340,5 @@ document.addEventListener('DOMContentLoaded', () => {
     ball.addEventListener('touchstart', onDragStart, { passive: false });
 });
 </script>
-<!-- =============================================================== -->
-<!-- ========================= [新增结束] ========================== -->
-<!-- =============================================================== -->
-
 </body>
 </html>
