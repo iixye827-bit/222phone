@@ -5422,23 +5422,26 @@ body.dark-mode .info-tooltip-trigger {
         /* ============ [新增] 网页内悬浮球后台保活辉光样式 ============ */
         /* =============================================================== */
         @keyframes breathing-blue-glow-jelly {
-          0% {
-            box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.5);
+          0%, 100% {
+            /* 使用 filter: drop-shadow 为图标本身添加辉光 */
+            filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
           }
           50% {
-            box-shadow: 0 0 16px 6px rgba(59, 130, 246, 0.8);
-          }
-          100% {
-            box-shadow: 0 0 4px 1px rgba(59, 130, 246, 0.5);
+            filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.9));
           }
         }
 
         .jelly-menu-btn.glowing {
-          /* 应用动画，!important 确保覆盖可能存在的其他 box-shadow 效果 */
-          animation: breathing-blue-glow-jelly 2.5s infinite ease-in-out !important;
+          /* 关键：将按钮背景变为透明，移除阴影和边框 */
+          background: transparent !important;
+          box-shadow: none !important;
+          border: none !important;
+          /* 应用新的辉光动画 */
+          animation: breathing-blue-glow-jelly 2.5s infinite ease-in-out;
           /* 提高层级，确保辉光不会被其他按钮遮挡 */
-          z-index: 10;
+          z-index: 10; 
         }
+
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
@@ -7702,6 +7705,25 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTrackedProject = null;
     }
 
+    let isAudioUnlocked = false;
+    function unlockAudioContext(audioElement) {
+        if (isAudioUnlocked || !audioElement) return;
+        const originalVolume = audioElement.volume;
+        audioElement.muted = true;
+        const playPromise = audioElement.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                audioElement.muted = false;
+                audioElement.volume = originalVolume;
+                isAudioUnlocked = true;
+                console.log("Audio context unlocked successfully.");
+            }).catch(error => {
+                console.warn("Audio context unlock failed, will retry on next interaction.", error);
+            });
+        }
+    }
 
     // ===== [START] FLOATING JELLYFISH BALL LOGIC (MODIFIED) =====
     const FloatingBallManager = (() => {
@@ -8872,6 +8894,9 @@ async function saveGlobalConfig(commitMessage) {
 
     function attachButtonListeners(btn) {
         btn.addEventListener('click', async function(e) {
+            // [新增] 首次点击时解锁音频上下文
+            unlockAudioContext(document.getElementById('keep-alive-audio'));
+
             if (isManagementMode) {
                 const href = this.dataset.href;
                 if (!e.target.classList.contains('delete-icon')) {
@@ -8915,6 +8940,7 @@ async function saveGlobalConfig(commitMessage) {
             }
         });
     }
+
 
     function findButtonConfigByHref(href) {
         for (const category of currentConfig.categories) {
