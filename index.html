@@ -759,7 +759,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass.dark-mode #memoryModal #note-editor-view,
         body.theme-glass.dark-mode .management-controls,
         body.theme-glass.dark-mode #returnConfirmationToast {
-            background: rgba(20, 20, 20, 0.25);
+           background: rgba(10, 10, 10, 0.2);
             border-color: rgba(255, 255, 255, 0.1);
         }
 
@@ -769,7 +769,8 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass .segmented-control,
         body.theme-glass .toggle-section,
         body.theme-glass #file-list-container,
-        body.theme-glass .color-input-wrapper {
+        body.theme-glass .color-input-wrapper,
+        body.theme-glass .voice-list-container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -777,16 +778,19 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: none;
         }
+
         body.theme-glass.dark-mode .modal-input,
         body.theme-glass.dark-mode .modal-select,
         body.theme-glass.dark-mode .modal-textarea,
         body.theme-glass.dark-mode .segmented-control,
         body.theme-glass.dark-mode .toggle-section,
         body.theme-glass.dark-mode #file-list-container,
-        body.theme-glass.dark-mode .color-input-wrapper {
+        body.theme-glass.dark-mode .color-input-wrapper,
+        body.theme-glass.dark-mode .voice-list-container {
             background: rgba(10, 10, 10, 0.2);
             border-color: rgba(255, 255, 255, 0.1);
         }
+
 
         body.theme-glass .modal-button {
             background: rgba(255, 255, 255, 0.25);
@@ -813,6 +817,19 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
              background: rgba(200, 200, 200, 0.25);
              border-color: rgba(255, 255, 255, 0.15);
         }
+        /* [新增] 适配语音列表项的磨砂玻璃风格 */
+        body.theme-glass .voice-list-item {
+            background: transparent;
+        }
+        body.theme-glass .voice-list-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        body.theme-glass.dark-mode .voice-list-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ===== [END] FROSTED GLASS THEME ===== */
+
         /* ===== [END] FROSTED GLASS THEME ===== */
 
         /* [新增] 为“已确认”的十六进制代码添加变淡的样式 */
@@ -5750,10 +5767,335 @@ body.dark-mode #custom-tool-inner {
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+/* =============================================================== */
+/* =================== [新增] 语音挂件功能专属样式 ==================== */
+/* =============================================================== */
+.voice-list-container {
+    flex-grow: 1;
+    min-height: 120px;
+    max-height: 250px; /* 限制最大高度，超出则滚动 */
+    overflow-y: auto;
+    border-radius: 12px;
+    padding: 10px;
+    background: var(--bg-day-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+body.dark-mode .voice-list-container {
+    background: var(--bg-night-element);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+
+.voice-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.03);
+    transition: background-color 0.2s;
+}
+.voice-list-item:hover {
+    background: rgba(0,0,0,0.06);
+}
+body.dark-mode .voice-list-item {
+    background: rgba(255,255,255,0.04);
+}
+body.dark-mode .voice-list-item:hover {
+    background: rgba(255,255,255,0.08);
+}
+.voice-list-item .voice-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+.voice-list-item .voice-speaker {
+    font-size: 12px;
+    color: #889;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.voice-list-item .voice-subtitle-preview {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* [新增] 为了确保单行文本也能被正确截断，添加以下两行 */
+    display: block;
+    line-height: 1.4;
+}
+
+.voice-list-item .voice-actions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    line-height: 1;
+    color: #a0aec0;
+    transition: all 0.2s;
+}
+.voice-list-item .voice-actions button:hover {
+    background-color: rgba(0,0,0,0.1);
+    color: var(--text-day);
+}
+body.dark-mode .voice-list-item .voice-actions button:hover {
+    color: var(--text-night);
+}
+.voice-list-item .voice-actions .delete-voice-btn:hover {
+    color: #f56565;
+}
+
+/* 正在播放的语音项的特殊高亮样式 */
+.voice-list-item.playing .voice-speaker {
+    color: var(--hold-border);
+}
+.voice-list-item.playing .voice-actions .play-voice-btn {
+    color: var(--hold-border);
+}
+
+/* 视频转语音的提示信息 */
+.important-note.video-to-audio-note {
+    font-size: 13px;
+    padding: 8px 12px;
+    line-height: 1.6;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+/* =============================================================== */
+/* ================== [新增] 语音挂件功能管理器 V1.0 ================ */
+/* =============================================================== */
+const PendantVoiceManager = (() => {
+    let ui = {};
+    let pendantVoiceData = null; // 用于缓存语音数据
+    let pendingAudioDataUrl = null; // 临时存储待保存的音频数据
+    let currentAudio = null; // 用于控制当前播放的音频
+
+    async function init() {
+        // 获取所有UI元素
+        ui = {
+            modal: document.getElementById('pendant-settings-modal'),
+            voiceListContainer: document.getElementById('voice-list-container'),
+            playOnStartupToggle: document.getElementById('voicePlayOnStartupToggle'),
+            randomPlayToggle: document.getElementById('voiceRandomPlayToggle'),
+            speakerInput: document.getElementById('voice-speaker-input'),
+            subtitleInput: document.getElementById('voice-subtitle-input'),
+            audioPicker: document.getElementById('voice-audio-picker'),
+            uploadAudioBtn: document.getElementById('voice-upload-audio-btn'),
+            audioStatus: document.getElementById('voice-audio-status'),
+            videoPicker: document.getElementById('voice-video-picker'),
+            uploadVideoBtn: document.getElementById('voice-upload-video-btn'),
+            videoStatus: document.getElementById('voice-video-status'),
+            progressContainer: document.getElementById('voice-upload-progress-container'),
+            progressBar: document.getElementById('voice-upload-progress-bar'),
+            cancelBtn: document.getElementById('voice-upload-cancel-btn'),
+            saveBtn: document.getElementById('voice-save-btn'),
+        };
+
+        // 绑定事件
+        ui.uploadAudioBtn.addEventListener('click', () => ui.audioPicker.click());
+        ui.uploadVideoBtn.addEventListener('click', () => ui.videoPicker.click());
+        
+        ui.audioPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'audio'));
+        ui.videoPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'video'));
+
+        ui.saveBtn.addEventListener('click', saveVoice);
+        
+        ui.playOnStartupToggle.addEventListener('change', () => toggleSetting('playOnStartup', ui.playOnStartupToggle.checked));
+        ui.randomPlayToggle.addEventListener('change', () => toggleSetting('randomPlay', ui.randomPlayToggle.checked));
+
+        // 使用事件委托处理列表项的点击
+        ui.voiceListContainer.addEventListener('click', handleListClick);
+
+        // 加载数据并渲染
+        await loadData();
+        renderVoiceList();
+    }
+
+    async function toggleSetting(key, value) {
+        if (!pendantVoiceData) await loadData();
+        pendantVoiceData[key] = value;
+        await DataManager.save('pendantVoiceData', `Update voice setting: ${key}`);
+        showTopToast('设置已保存', 1500);
+    }
+    
+    async function loadData() {
+        pendantVoiceData = await DataManager.get('pendantVoiceData');
+        ui.playOnStartupToggle.checked = pendantVoiceData.playOnStartup;
+        ui.randomPlayToggle.checked = pendantVoiceData.randomPlay;
+    }
+
+    function handleFileSelection(file, type) {
+        if (!file) return;
+
+        const statusEl = type === 'audio' ? ui.audioStatus : ui.videoStatus;
+        statusEl.textContent = `读取中: ${file.name}`;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            pendingAudioDataUrl = e.target.result;
+            statusEl.textContent = `已选择: ${file.name}`;
+            if (type === 'audio') {
+                ui.videoStatus.textContent = '';
+                ui.videoPicker.value = '';
+            } else {
+                ui.audioStatus.textContent = '';
+                ui.audioPicker.value = '';
+            }
+        };
+        reader.onerror = () => {
+             statusEl.textContent = `读取失败!`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function saveVoice() {
+        const speaker = ui.speakerInput.value.trim();
+        const subtitle = ui.subtitleInput.value.trim();
+
+        if (!speaker) {
+            alert('请填写"语音人"！');
+            return;
+        }
+        if (!pendingAudioDataUrl) {
+            alert('请选择一个语音或视频文件！');
+            return;
+        }
+
+        const newVoice = {
+            id: Date.now(),
+            speaker: speaker,
+            subtitle: subtitle,
+            content: pendingAudioDataUrl,
+        };
+
+        pendantVoiceData.voices.push(newVoice);
+        await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
+        
+        // 重置表单
+        ui.speakerInput.value = '';
+        ui.subtitleInput.value = '';
+        ui.audioPicker.value = '';
+        ui.videoPicker.value = '';
+        ui.audioStatus.textContent = '';
+        ui.videoStatus.textContent = '';
+        pendingAudioDataUrl = null;
+
+        renderVoiceList();
+        showTopToast('语音已成功保存！', 2000);
+    }
+
+    function renderVoiceList() {
+        const voices = pendantVoiceData.voices;
+        if (voices.length === 0) {
+            ui.voiceListContainer.innerHTML = '<p class="placeholder-content" style="font-size: 14px;">暂无语音，请在下方添加</p>';
+            return;
+        }
+
+        ui.voiceListContainer.innerHTML = voices.map(voice => `
+            <div class="voice-list-item" data-voice-id="${voice.id}">
+                <div class="voice-info">
+                    <div class="voice-subtitle-preview">${voice.subtitle || '...'}</div>
+                    <div class="voice-speaker">${voice.speaker}</div>
+                </div>
+                <div class="voice-actions">
+                    <button class="play-voice-btn" title="播放">▶</button>
+                    <button class="delete-voice-btn" title="删除">✖</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+
+    async function handleListClick(e) {
+        const playBtn = e.target.closest('.play-voice-btn');
+        const deleteBtn = e.target.closest('.delete-voice-btn');
+        
+        if (playBtn) {
+            const voiceId = parseInt(playBtn.closest('.voice-list-item').dataset.voiceId, 10);
+            playVoiceById(voiceId);
+        } else if (deleteBtn) {
+            const voiceId = parseInt(deleteBtn.closest('.voice-list-item').dataset.voiceId, 10);
+            if (confirm('确定要删除这条语音吗？')) {
+                pendantVoiceData.voices = pendantVoiceData.voices.filter(v => v.id !== voiceId);
+                await DataManager.save('pendantVoiceData', 'Delete voice');
+                renderVoiceList();
+                showTopToast('语音已删除', 1500);
+            }
+        }
+    }
+    
+    function stopCurrentAudio() {
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.src = '';
+            currentAudio = null;
+        }
+        document.querySelectorAll('.voice-list-item.playing').forEach(el => el.classList.remove('playing'));
+    }
+
+    function playVoiceById(id) {
+        stopCurrentAudio();
+        const voice = pendantVoiceData.voices.find(v => v.id === id);
+        if (!voice) return;
+
+        currentAudio = new Audio(voice.content);
+        currentAudio.play().catch(e => console.error("播放语音失败:", e));
+        
+        const listItem = ui.voiceListContainer.querySelector(`[data-voice-id="${id}"]`);
+        if (listItem) {
+            listItem.classList.add('playing');
+            listItem.querySelector('.play-voice-btn').innerHTML = '❚❚';
+        }
+
+        currentAudio.onended = () => {
+            if (listItem) {
+                listItem.classList.remove('playing');
+                listItem.querySelector('.play-voice-btn').innerHTML = '▶';
+            }
+            currentAudio = null;
+        };
+    }
+
+    async function playRandomVoice() {
+        if (!pendantVoiceData) await loadData();
+        const { voices, randomPlay } = pendantVoiceData;
+
+        if (voices.length === 0) return;
+
+        let indexToPlay = 0;
+        if (randomPlay) {
+            indexToPlay = Math.floor(Math.random() * voices.length);
+        }
+        
+        playVoiceById(voices[indexToPlay].id);
+    }
+
+    async function playOnStartup() {
+        if (!pendantVoiceData) await loadData();
+        if (pendantVoiceData.playOnStartup) {
+            playRandomVoice();
+        }
+    }
+
+    return { init, playOnStartup };
+})();
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
- <style id="custom-jelly-ball-styles"></style>
+    <style id="custom-jelly-ball-styles"></style>
+    
+    <!-- [核心修复] 新增 mammoth.js 库，用于解析 .docx 文件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.7.0/mammoth.browser.min.js"></script>
     
  <script>
     // 定义一个函数，用于在字体加载完成后触发动画
@@ -6144,11 +6486,15 @@ body.dark-mode #custom-tool-inner {
     </div>
         <!-- ★ 在这里新增下面的代码块 ★ -->
         <div class="update-log-entry">
-            <h4>v6.0.1 <span class="update-date">- 2025.11.30</span></h4>
+            <h4>v6.1.0 <span class="update-date">- 2025.11.30</span></h4>
             <ul>
+                <li><span class="tag new">新功能</span> 新增开屏动画。</li>
+                <li><span class="tag new">新功能</span> 新增通行密钥，每月于群内更新。</li>
                 <li><span class="tag new">新功能</span> 相册新增视频上传功能。</li>
+                <li><span class="tag new">新功能</span> “网页内悬浮球”增加后台保活功能，目前仅iOS可用。</li>
                 <li><span class="tag new">新功能</span> “记忆”功能新增数据恢复机制，当数据损坏时可从历史版本一键恢复。</li>
                 <li><span class="tag new">新功能</span> “文件夹”新增文件标签系统，支持添加、管理并按标签筛选文件。</li>
+                <li><span class="tag new">新功能</span> 新增“记忆”窗口最小化和悬浮角标。</li>
                 <li><span class="tag fix">修复</span> 解决了“挂件中心-签到”日历点击无法正常翻转的问题。</li>
                 <li><span class="tag fix">修复</span> 修复了“备忘录”复制功能无法保留换行和空行格式的Bug。</li>
                 <li><span class="tag fix">修复</span> 修复了“留言板”中的链接在特定情况下无法打开的问题。</li>
@@ -7457,7 +7803,8 @@ const DataManager = (() => {
     const modulePaths = {
         usageTime: 'stats/usage_time.json',
         checkInData: 'widgets/checkin_data.json',
-        messageBoardData: 'widgets/message_board.json' // 新增此行
+        messageBoardData: 'widgets/message_board.json',
+        pendantVoiceData: 'widgets/voice_data.json' // <-- 新增
     };
 
     // 模块的默认数据结构
@@ -7468,10 +7815,17 @@ const DataManager = (() => {
             background: { type: 'color', value: '#ffffff', blur: 5 },
             reminder: { enabled: false } 
         },
-        messageBoardData: { // 新增此块
+        messageBoardData: {
             messages: [] 
+        },
+        // [新增] 语音挂件的默认数据结构
+        pendantVoiceData: {
+            voices: [], // 存储所有语音对象
+            playOnStartup: false, // 开屏播放开关
+            randomPlay: true // 随机播放开关
         }
     };
+
 
 
     /**
@@ -7542,6 +7896,239 @@ const DataManager = (() => {
 
     return { get, save };
 })();
+
+/* =============================================================== */
+/* ================== [新增] 语音挂件功能管理器 V1.0 ================ */
+/* =============================================================== */
+const PendantVoiceManager = (() => {
+    let ui = {};
+    let pendantVoiceData = null; // 用于缓存语音数据
+    let pendingAudioDataUrl = null; // 临时存储待保存的音频数据
+    let currentAudio = null; // 用于控制当前播放的音频
+
+    async function init() {
+        // 获取所有UI元素
+        ui = {
+            modal: document.getElementById('pendant-settings-modal'),
+            voiceListContainer: document.getElementById('voice-list-container'),
+            playOnStartupToggle: document.getElementById('voicePlayOnStartupToggle'),
+            randomPlayToggle: document.getElementById('voiceRandomPlayToggle'),
+            speakerInput: document.getElementById('voice-speaker-input'),
+            subtitleInput: document.getElementById('voice-subtitle-input'),
+            audioPicker: document.getElementById('voice-audio-picker'),
+            uploadAudioBtn: document.getElementById('voice-upload-audio-btn'),
+            audioStatus: document.getElementById('voice-audio-status'),
+            videoPicker: document.getElementById('voice-video-picker'),
+            uploadVideoBtn: document.getElementById('voice-upload-video-btn'),
+            videoStatus: document.getElementById('voice-video-status'),
+            progressContainer: document.getElementById('voice-upload-progress-container'),
+            progressBar: document.getElementById('voice-upload-progress-bar'),
+            cancelBtn: document.getElementById('voice-upload-cancel-btn'),
+            saveBtn: document.getElementById('voice-save-btn'),
+        };
+
+        // 绑定事件
+        ui.uploadAudioBtn.addEventListener('click', () => ui.audioPicker.click());
+        ui.uploadVideoBtn.addEventListener('click', () => ui.videoPicker.click());
+        
+        ui.audioPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'audio'));
+        ui.videoPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'video'));
+
+        ui.saveBtn.addEventListener('click', saveVoice);
+        
+        ui.playOnStartupToggle.addEventListener('change', () => toggleSetting('playOnStartup', ui.playOnStartupToggle.checked));
+        ui.randomPlayToggle.addEventListener('change', () => toggleSetting('randomPlay', ui.randomPlayToggle.checked));
+
+        // 使用事件委托处理列表项的点击
+        ui.voiceListContainer.addEventListener('click', handleListClick);
+
+        // 加载数据并渲染
+        await loadData();
+        renderVoiceList();
+    }
+
+    async function toggleSetting(key, value) {
+        if (!pendantVoiceData) await loadData();
+        pendantVoiceData[key] = value;
+        await DataManager.save('pendantVoiceData', `Update voice setting: ${key}`);
+        showTopToast('设置已保存', 1500);
+    }
+    
+    async function loadData() {
+        pendantVoiceData = await DataManager.get('pendantVoiceData');
+        ui.playOnStartupToggle.checked = pendantVoiceData.playOnStartup;
+        ui.randomPlayToggle.checked = pendantVoiceData.randomPlay;
+    }
+
+    function handleFileSelection(file, type) {
+        if (!file) return;
+
+        const statusEl = type === 'audio' ? ui.audioStatus : ui.videoStatus;
+        statusEl.textContent = `读取中: ${file.name}`;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            pendingAudioDataUrl = e.target.result;
+            statusEl.textContent = `已选择: ${file.name}`;
+            if (type === 'audio') {
+                ui.videoStatus.textContent = '';
+                ui.videoPicker.value = '';
+            } else {
+                ui.audioStatus.textContent = '';
+                ui.audioPicker.value = '';
+            }
+        };
+        reader.onerror = () => {
+             statusEl.textContent = `读取失败!`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function saveVoice() {
+        const speaker = ui.speakerInput.value.trim();
+        const subtitle = ui.subtitleInput.value.trim();
+
+        if (!speaker) {
+            alert('请填写"语音人"！');
+            return;
+        }
+        if (!pendingAudioDataUrl) {
+            alert('请选择一个语音或视频文件！');
+            return;
+        }
+
+        const newVoice = {
+            id: Date.now(),
+            speaker: speaker,
+            subtitle: subtitle,
+            content: pendingAudioDataUrl,
+        };
+
+        pendantVoiceData.voices.push(newVoice);
+        await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
+        
+        // 重置表单
+        ui.speakerInput.value = '';
+        ui.subtitleInput.value = '';
+        ui.audioPicker.value = '';
+        ui.videoPicker.value = '';
+        ui.audioStatus.textContent = '';
+        ui.videoStatus.textContent = '';
+        pendingAudioDataUrl = null;
+
+        renderVoiceList();
+        showTopToast('语音已成功保存！', 2000);
+    }
+
+    function renderVoiceList() {
+        const voices = pendantVoiceData.voices;
+        if (voices.length === 0) {
+            ui.voiceListContainer.innerHTML = '<p class="placeholder-content" style="font-size: 14px;">暂无语音，请在下方添加</p>';
+            return;
+        }
+
+        ui.voiceListContainer.innerHTML = voices.map(voice => `
+            <div class="voice-list-item" data-voice-id="${voice.id}">
+                <div class="voice-info">
+                    <div class="voice-subtitle-preview">${voice.subtitle || '...'}</div>
+                    <div class="voice-speaker">${voice.speaker}</div>
+                </div>
+                <div class="voice-actions">
+                    <button class="play-voice-btn" title="播放">▶</button>
+                    <button class="delete-voice-btn" title="删除">✖</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+
+    async function handleListClick(e) {
+        const playBtn = e.target.closest('.play-voice-btn');
+        const deleteBtn = e.target.closest('.delete-voice-btn');
+        
+        if (playBtn) {
+            const voiceId = parseInt(playBtn.closest('.voice-list-item').dataset.voiceId, 10);
+            playVoiceById(voiceId);
+        } else if (deleteBtn) {
+            const voiceId = parseInt(deleteBtn.closest('.voice-list-item').dataset.voiceId, 10);
+            if (confirm('确定要删除这条语音吗？')) {
+                pendantVoiceData.voices = pendantVoiceData.voices.filter(v => v.id !== voiceId);
+                await DataManager.save('pendantVoiceData', 'Delete voice');
+                renderVoiceList();
+                showTopToast('语音已删除', 1500);
+            }
+        }
+    }
+    
+    function stopCurrentAudio() {
+        if(currentAudio) {
+            currentAudio.pause();
+            currentAudio.src = '';
+            currentAudio = null;
+        }
+        document.querySelectorAll('.voice-list-item.playing').forEach(el => {
+            el.classList.remove('playing');
+            el.querySelector('.play-voice-btn').innerHTML = '▶';
+        });
+    }
+
+    function playVoiceById(id) {
+        const voice = pendantVoiceData.voices.find(v => v.id === id);
+        if (!voice) return;
+
+        // 如果点击的是正在播放的按钮，则停止播放
+        if (currentAudio && !currentAudio.paused && currentAudio.src === voice.content) {
+            stopCurrentAudio();
+            return;
+        }
+        
+        stopCurrentAudio(); // 停止任何其他正在播放的语音
+
+        currentAudio = new Audio(voice.content);
+        currentAudio.play().catch(e => console.error("播放语音失败:", e));
+        
+        const listItem = ui.voiceListContainer.querySelector(`[data-voice-id="${id}"]`);
+        if (listItem) {
+            listItem.classList.add('playing');
+            listItem.querySelector('.play-voice-btn').innerHTML = '❚❚';
+        }
+
+        currentAudio.onended = () => {
+            if (listItem) {
+                listItem.classList.remove('playing');
+                listItem.querySelector('.play-voice-btn').innerHTML = '▶';
+            }
+            currentAudio = null;
+        };
+    }
+
+    async function playRandomVoice() {
+        if (!pendantVoiceData) await loadData();
+        const { voices, randomPlay } = pendantVoiceData;
+
+        if (voices.length === 0) return;
+
+        let indexToPlay = 0;
+        if (randomPlay) {
+            indexToPlay = Math.floor(Math.random() * voices.length);
+        }
+        
+        playVoiceById(voices[indexToPlay].id);
+    }
+
+    async function playOnStartup() {
+        if (!pendantVoiceData) await loadData();
+        if (pendantVoiceData.playOnStartup) {
+            playRandomVoice();
+        }
+    }
+
+    return { init, playOnStartup };
+})();
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
 
 /**
  * [新增] 一次性数据迁移函数 V1.0
@@ -10104,7 +10691,8 @@ async function saveGlobalConfig(commitMessage) {
             console.log("后台静默加载非核心数据模块...");
             DataManager.get('usageTime');
             DataManager.get('checkInData');
-            DataManager.get('messageBoardData'); // 新增此行
+            DataManager.get('messageBoardData');
+            DataManager.get('pendantVoiceData'); // <-- 新增
 
 
         } catch (error) {
@@ -17157,6 +17745,8 @@ document.addEventListener('DOMContentLoaded', () => {
         PendantManager.init();
         // [V3.0 最终修复] 确保签到管理器在挂件系统之后初始化，保证数据流正确
         CheckInManager.init();
+        PendantVoiceManager.init(); // <-- 新增
+
 
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
@@ -18417,7 +19007,16 @@ if (splashScreen) {
     // 5. 在这里调用隐藏函数。你现有的 `window.addEventListener('load', ...)` 
     //    的末尾是最佳时机，因为它确保了所有初始化脚本都已执行。
     //    我们在这里再加一个短暂的延时，给动态内容一个渲染缓冲，体验更佳。
-    setTimeout(hideSplashScreen, 3500); // 延迟2500毫秒
+
+    // [新增] 在动画开始时尝试播放开屏语音
+    setTimeout(() => {
+        if(typeof PendantVoiceManager !== 'undefined') {
+            PendantVoiceManager.playOnStartup();
+        }
+    }, 500); // 延迟半秒，确保音频有机会加载
+
+    setTimeout(hideSplashScreen, 3500);
+
 
 }
 /* =============================================================== */
@@ -18721,6 +19320,68 @@ if (splashScreen) {
                     </div> -->
                 </div>
             </div>
+
+            <!-- [新增] 页面: 语音功能 -->
+            <div class="widget-hub-page" id="widget-page-voice">
+                <!-- 语音显示框 -->
+                <div class="voice-list-container" id="voice-list-container">
+                    <!-- JS 动态填充语音列表 -->
+                    <p class="placeholder-content" style="font-size: 14px;">暂无语音，请在下方添加</p>
+                </div>
+
+                <!-- 总开关设置 -->
+                <div class="toggle-section" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 12px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span>开屏时播放语音</span>
+                        <label class="toggle-switch"><input type="checkbox" id="voicePlayOnStartupToggle"><span class="slider"></span></label>
+                    </div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span>随机播放</span>
+                        <label class="toggle-switch"><input type="checkbox" id="voiceRandomPlayToggle"><span class="slider"></span></label>
+                    </div>
+                </div>
+
+                <!-- 添加/编辑语音的折叠区域 -->
+                <details open>
+                    <summary>添加/编辑语音</summary>
+                    <div class="details-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        
+
+                        <div class="form-section">
+                            <label for="voice-subtitle-input">留言</label>
+                            <textarea id="voice-subtitle-input" class="modal-textarea" rows="2" placeholder="这段语音的文字内容"></textarea>
+                        </div>
+                        <div class="form-section">
+                            <label for="voice-speaker-input">留言者</label>
+                            <input type="text" id="voice-speaker-input" class="modal-input" placeholder="例如：水母">
+                        </div>
+
+                        
+                        <div class="file-select-wrapper">
+                            <input type="file" id="voice-audio-picker" accept=".mp3,.m4a" style="display: none;">
+                            <button id="voice-upload-audio-btn" class="modal-button">添加语音文件</button>
+                            <span id="voice-audio-status" class="status-text"></span>
+                        </div>
+                        
+                        <div class="file-select-wrapper">
+                            <input type="file" id="voice-video-picker" accept="video/*" style="display: none;">
+                            <button id="voice-upload-video-btn" class="modal-button">视频转语音</button>
+                            <span id="voice-video-status" class="status-text"></span>
+                        </div>
+                       
+
+                        <div id="voice-upload-progress-container" class="progress-container" style="display: none;">
+                            <div class="progress-bar-wrapper">
+                                <div id="voice-upload-progress-bar" class="progress-bar"></div>
+                            </div>
+                            <button id="voice-upload-cancel-btn" title="取消上传">✖</button>
+                        </div>
+                        
+                        <button id="voice-save-btn" class="modal-button primary" style="color: var(--hold-border);">保存语音</button>
+                    </div>
+                </details>
+            </div>
+
             <!-- 页面4: 页面设置 (重构后) -->
             <div class="widget-hub-page" id="widget-page-settings">
 
@@ -18815,7 +19476,6 @@ if (splashScreen) {
                 </details>
             </div>
 
-
         <!-- 全新的胶囊导航栏 -->
         <div id="widget-hub-capsule">
             <button class="capsule-btn active" data-target="widget-page-checkin" data-title="签到">
@@ -18830,8 +19490,13 @@ if (splashScreen) {
                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 48 48"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C8.68629 2 6 4.68629 6 8V40C6 43.3137 8.68629 46 12 46H36C39.3137 46 42 43.3137 42 40V8C42 4.68629 39.3137 2 36 2H12ZM12 8H36V22H12V8ZM36 25H12V28H36V25ZM12 31H36V34H12V31ZM26 37H12V40H26V37Z" fill="#1c1f21"></path> </svg>
                 <span>留言板</span>
             </button>
+            <!-- [新增] 语音功能按钮 -->
+            <button class="capsule-btn" data-target="widget-page-voice" data-title="语音">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 48 48"> <path fill-rule="evenodd" clip-rule="evenodd" d="M44.5 22.8058V36.7697H41.5V26.7336L33.5 28.9154V39.7697H30.5V26.624L44.5 22.8058Z" fill="#1c1f21" data-color="color-2"></path> <path d="M34.6553 6C41.1936 6.00004 46.5 11.3827 46.5 18.0215C46.5 18.8041 46.4157 19.5911 46.2627 20.3799C45.5279 19.8461 44.5896 19.6716 43.7109 19.9111L29.7109 23.7295C28.4058 24.0854 27.5001 25.2712 27.5 26.624V33.0605C24.6087 33.9212 22.5001 36.5987 22.5 39.7695C22.5 41.1623 22.9082 42.4594 23.6094 43.5498C17.8247 40.4299 2.50007 28.7644 2.5 18.0215C2.5 11.3827 7.80196 6.00004 14.3447 6C18.6567 6 21.882 8.74049 24.5 11.8252C27.1224 8.74496 30.3433 6 34.6553 6Z" fill="#1c1f21"></path> <path d="M29.5 43.7697C31.7091 43.7697 33.5 41.9789 33.5 39.7697C33.5 37.5606 31.7091 35.7697 29.5 35.7697C27.2909 35.7697 25.5 37.5606 25.5 39.7697C25.5 41.9789 27.2909 43.7697 29.5 43.7697Z" fill="#1c1f21" data-color="color-2"></path> <path d="M40.5 40.7697C42.7091 40.7697 44.5 38.9789 44.5 36.7697C44.5 34.5606 42.7091 32.7697 40.5 32.7697C38.2909 32.7697 36.5 34.5606 36.5 36.7697C36.5 38.9789 38.2909 40.7697 40.5 40.7697Z" fill="#1c1f21" data-color="color-2"></path> </svg>
+                <span>语音</span>
+            </button>
             <button class="capsule-btn" data-target="widget-page-settings" data-title="页面设置">
-                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><path d="m23,13.75v-3.5l-2.384-.841c-.176-.583-.407-1.142-.691-1.668l1.091-2.281-2.475-2.475-2.281,1.091c-.527-.284-1.086-.515-1.668-.691l-.841-2.384h-3.5l-.841,2.384c-.583-.176-1.142-.407-1.668-.691l-2.281-1.091-2.475,2.475,1.091,2.281c-.284-.527-.515,1.086-.691,1.668l-2.384.841v3.5l2.384.841c.176.583.407,1.142.691,1.668l-1.091,2.281,2.475,2.475,2.281-1.091c.527.284,1.086.515,1.668-.691l.841,2.384h3.5l.841-2.384c.583-.176,1.142-.407,1.668-.691l2.281,1.091,2.475-2.475-1.091-2.281c.284-.527-.515,1.086.691-1.668l2.384-.841Zm-11,2.25c-2.206,0-4-1.794-4-4s1.794-4,4-4,4,1.794,4,4-1.794,4-4,4Z" fill="#1c1f21"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><path d="m23,13.75v-3.5l-2.384-.841c-.176-.583-.407-1.142-.691-1.668l1.091-2.281-2.475-2.475-2.281,1.091c-.527-.284-1.086-.515-1.668-.691l-.841-2.384h-3.5l-.841,2.384c-.583-.176-1.142-.407-1.668-.691l-2.281-1.091-2.475,2.475,1.091,2.281c-.284-.527-.515,1.086-.691,1.668l-2.384.841v3.5l2.384.841c.176.583.407,1.142.691,1.668l-1.091,2.281,2.475,2.475,2.281-1.091c.527.284,1.086-.515,1.668-.691l.841,2.384h3.5l.841-2.384c.583-.176,1.142-.407,1.668-.691l2.281,1.091,2.475-2.475-1.091-2.281c.284-.527-.515,1.086.691-1.668l2.384-.841Zm-11,2.25c-2.206,0-4-1.794-4-4s1.794-4,4-4,4,1.794,4,4-1.794,4-4,4Z" fill="#1c1f21"></path></svg>
                 <span>设置</span>
             </button>
         </div>
