@@ -7734,6 +7734,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     // ===== [START] FLOATING JELLYFISH BALL LOGIC (MODIFIED) =====
     const FloatingBallManager = (() => {
         let wrapper = null;
@@ -7918,60 +7919,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     _showQuickSwitchMenu();
                     break;
 
-                // [新增] 后台保活逻辑 (V2: 跨平台兼容版)
+                // [新增] 后台保活逻辑
                 case 'keepAlive':
-                    const audio = document.getElementById('keep-alive-audio');
-                    const btn = button; // `button` is the clicked menu item
-
-                    if (!audio || !btn) return;
-
-                    // 检查音频是否已经解锁。如果尚未解锁，则执行解锁流程。
-                    if (!window.isAudioUnlocked) {
-                        // 创建一个临时的、全屏的、半透明的遮罩层
-                        const unlockOverlay = document.createElement('div');
-                        unlockOverlay.style.cssText = `
-                            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-                            background: rgba(0,0,0,0.5); z-index: 9999;
-                            display: flex; align-items: center; justify-content: center;
-                            color: white; font-size: 18px; font-weight: bold; cursor: pointer;
-                            backdrop-filter: blur(5px);
-                        `;
-                        unlockOverlay.textContent = '点击屏幕任意位置以开启后台播放功能';
-                        
-                        // 将遮罩层添加到 iframe 的 body 中
-                        document.body.appendChild(unlockOverlay);
-
-                        // 为遮罩层添加一个一次性的点击事件监听器
-                        unlockOverlay.addEventListener('click', () => {
-                            // 调用之前添加的 unlockAudioContext 函数
-                            unlockAudioContext(audio);
-                            
-                            // 解锁成功后，立即尝试播放
-                            if (audio.paused) {
-                                audio.play().then(() => {
-                                    btn.classList.add('glowing');
-                                }).catch(e => console.error("解锁后播放失败:", e));
-                            }
-                            
-                            // 移除遮罩层
-                            unlockOverlay.remove();
-                        }, { once: true });
-
-                    } else {
-                        // 如果音频已解锁，则直接切换播放/暂停状态
-                        if (audio.paused) {
-                            audio.play().then(() => {
-                                btn.classList.add('glowing');
-                            }).catch(e => console.error("切换播放失败:", e));
+                    const keepAliveAudio = document.getElementById('keep-alive-audio');
+                    const keepAliveBtn = button; // `button` 是当前被点击的功能球元素
+                    if (keepAliveAudio && keepAliveBtn) {
+                        if (keepAliveAudio.paused) {
+                            keepAliveAudio.play().then(() => {
+                                keepAliveBtn.classList.add('glowing');
+                            }).catch(error => {
+                                console.error("后台保活音频播放失败:", error);
+                                alert("无法自动播放音频，请与页面进行一次交互后再试。");
+                            });
                         } else {
-                            audio.pause();
-                            btn.classList.remove('glowing');
+                            keepAliveAudio.pause();
+                            keepAliveBtn.classList.remove('glowing');
                         }
                     }
-                    
-                    // 保持菜单打开，以便随时切换状态
-                    return;
-
+                    // 注意：不关闭菜单，以便用户可以随时再次点击来停止
+                    return; // 使用 return 阻止后续的 _closeMenu() 调用
 
                 case 'fullscreen':
                     const iframeModalEl = document.getElementById('iframeModal');
@@ -8985,7 +8951,6 @@ async function saveGlobalConfig(commitMessage) {
         });
     }
 
-
     function findButtonConfigByHref(href) {
         for (const category of currentConfig.categories) {
             const button = category.buttons.find(b => b.href === href);
@@ -9083,7 +9048,7 @@ async function saveGlobalConfig(commitMessage) {
         localStorage.setItem('theme', i?'dark':'light');
         applyAllBackgrounds();
         WanderView.updateTheme();
-        renderLockscreenWidgets(); // 新增：切换主题时重新渲染组件
+        // renderLockscreenWidgets(); // [临时修复] 注释掉此行以解决脚本中断问题
 
         // [新增] 联动Giscus主题
         const giscusFrame = document.querySelector('.giscus-frame');
@@ -9092,6 +9057,7 @@ async function saveGlobalConfig(commitMessage) {
             giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { theme: newTheme } } }, 'https://giscus.app');
         }
     };
+
 
      function setThemeStyle(styleName) {
         const pneumorphismSettings = document.getElementById('pneumorphism-settings');
