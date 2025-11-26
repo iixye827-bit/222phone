@@ -828,7 +828,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         /* ===== [START] FLOATING JELLYFISH BALL STYLES (MODIFIED) ===== */
         .jelly-ball-wrapper { /* MODIFICATION: New wrapper for custom CSS support */
             position: fixed;
-            z-index: 2005;
+            z-index: 3005; /* [核心修复] 将层级提升到记忆模块(3000)之上 */
             width: 42px;
             height: 42px;
             display: flex;
@@ -837,6 +837,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
             transition: opacity 0.3s ease, transform 0.3s ease, left 0.2s ease-out, top 0.2s ease-out;
             pointer-events: none; /* MODIFICATION: Wrapper is non-interactive */
         }
+
         .jelly-ball-wrapper .jelly-ball-glow { /* MODIFICATION: New glow element */
             position: absolute;
             width: 100%;
@@ -1000,9 +1001,10 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         /* ===== [START] FLOATING PROJECT WINDOW STYLES ===== */
         .floating-project-window {
             position: fixed;
-            z-index: 2010;
+            z-index: 3010; /* [层级修复] 提升层级，与记忆模块的子弹窗对齐 */
             width: 350px;
             height: 500px;
+
             background: var(--bg-day-element);
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -2382,13 +2384,28 @@ body.dark-mode .widget-bg-picker-popup .bg-picker-button:hover {
     background-color: rgba(255,255,255,0.15);
 }
 /* =============================================================== */
-/* ========================= [新增结束] ========================== */
-/* =============================================================== */
-/* =============================================================== */
 /* =================== [V2 BUG修复] 弹窗层级修正 =================== */
 /* =============================================================== */
 #jelly-css-help-modal.modal-overlay {
     z-index: 1003; /* 确保高于悬浮球设置弹窗(1002) */
+}
+
+/* [核心修复] 提升“记忆”主应用窗口、子弹窗和照片查看器的层级 */
+#memoryModal.modal-overlay {
+    z-index: 3000; /* 高于项目iframe(2000)和悬浮球(2005) */
+}
+#memoryFolderModal.modal-overlay,
+#memoryPhotoDetailsModal.modal-overlay,
+#movePhotosModal.modal-overlay,
+#moveNotesModal.modal-overlay,
+#memoImportModal.modal-overlay,
+#tagManagementModal.modal-overlay,
+#viewByTagModal.modal-overlay,
+#memoryDataRecoveryModal.modal-overlay {
+    z-index: 3010; /* 比父窗口(3000)更高，确保子弹窗在主窗口之上 */
+}
+#memoryPhotoViewerOverlay {
+    z-index: 5000; /* 保持或设置一个非常高的值，覆盖所有内容 */
 }
 /* =============================================================== */
 /* ========================= [修复结束] ========================== */
@@ -4975,8 +4992,141 @@ body.dark-mode .tag-actions-toggle-btn:active {
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
 /* =============================================================== */
+/* ============= [新增] 通行密钥弹窗及层级修复样式 ============= */
+/* =============================================================== */
+#passkey-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000; /* 确保在最顶层 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+#passkey-modal {
+    width: 90%;
+    max-width: 320px;
+    padding: 25px;
+    background: var(--bg-day-element);
+    color: var(--text-day);
+    border-radius: 16px;
+    box-shadow: 12px 12px 24px var(--shadow-dark-day), -12px -12px 24px var(--shadow-light-day);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+body.dark-mode #passkey-modal {
+    background: var(--bg-night-element);
+    color: var(--text-night);
+    box-shadow: 12px 12px 24px var(--shadow-dark-night), -12px -12px 24px var(--shadow-light-night);
+}
+
+#passkey-modal h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+#passkey-modal p {
+    font-size: 14px;
+    color: #889;
+    margin-top: -10px;
+}
+
+#passkey-input {
+    /* 复用现有样式 */
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    text-align: center;
+    background: var(--bg-day-element);
+    color: var(--text-day);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
+    transition:all .3s ease;
+    caret-color:var(--hold-border)
+}
+body.dark-mode #passkey-input {
+    background: var(--bg-night-element);
+    color: var(--text-night);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
+}
+#passkey-input:focus {
+    outline: none;
+    box-shadow:inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day),0 0 0 2px var(--hold-border);
+}
+body.dark-mode #passkey-input:focus {
+    box-shadow:inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night),0 0 0 2px var(--hold-border);
+}
+
+#passkey-submit {
+    /* 复用现有样式 */
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--hold-border);
+    background: var(--bg-day-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-day),-4px -4px 8px var(--shadow-light-day);
+    transition: all .2s ease;
+}
+body.dark-mode #passkey-submit {
+    background: var(--bg-night-element);
+    box-shadow: 4px 4px 8px var(--shadow-dark-night),-4px -4px 8px var(--shadow-light-night);
+}
+#passkey-submit:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day);
+}
+body.dark-mode #passkey-submit:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night);
+}
+
+#passkey-error {
+    color: #e53e3e;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 5px;
+    display: none; /* 默认隐藏 */
+}
+
+/* 错误提示时的晃动动画 */
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+#passkey-modal.shake {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* 修复层级：当弹窗显示时，模糊背景内容 */
+body.passkey-pending > *:not(#passkey-overlay) {
+    filter: blur(5px);
+    pointer-events: none;
+    transition: filter 0.3s ease;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
+
+/* =============================================================== */
 /* =========== [新增] 文件标签功能磨砂玻璃主题适配 V1.0 ========== */
 /* =============================================================== */
+
 
 /* 1. 适配标签功能折叠/展开按钮 */
 body.theme-glass .tag-actions-toggle-btn,
@@ -5043,152 +5193,182 @@ body.theme-glass.dark-mode .filter-tag-option.selected {
 /* =============================================================== */
 
 
-/* =============================================================== */
-/* ================= [新增] 悬浮球专属样式 v1.0 ================== */
-/* =============================================================== */
-#floating-ball {
-    position: fixed;
-    z-index: 1000;
-    top: 50%; /* 初始垂直位置在屏幕中间 */
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: var(--text-day);
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none; /* 防止页面滚动 */
+    /* =============================================================== */
+    /* ============== [重构] 独立悬浮工具球 V5.1 (最小化功能修复) ============== */
+    /* =============================================================== */
+    const FloatingToolV4 = (() => {
+        const wrapper = document.getElementById('custom-tool-wrapper');
+        const ball = document.getElementById('custom-tool-inner'); // 球本体
+        
+        if (!wrapper || !ball) {
+            console.error("Floating Tool V5: Wrapper or Ball element not found.");
+            return { init: () => {} };
+        }
 
-    /* 核心：通过 transition 实现平滑的吸附和形状变化 */
-    transition: left 0.3s ease-out, border-radius 0.3s ease-out;
-}
+        // [核心修复] 将 minimizedModalState 的存储从 ID 改为元素引用
+        let minimizedModalState = {
+            element: null 
+        };
 
-body.dark-mode #floating-ball {
-    background: rgba(30, 30, 30, 0.5);
-    border-color: rgba(255, 255, 255, 0.15);
-    color: var(--text-night);
-}
+        // 拖拽逻辑保持不变
+        let isDragging = false;
+        let offset = { x: 0, y: 0 };
+        const storageKey = 'floatingToolPosition_v4';
 
-/* 状态 1: 吸附在左侧 (半胶囊) */
-#floating-ball.snap-left {
-    left: 0;
-    /* 通过 border-radius 创建左侧半圆，右侧直角的效果 */
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 30px; /* 高度的一半 */
-    border-bottom-right-radius: 30px; /* 高度的一半 */
-    /* 将球体向左移动一半宽度，实现半隐藏效果 */
-    transform: translate(-50%, -50%);
-}
+        const onDragStart = (e) => {
+            wrapper.classList.remove('snap-left', 'snap-right');
+            wrapper.classList.add('dragging');
+            isDragging = true;
+            const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            const rect = wrapper.getBoundingClientRect();
+            offset.x = clientX - rect.left;
+            offset.y = clientY - rect.top;
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('mouseup', onDragEnd, { once: true });
+            document.addEventListener('touchend', onDragEnd, { once: true });
+        };
 
-/* 状态 2: 吸附在右侧 (半胶囊) */
-#floating-ball.snap-right {
-    left: 100%;
-    /* 通过 border-radius 创建右侧半圆，左侧直角的效果 */
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 30px;
-    border-bottom-left-radius: 30px;
-    /* 将球体向右移动一半宽度，实现半隐藏效果 */
-    transform: translate(-50%, -50%);
-}
+        const onDragMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            let newX = clientX - offset.x;
+            let newY = clientY - offset.y;
+            newX = Math.max(0, Math.min(newX, window.innerWidth - wrapper.offsetWidth));
+            newY = Math.max(0, Math.min(newY, window.innerHeight - wrapper.offsetHeight));
+            wrapper.style.left = `${newX}px`;
+            wrapper.style.top = `${newY}px`;
+        };
 
-/* 状态 3: 拖拽中 (圆形) */
-#floating-ball.dragging {
-    border-radius: 50%; /* 变为完美的圆形 */
-    transform: translate(-50%, -50%) scale(1.1); /* 拖动时稍微放大，并保持中心对齐 */
-    cursor: grabbing;
-    transition: none; /* 拖拽时禁用所有过渡动画，确保实时跟随 */
-}
-/* =============================================================== */
-/* ========================= [新增结束] ========================== */
-/* =============================================================== */
-/* =============================================================== */
-/* ============== [新增] 独立悬浮工具球专属样式 v2.0 ============== */
-/* =============================================================== */
-/* V2.0 修复了z-index冲突，优化了定位和动画逻辑，并增加了位置持久化支持 */
+        const onDragEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            wrapper.classList.remove('dragging');
+            const ballRect = wrapper.getBoundingClientRect();
+            const isLeft = (ballRect.left + ballRect.width / 2) < (window.innerWidth / 2);
+            wrapper.style.left = isLeft ? '0' : '100%';
+            wrapper.classList.add(isLeft ? 'snap-left' : 'snap-right');
+            localStorage.setItem(storageKey, JSON.stringify({
+                side: isLeft ? 'left' : 'right',
+                top: wrapper.style.top
+            }));
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('touchmove', onDragMove);
+        };
 
-#custom-floating-tool {
-    position: fixed;
-    z-index: 1010; /* V2 修复：提升层级，高于大部分弹窗 */
-    width: 50px;   /* V2 优化：设定一个固定的尺寸 */
-    height: 50px;
-    
-    /* V2 优化：使用更可靠的背景和模糊效果，并适配主题 */
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    color: var(--text-day);
-    
-    /* V2 优化：使用 Flexbox 轻松居中图标 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
+        const loadPosition = () => {
+            try {
+                const savedPos = JSON.parse(localStorage.getItem(storageKey));
+                if (savedPos && savedPos.side && savedPos.top) {
+                    wrapper.style.top = savedPos.top;
+                    wrapper.style.left = savedPos.side === 'left' ? '0' : '100%';
+                    wrapper.classList.add(savedPos.side === 'left' ? 'snap-left' : 'snap-right');
+                } else {
+                    wrapper.style.top = '70%';
+                    wrapper.style.left = '100%';
+                    wrapper.classList.add('snap-right');
+                }
+            } catch(e) {
+                wrapper.style.top = '70%';
+                wrapper.style.left = '100%';
+                wrapper.classList.add('snap-right');
+            }
+        };
 
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: none;
+        // ★★★ [核心修复] minimizeModal 函数现在保存元素引用 ★★★
+        const minimizeModal = (modalId) => {
+            const modalElement = document.getElementById(modalId);
+            if (!modalElement) return;
+            
+            minimizedModalState.element = modalElement; // 保存元素本身
+            
+            modalElement.classList.remove('show');
+            wrapper.style.display = 'flex'; // 显示悬浮球
+            showTopToast("已收起到悬浮球", 2000);
+        };
+        
+        // ★★★ [核心修复] restoreModal 函数现在直接使用元素引用 ★★★
+        const restoreModal = () => {
+            // 直接检查状态对象中的 element 是否存在
+            if (!minimizedModalState || !minimizedModalState.element) return;
+            
+            // 直接使用已保存的元素引用，不再需要 document.getElementById
+            minimizedModalState.element.classList.add('show');
+            
+            wrapper.style.display = 'none'; // 隐藏悬浮球
+            minimizedModalState.element = null; // 清空状态
+        };
+        
+        const closeModalCompletely = () => {
+            if (!minimizedModalState) return;
+            wrapper.style.display = 'none';
+            minimizedModalState.element = null;
+        };
 
-    /* V2 核心：使用独立的 transition 属性，动画更平滑、可控 */
-    transition: left 0.3s ease-out, transform 0.3s ease-out, border-radius 0.3s ease-out;
-}
+        const init = () => {
+            // [核心修复] 初始时隐藏悬浮球
+            wrapper.style.display = 'none';
 
-/* 夜间模式适配 */
-body.dark-mode #custom-floating-tool {
-    background: rgba(30, 30, 30, 0.5);
-    border-color: rgba(255, 255, 255, 0.15);
-    color: var(--text-night);
-}
+            let pressTimer = null;
+            let isClickAction = true;
 
-/* 拖拽状态：变为圆形并放大 */
-#custom-floating-tool.dragging {
-    border-radius: 50%; /* 变为完美的圆形 */
-    transform: scale(1.1); /* 拖动时稍微放大 */
-    cursor: grabbing;
-    transition: none; /* 拖拽时禁用所有过渡动画，确保实时跟随 */
-}
+            const startAction = (e) => {
+                isClickAction = true;
+                pressTimer = setTimeout(() => {
+                    isClickAction = false;
+                    onDragStart(e);
+                }, 200);
+            };
 
-/* 吸附在左侧的状态：半隐藏的半胶囊形状 */
-#custom-floating-tool.snap-left {
-    left: 0;
-    /* V2 核心：通过 border-radius 创建左侧半圆，右侧直角的效果 */
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 25px; /* 高度的一半 */
-    border-bottom-right-radius: 25px; /* 高度的一半 */
-    /* V2 核心：将球体向左移动一半宽度，实现半隐藏效果 */
-    transform: translateX(-50%);
-}
+            const endAction = (e) => {
+                clearTimeout(pressTimer);
+                if (isClickAction && !isDragging) {
+                    restoreModal(); // 点击时恢复
+                } else {
+                    onDragEnd(e); // 拖拽结束时吸附
+                }
+            };
+            
+            ball.addEventListener('mousedown', startAction);
+            ball.addEventListener('mouseup', endAction);
+            ball.addEventListener('touchstart', startAction, { passive: false });
+            ball.addEventListener('touchend', endAction);
+            
+            // 为 memoryModal 的最小化按钮绑定事件
+            const minimizeBtn = document.querySelector('[data-action="minimize-memory-modal"]');
+            if (minimizeBtn) {
+                minimizeBtn.addEventListener('click', () => minimizeModal('memoryModal'));
+            }
+            
+            // 为 memoryModal 的关闭按钮绑定清理函数
+            const closeBtn = document.querySelector('[data-modal-id="memoryModal"]');
+            if(closeBtn) {
+                closeBtn.addEventListener('click', closeModalCompletely);
+            }
+            
+            // 为 memoryModal 的背景遮罩层也添加关闭清理
+            const memoryModalOverlay = document.getElementById('memoryModal');
+            if(memoryModalOverlay){
+                memoryModalOverlay.addEventListener('click', (e)=>{
+                    if(e.target === memoryModalOverlay) {
+                        closeModalCompletely();
+                    }
+                });
+            }
 
-/* 吸附在右侧的状态：半隐藏的半胶囊形状 */
-#custom-floating-tool.snap-right {
-    left: 100%;
-    /* V2 核心：通过 border-radius 创建右侧半圆，左侧直角的效果 */
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 25px;
-    border-bottom-left-radius: 25px;
-    /* V2 核心：将球体向右移动一半宽度，实现半隐藏效果 */
-    transform: translateX(-50%);
-}
-/* =============================================================== */
-/* ========================= [新增结束] ========================== */
-/* =============================================================== */
+            loadPosition();
+        };
+
+        return { init };
+    })();
+
+    // 初始化新的悬浮工具球
+    FloatingToolV4.init();
+
 /* =============================================================== */
 /* =========== [更新] 悬浮球应用层级修复 V1.1 =========== */
 /* =============================================================== */
@@ -5360,13 +5540,15 @@ body.dark-mode .info-tooltip-trigger {
     animation: moveBlob3 10s infinite alternate;
 }
 
-/* 标题容器 - [修改] 移除容器的动画 */
+/* 标题容器 */
 .splash-title-container {
     position: relative;
     z-index: 2;
     text-align: center;
     color: #4a5568;
     text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+    /* [新增] 通过transform属性将容器整体向上移动 */
+    transform: translateY(-10vh);
 }
 
 /* [新增] 主标题和副标题的通用样式 */
@@ -5454,6 +5636,102 @@ body.dark-mode .info-tooltip-trigger {
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
         /* =============================================================== */
+/* ============== [最终重构] 独立悬浮工具球 V4.0 (已根据新需求修改) ============== */
+/* ================================================================================= */
+
+/* 外部容器：负责定位、移动和形状变化 */
+#custom-tool-wrapper {
+    position: fixed;
+    z-index: 2010;
+    /* 需求1: 尺寸稍微增大 (从50px -> 28px) */
+    width: 28px;
+    height: 28px;
+    /* 事件穿透，交由内部球体处理 */
+    pointer-events: none;
+    /* 容器默认也是 Flex 居中布局 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 为所有可能变化的属性添加平滑过渡 */
+    transition: all 0.3s ease-out;
+}
+
+/* 拖拽时，禁用容器的动画，确保实时跟随 */
+#custom-tool-wrapper.dragging {
+    transition: none;
+}
+
+/* 内部球体：负责外观和交互 */
+#custom-tool-inner {
+    /* 尺寸继承自父容器 */
+    width: 100%;
+    height: 100%;
+    /* 需求2: 半透明背景 */
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    
+    /* 图标颜色改为蓝色 */
+    color: var(--hold-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 图标大小按比例缩小 */
+    font-size: 14px;
+    
+    pointer-events: auto;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    
+    /* 拖拽时的放大效果，有平滑过渡 */
+    transition: transform 0.2s ease, border-radius 0.3s ease-out;
+}
+
+/* 夜间模式 */
+body.dark-mode #custom-tool-inner {
+    background: rgba(30, 30, 30, 0.6);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--hold-border);
+}
+
+/* 拖拽状态：放大球体，改变光标 */
+#custom-tool-wrapper.dragging #custom-tool-inner {
+    transform: scale(1.15);
+    cursor: grabbing;
+}
+
+/* 右侧吸附：变为半胶囊型，图标居中 (优化版) */
+#custom-tool-wrapper.snap-right {
+    width: calc(28px + 12px); /* 容器变长 */
+    transform: translateX(calc(-100% + (28px / 2))); /* 向左移动 (容器宽度-半个球体)，使右边缘贴合屏幕 (动态计算) */
+    justify-content: flex-start; /* 核心：将内部球体推到容器左侧，使其完全可见 */
+}
+
+#custom-tool-wrapper.snap-left #custom-tool-inner {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 14px; /* 右侧保持圆角 */
+    border-bottom-right-radius: 14px;
+}
+
+/* 右侧吸附：变为半胶囊型，图标居中 */
+#custom-tool-wrapper.snap-right {
+    width: 40px; /* 容器变长 */
+    transform: translateX(calc(-100% + 14px)); /* 向左移动 (容器宽度-半个球体)，使右边缘贴合屏幕 */
+    justify-content: flex-start; /* 核心：将内部球体推到容器左侧，使其完全可见 */
+}
+#custom-tool-wrapper.snap-right #custom-tool-inner {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 14px; /* 左侧保持圆角 */
+    border-bottom-left-radius: 14px;
+}
 
     </style>
 
@@ -5472,6 +5750,18 @@ body.dark-mode .info-tooltip-trigger {
         </div>
     </div>
     <!-- ===================== [新增结束] ===================== -->
+    <!-- ============= [新增] 通行密钥弹窗 ============= -->
+    <div id="passkey-overlay">
+        <div id="passkey-modal">
+            <h3>请输入通行密钥</h3>
+            <p>通行密钥每月更新</p>
+            <input type="password" id="passkey-input" placeholder="在此输入密钥" autocomplete="off">
+            <button id="passkey-submit">进入</button>
+            <p id="passkey-error">密钥错误，请重试</p>
+        </div>
+    </div>
+    <!-- ===================== [新增结束] ===================== -->
+
     <!-- 手机模式滑动容器 -->
     <div class="main-wrapper" id="mainWrapper">
         <div class="page-slider" id="pageSlider">
@@ -6394,7 +6684,11 @@ body.dark-mode #floating-jellyfish-ball {
                     <span id="memory-modal-title">记忆</span>
                     <span id="memory-sync-status" style="font-size: 12px; font-weight: normal; margin-left: 8px;"></span>
                 </div>
-                <button class="close-btn" data-modal-id="memoryModal">&times;</button>
+                <!-- [新增] 使用 div 包裹最小化和关闭按钮 -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="close-btn" data-action="minimize-memory-modal" style="font-weight: 900; font-size: 26px; line-height: 1;" title="最小化">－</button>
+                    <button class="close-btn" data-modal-id="memoryModal">&times;</button>
+                </div>
             </div>
             <div class="app-container" id="memoryAppContainer">
                 <!-- HUB / 入口页面 -->
@@ -6965,8 +7259,86 @@ body.dark-mode #floating-jellyfish-ball {
     </div>
     <!-- ============= [ 新增结束 ] ============= -->
        <script>
+    // ============= [新增] 通行密钥验证逻辑 V1.0 =============
+    (function handlePasskeyAuthentication() {
+        // --- 请在这里替换每月密钥 ---
+        const currentPasskeys = [
+            'Fp9xVz2r', 'jK4gA8sL', 'nB6hT1wE', 'gD5pQ7zY', 'zC8vE3uF',
+            'rW7mI2oP', 'tY1sK9bN', 'uE3jH5fA', 'aV4cQ6xZ', 'iO9lP1wE',
+            'kR2sB8nM', 'qL7gT3dV', 'xU6hF4cY', 'oP1iEa5b', 'wM5zK9pV',
+            'vC3jD7fX', 'eG9xV1zR', 'bN4hT6wQ', 'sA2kL8mJ', 'yU8iO6pZ'
+        ];
+        // ------------------------------------
+
+        const overlay = document.getElementById('passkey-overlay');
+        // 确保在执行脚本时弹窗元素已存在
+        if (!overlay) {
+            // 如果DOM还没加载完，就延迟执行
+            document.addEventListener('DOMContentLoaded', handlePasskeyAuthentication);
+            return;
+        }
+
+        const modal = document.getElementById('passkey-modal');
+        const input = document.getElementById('passkey-input');
+        const submitBtn = document.getElementById('passkey-submit');
+        const errorMsg = document.getElementById('passkey-error');
+
+        // 使用 "年-月" 作为唯一标识，例如 "2024-10"
+        const currentMonthIdentifier = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+        const validatedMonth = localStorage.getItem('passkeyValidatedMonth');
+
+        // 检查当月是否已经验证过
+        if (currentMonthIdentifier === validatedMonth) {
+            overlay.style.display = 'none'; // 如果已验证，直接隐藏弹窗
+            return;
+        }
+
+        // 如果未验证，模糊背景内容
+        document.body.classList.add('passkey-pending');
+
+        const validate = () => {
+            const enteredKey = input.value.trim();
+            if (currentPasskeys.includes(enteredKey)) {
+                // 密钥正确
+                localStorage.setItem('passkeyValidatedMonth', currentMonthIdentifier);
+                
+                // 移除模糊并播放弹窗消失动画
+                document.body.classList.remove('passkey-pending');
+                overlay.style.opacity = '0';
+                overlay.addEventListener('transitionend', () => {
+                    overlay.style.display = 'none';
+                }, { once: true });
+
+            } else {
+                // 密钥错误
+                errorMsg.style.display = 'block';
+                modal.classList.add('shake');
+                input.focus();
+
+                setTimeout(() => {
+                    modal.classList.remove('shake');
+                    errorMsg.style.display = 'none';
+                    input.value = '';
+                }, 820);
+            }
+        };
+
+        submitBtn.addEventListener('click', validate);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // 防止回车键触发表单提交等默认行为
+                validate();
+            }
+        });
+        
+        // 页面加载完成后立即让输入框获得焦点，方便用户直接输入
+        input.focus();
+    })();
+    // ===================== [新增结束] =====================
+
     // [新增] 字符串哈希函数，用于检测内容变更
     function simpleHash(str) {
+
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
@@ -9246,13 +9618,53 @@ async function saveGlobalConfig(commitMessage) {
     }
     
     const settingsModalElements = { githubRepoInput: document.getElementById("githubRepoInput"), githubTokenInput: document.getElementById("githubTokenInput"), saveSettingsBtn: document.getElementById("saveSettingsBtn"), manualSyncBtn: document.getElementById('manualSyncBtn') };
-    function setupModals(){document.querySelectorAll(".close-btn").forEach(e=>e.addEventListener("click",()=>{document.getElementById(e.dataset.modalId).classList.remove("show")})),document.querySelectorAll(".modal-overlay").forEach(e=>e.addEventListener("click",t=>e===t.target&&e.classList.remove("show"))),document.getElementById("helpBtn").addEventListener("click", () => {
-    // 切换弹窗和菜单的显示
-    document.getElementById("helpModal").classList.add("show");
-    toggleFabMenu(false);
-})
+    function setupModals() {
+        document.querySelectorAll(".close-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                // [核心修复] 只有当按钮有关联的 modalId 时，才执行通用关闭逻辑
+                if (btn.dataset.modalId) {
+                    const modal = document.getElementById(btn.dataset.modalId);
+                    if (modal) {
+                        modal.classList.remove("show");
+                    }
+                }
+                // 对于没有 modalId 的 close-btn (如最小化按钮)，此通用监听器将不执行任何操作。
+            });
+        });
+        document.querySelectorAll(".modal-overlay").forEach(e => e.addEventListener("click", t => e === t.target && e.classList.remove("show"))), document.getElementById("helpBtn").addEventListener("click", () => {
+            document.getElementById("helpModal").classList.add("show");
+            toggleFabMenu(false);
+        }), document.getElementById("dataSyncBtn").addEventListener("click", () => {
+            GITHUB_CONFIG.owner && GITHUB_CONFIG.repo && (settingsModalElements.githubRepoInput.value = `${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`), settingsModalElements.githubTokenInput.value = GITHUB_CONFIG.token || "", document.getElementById("settingsModal").classList.add("show"), toggleFabMenu(!1)
+        }), document.getElementById("addNavBtn").addEventListener("click", () => {
+            openAddModal();
+            toggleFabMenu(false);
+        }), document.getElementById("colorBtn").addEventListener("click", () => {
+            document.getElementById("colorPaletteModal").classList.add("show");
+            updateColorUI(getCurrentColors());
+            updateBgStatus();
+            toggleFabMenu(false);
+        }), document.getElementById("memoryBtn").addEventListener('click', () => {
+            MemoryApp.open();
+            toggleFabMenu(false);
+        }), document.getElementById('jelly-css-help-modal').querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const textBlock = e.target.parentElement;
+                const textToCopy = textBlock.innerText.replace(e.target.innerText, '').trim();
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    const originalText = e.target.textContent;
+                    e.target.textContent = '已复制!';
+                    setTimeout(() => {
+                        e.target.textContent = originalText;
+                    }, 1500);
+                } catch (err) {
+                    alert('复制失败，请手动复制。');
+                }
+            });
+        });
+    }
 
-,document.getElementById("dataSyncBtn").addEventListener("click",()=>{GITHUB_CONFIG.owner&&GITHUB_CONFIG.repo&&(settingsModalElements.githubRepoInput.value=`${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`),settingsModalElements.githubTokenInput.value=GITHUB_CONFIG.token||"",document.getElementById("settingsModal").classList.add("show"),toggleFabMenu(!1)}),document.getElementById("addNavBtn").addEventListener("click",()=>{openAddModal(); toggleFabMenu(false);}),document.getElementById("colorBtn").addEventListener("click", ()=>{document.getElementById("colorPaletteModal").classList.add("show"); updateColorUI(getCurrentColors()); updateBgStatus(); toggleFabMenu(false);}),document.getElementById("memoryBtn").addEventListener('click', () => { MemoryApp.open(); toggleFabMenu(false); }), document.getElementById('jelly-css-help-modal').querySelectorAll('.copy-btn').forEach(btn => { btn.addEventListener('click', async (e) => { const textBlock = e.target.parentElement; const textToCopy = textBlock.innerText.replace(e.target.innerText, '').trim(); try { await navigator.clipboard.writeText(textToCopy); const originalText = e.target.textContent; e.target.textContent = '已复制!'; setTimeout(() => { e.target.textContent = originalText; }, 1500); } catch (err) { alert('复制失败，请手动复制。'); } }); });}
     function saveGithubConfig(e){localStorage.setItem("githubConfig",JSON.stringify(e)),GITHUB_CONFIG=e}function loadGithubConfig(){const e=localStorage.getItem("githubConfig");e&&(GITHUB_CONFIG=JSON.parse(e))}function checkConfig(e=!0){return!GITHUB_CONFIG.owner||!GITHUB_CONFIG.repo||!GITHUB_CONFIG.token?(e&&alert("请先配置GitHub仓库信息。\n(打开菜单 -> 数据同步)"),!1):!0}
     
     function isObject(item) { return (item && typeof item === 'object' && !Array.isArray(item)); }
@@ -9998,9 +10410,9 @@ function openEditModal(buttonData) {
 }
 
     
-    function openIframeModal(url) { 
-        if (!localStorage.getItem('swipeHintShown')) { swipeHint.classList.add('show'); setTimeout(() => { swipeHint.classList.remove('show'); localStorage.setItem('swipeHintShown', 'true'); }, 4000); } 
-        
+function openIframeModal(url) { 
+    if (!localStorage.getItem('swipeHintShown')) { swipeHint.classList.add('show'); setTimeout(() => { swipeHint.classList.remove('show'); localStorage.setItem('swipeHintShown', 'true'); }, 4000); } 
+   
         // [新增] 开始使用时长计时
         startUsageTracking(url);
 
@@ -16494,6 +16906,182 @@ document.addEventListener('DOMContentLoaded', () => {
         BackupReminderManager.initUI();
         // 2. 再调用 init() 为这些元素绑定事件
         BackupReminderManager.init();
+    /* =============================================================== */
+    /* ============== [重构] 独立悬浮工具球 V5.1 (最小化功能修复) ============== */
+    /* =============================================================== */
+    const FloatingToolV4 = (() => {
+        const wrapper = document.getElementById('custom-tool-wrapper');
+        const ball = document.getElementById('custom-tool-inner'); // 球本体
+        
+        if (!wrapper || !ball) {
+            console.error("Floating Tool V5: Wrapper or Ball element not found.");
+            return { init: () => {} };
+        }
+
+        // [核心修复] 将 minimizedModalState 的存储从 ID 改为元素引用
+        let minimizedModalState = {
+            element: null 
+        };
+
+        // 拖拽逻辑保持不变
+        let isDragging = false;
+        let offset = { x: 0, y: 0 };
+        const storageKey = 'floatingToolPosition_v4';
+
+        const onDragStart = (e) => {
+            wrapper.classList.remove('snap-left', 'snap-right');
+            wrapper.classList.add('dragging');
+            isDragging = true;
+            const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            const rect = wrapper.getBoundingClientRect();
+            offset.x = clientX - rect.left;
+            offset.y = clientY - rect.top;
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('touchmove', onDragMove, { passive: false });
+            document.addEventListener('mouseup', onDragEnd, { once: true });
+            document.addEventListener('touchend', onDragEnd, { once: true });
+        };
+
+        const onDragMove = (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            let newX = clientX - offset.x;
+            let newY = clientY - offset.y;
+            newX = Math.max(0, Math.min(newX, window.innerWidth - wrapper.offsetWidth));
+            newY = Math.max(0, Math.min(newY, window.innerHeight - wrapper.offsetHeight));
+            wrapper.style.left = `${newX}px`;
+            wrapper.style.top = `${newY}px`;
+        };
+
+        const onDragEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            wrapper.classList.remove('dragging');
+            const ballRect = wrapper.getBoundingClientRect();
+            const isLeft = (ballRect.left + ballRect.width / 2) < (window.innerWidth / 2);
+            wrapper.style.left = isLeft ? '0' : '100%';
+            wrapper.classList.add(isLeft ? 'snap-left' : 'snap-right');
+            localStorage.setItem(storageKey, JSON.stringify({
+                side: isLeft ? 'left' : 'right',
+                top: wrapper.style.top
+            }));
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('touchmove', onDragMove);
+        };
+
+        const loadPosition = () => {
+            try {
+                const savedPos = JSON.parse(localStorage.getItem(storageKey));
+                if (savedPos && savedPos.side && savedPos.top) {
+                    wrapper.style.top = savedPos.top;
+                    wrapper.style.left = savedPos.side === 'left' ? '0' : '100%';
+                    wrapper.classList.add(savedPos.side === 'left' ? 'snap-left' : 'snap-right');
+                } else {
+                    wrapper.style.top = '70%';
+                    wrapper.style.left = '100%';
+                    wrapper.classList.add('snap-right');
+                }
+            } catch(e) {
+                wrapper.style.top = '70%';
+                wrapper.style.left = '100%';
+                wrapper.classList.add('snap-right');
+            }
+        };
+
+        // ★★★ [核心修复] minimizeModal 函数现在保存元素引用 ★★★
+        const minimizeModal = (modalId) => {
+            const modalElement = document.getElementById(modalId);
+            if (!modalElement) return;
+            
+            minimizedModalState.element = modalElement; // 保存元素本身
+            
+            modalElement.classList.remove('show');
+            wrapper.style.display = 'flex'; // 显示悬浮球
+            showTopToast("已收起到悬浮球", 2000);
+        };
+        
+        // ★★★ [核心修复] restoreModal 函数现在直接使用元素引用 ★★★
+        const restoreModal = () => {
+            // 直接检查状态对象中的 element 是否存在
+            if (!minimizedModalState || !minimizedModalState.element) return;
+            
+            // 直接使用已保存的元素引用，不再需要 document.getElementById
+            minimizedModalState.element.classList.add('show');
+            
+            wrapper.style.display = 'none'; // 隐藏悬浮球
+            minimizedModalState.element = null; // 清空状态
+        };
+        
+        const closeModalCompletely = () => {
+            if (!minimizedModalState) return;
+            wrapper.style.display = 'none';
+            minimizedModalState.element = null;
+        };
+
+        const init = () => {
+            // [核心修复] 初始时隐藏悬浮球
+            wrapper.style.display = 'none';
+
+            let pressTimer = null;
+            let isClickAction = true;
+
+            const startAction = (e) => {
+                isClickAction = true;
+                pressTimer = setTimeout(() => {
+                    isClickAction = false;
+                    onDragStart(e);
+                }, 200);
+            };
+
+
+            const endAction = (e) => {
+                clearTimeout(pressTimer);
+                if (isClickAction && !isDragging) {
+                    restoreModal(); // 点击时恢复
+                } else {
+                    onDragEnd(e); // 拖拽结束时吸附
+                }
+            };
+            
+            ball.addEventListener('mousedown', startAction);
+            ball.addEventListener('mouseup', endAction);
+            ball.addEventListener('touchstart', startAction, { passive: false });
+            ball.addEventListener('touchend', endAction);
+            
+            // 为 memoryModal 的最小化按钮绑定事件
+            const minimizeBtn = document.querySelector('[data-action="minimize-memory-modal"]');
+            if (minimizeBtn) {
+                minimizeBtn.addEventListener('click', () => minimizeModal('memoryModal'));
+            }
+            
+            // 为 memoryModal 的关闭按钮绑定清理函数
+            const closeBtn = document.querySelector('[data-modal-id="memoryModal"]');
+            if(closeBtn) {
+                closeBtn.addEventListener('click', closeModalCompletely);
+            }
+            
+            // 为 memoryModal 的背景遮罩层也添加关闭清理
+            const memoryModalOverlay = document.getElementById('memoryModal');
+            if(memoryModalOverlay){
+                memoryModalOverlay.addEventListener('click', (e)=>{
+                    if(e.target === memoryModalOverlay) {
+                        closeModalCompletely();
+                    }
+                });
+            }
+
+            loadPosition();
+        };
+
+        return { init };
+    })();
+
+    // 初始化新的悬浮工具球
+    FloatingToolV4.init();
+
         /* =============================================================== */
         /* ==================== [新增] 初始化挂件与签到管理器 ===================== */
         /* =============================================================== */
@@ -18000,6 +18588,9 @@ if (splashScreen) {
             </div>
         </div>
     </div>
+<div id="custom-tool-wrapper">
+  <div id="custom-tool-inner">✦</div>
+</div>
 <!-- ===== [重构] 全新挂件设置悬浮窗 V2.0 ===== -->
 <div class="modal-overlay" id="pendant-settings-modal">
     <div class="modal-content">
@@ -18273,102 +18864,7 @@ if (splashScreen) {
             </div>
         </div>
     </div>
-<div id="floating-ball">✦</div>
 
-<!-- 将这个 script 标签放在 </body> 之前 -->
-<script src="https://unpkg.com/mammoth@1.7.0/mammoth.browser.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const ball = document.getElementById('floating-ball');
-    if (!ball) return;
-
-    let isDragging = false;
-    let offsetX, offsetY;
-
-    // --- 辅助函数 ---
-    const snapToEdge = () => {
-        const ballRect = ball.getBoundingClientRect();
-        const screenWidth = window.innerWidth;
-        
-        // 判断球体中心点在哪一侧
-        if (ballRect.left + ballRect.width / 2 < screenWidth / 2) {
-            // 吸附到左侧
-            ball.classList.remove('snap-right');
-            ball.classList.add('snap-left');
-        } else {
-            // 吸附到右侧
-            ball.classList.remove('snap-left');
-            ball.classList.add('snap-right');
-        }
-    };
-
-    // --- 事件处理函数 ---
-    const onDragStart = (e) => {
-        isDragging = true;
-        ball.classList.add('dragging');
-        // 移除吸附状态的类
-        ball.classList.remove('snap-left', 'snap-right');
-
-        // 统一处理触摸和鼠标事件
-        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-
-        const rect = ball.getBoundingClientRect();
-        // 计算鼠标/手指在球体内的偏移量
-        offsetX = clientX - rect.left;
-        offsetY = clientY - rect.top;
-
-        // 添加移动和结束事件的监听器
-        document.addEventListener('mousemove', onDragMove);
-        document.addEventListener('touchmove', onDragMove, { passive: false });
-        document.addEventListener('mouseup', onDragEnd, { once: true });
-        document.addEventListener('touchend', onDragEnd, { once: true });
-    };
-
-    const onDragMove = (e) => {
-        if (!isDragging) return;
-        e.preventDefault(); // 阻止页面滚动等默认行为
-
-        const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-
-        let newX = clientX - offsetX;
-        let newY = clientY - offsetY;
-
-        // 边界检测，防止球体移出屏幕
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const ballWidth = ball.offsetWidth;
-        const ballHeight = ball.offsetHeight;
-        
-        newX = Math.max(0, Math.min(newX, screenWidth - ballWidth));
-        newY = Math.max(0, Math.min(newY, screenHeight - ballHeight));
-        
-        // 直接更新 left 和 top
-        ball.style.left = `${newX + ballWidth / 2}px`;
-        ball.style.top = `${newY + ballHeight / 2}px`;
-    };
-
-    const onDragEnd = (e) => {
-        isDragging = false;
-        ball.classList.remove('dragging');
-        
-        snapToEdge(); // 松手时执行吸附
-
-        // 移除监听器
-        document.removeEventListener('mousemove', onDragMove);
-        document.removeEventListener('touchmove', onDragMove);
-    };
-
-    // --- 初始化 ---
-    // 初始位置吸附在右侧
-    ball.classList.add('snap-right'); 
-    
-    // 绑定开始拖拽的事件
-    ball.addEventListener('mousedown', onDragStart);
-    ball.addEventListener('touchstart', onDragStart, { passive: false });
-});
-</script>
     <!-- [新增] 用于后台保活的静音音频播放器 -->
     <audio id="keep-alive-audio" src="silence.m4a" loop></audio>
 </body>
