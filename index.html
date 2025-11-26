@@ -5315,7 +5315,6 @@ body.dark-mode .info-tooltip-trigger {
     pointer-events: none; /* 淡出后不再响应鼠标事件 */
 }
 
-/* 创建一个从上到下的白色渐变蒙版，让颜色从下方自然浮现 */
 #splash-screen::before {
     content: '';
     position: absolute;
@@ -5323,81 +5322,91 @@ body.dark-mode .info-tooltip-trigger {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(to bottom, white 40%, rgba(255, 255, 255, 0) 80%);
+    /* [修改] 调整白色渐变蒙版，让颜色区域更靠上 */
+    background: linear-gradient(to bottom, white 30%, rgba(255, 255, 255, 0) 70%);
     z-index: 1; /* 在颜色斑点之上，但在文字之下 */
 }
 
 .gradient-blob {
     position: absolute;
     border-radius: 50%;
-    /* [修改] 减小模糊值，让色块边缘更明显 */
-    filter: blur(80px);
-    /* [修改] 稍微增加不透明度，让颜色更鲜明 */
+    /* [修改] 再次减小模糊值，让色块更清晰 */
+    filter: blur(60px);
     opacity: 0.7;
-    will-change: transform; /* 性能优化：告诉浏览器这个元素会变化 */
+    will-change: transform;
 }
-/* 第一个颜色斑点 */
+
+/* 第一个颜色斑点 - [修改] 尺寸变小 */
 .gradient-blob.blob1 {
-    width: 600px;
-    height: 600px;
-    background-color: #EED0F2; /* 紫色 */
-    /* [修改] 动画时长从25s缩短到12s，加快速度 */
+    width: 450px;
+    height: 450px;
+    background-color: #EED0F2;
     animation: moveBlob1 12s infinite alternate;
 }
-/* 第二个颜色斑点 */
+
+/* 第二个颜色斑点 - [修改] 尺寸变小 */
 .gradient-blob.blob2 {
-    width: 500px;
-    height: 500px;
-    background-color: #9EBAEB; /* 蓝色 */
-    /* [修改] 动画时长从30s缩短到15s，加快速度 */
+    width: 400px;
+    height: 400px;
+    background-color: #9EBAEB;
     animation: moveBlob2 15s infinite alternate;
 }
 
-/* 第三个颜色斑点 */
+/* 第三个颜色斑点 - [修改] 尺寸变小 */
 .gradient-blob.blob3 {
-    width: 450px;
-    height: 450px;
-    background-color: #96DFF5; /* 青色 */
-    /* [修改] 动画时长从20s缩短到10s，加快速度 */
+    width: 350px;
+    height: 350px;
+    background-color: #96DFF5;
     animation: moveBlob3 10s infinite alternate;
 }
 
-/* 标题容器 */
+/* 标题容器 - [修改] 移除容器的动画 */
 .splash-title-container {
     position: relative;
-    z-index: 2; /* 确保标题在白色蒙版之上 */
+    z-index: 2;
     text-align: center;
-    color: #4a5568; /* 深灰色字体，保证可读性 */
-    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5); /* 轻微文字阴影 */
-    opacity: 0;
-    animation: fadeInTitle 1.5s 0.5s ease-out forwards; /* 动画时长从2.5s改为1.5s */
+    color: #4a5568;
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
 }
 
-.splash-title-container h1 {
-    font-size: 56px; /* 从 48px 放大到 56px */
-    font-weight: 700;
+/* [新增] 主标题和副标题的通用样式 */
+.splash-main-title, .splash-subtitle {
+    opacity: 0; /* 初始状态完全透明 */
     margin: 0;
-    transform: translateY(-80px); /* 新增：向上移动 20px */
+    will-change: transform, opacity, filter; /* 性能优化 */
 }
 
-.splash-title-container p {
-    font-size: 22px; /* 从 20px 放大到 22px */
-    margin-top: 8px;
-    transform: translateY(-80px); /* 新增：向上移动 20px */
+/* [新增] 为主标题（中文）设置动画 */
+.splash-main-title {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 8px; /* 调整与副标题的间距 */
+    animation: slideAndFadeIn 1.2s 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
+/* [新增] 为副标题（英文）设置动画 */
+.splash-subtitle {
+    font-size: 20px;
+    /* 延迟时间比主标题长，实现先后出现的效果 */
+    animation: slideAndFadeIn 1.2s 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
 
-/* 定义标题淡入动画 */
-@keyframes fadeInTitle {
-    from {
+/* [新增] 定义全新的标题动画 */
+@keyframes slideAndFadeIn {
+    0% {
         opacity: 0;
-        transform: translateY(20px);
+        /* 从下方20px处开始，放大10%，且带有模糊效果 */
+        transform: translateY(20px) scale(1.1);
+        filter: blur(4px);
     }
-    to {
+    100% {
         opacity: 1;
-        transform: translateY(0);
+        /* 移动到原位，恢复正常大小，模糊消失 */
+        transform: translateY(0) scale(1);
+        filter: blur(0);
     }
 }
+
 
 /* 定义颜色斑点移动动画 - [修改] 增大了位移和旋转范围 */
 @keyframes moveBlob1 {
@@ -5458,8 +5467,8 @@ body.dark-mode .info-tooltip-trigger {
         <div class="gradient-blob blob2"></div>
         <div class="gradient-blob blob3"></div>
         <div class="splash-title-container">
-            <h1>水母岛</h1>
-            <p>Jellyfish Island</p>
+            <h1 class="splash-main-title">水母岛</h1>
+            <p class="splash-subtitle">Jellyfish Island</p>
         </div>
     </div>
     <!-- ===================== [新增结束] ===================== -->
@@ -7909,25 +7918,60 @@ document.addEventListener('DOMContentLoaded', () => {
                     _showQuickSwitchMenu();
                     break;
 
-                // [新增] 后台保活逻辑
+                // [新增] 后台保活逻辑 (V2: 跨平台兼容版)
                 case 'keepAlive':
-                    const keepAliveAudio = document.getElementById('keep-alive-audio');
-                    const keepAliveBtn = button; // `button` 是当前被点击的功能球元素
-                    if (keepAliveAudio && keepAliveBtn) {
-                        if (keepAliveAudio.paused) {
-                            keepAliveAudio.play().then(() => {
-                                keepAliveBtn.classList.add('glowing');
-                            }).catch(error => {
-                                console.error("后台保活音频播放失败:", error);
-                                alert("无法自动播放音频，请与页面进行一次交互后再试。");
-                            });
+                    const audio = document.getElementById('keep-alive-audio');
+                    const btn = button; // `button` is the clicked menu item
+
+                    if (!audio || !btn) return;
+
+                    // 检查音频是否已经解锁。如果尚未解锁，则执行解锁流程。
+                    if (!window.isAudioUnlocked) {
+                        // 创建一个临时的、全屏的、半透明的遮罩层
+                        const unlockOverlay = document.createElement('div');
+                        unlockOverlay.style.cssText = `
+                            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                            background: rgba(0,0,0,0.5); z-index: 9999;
+                            display: flex; align-items: center; justify-content: center;
+                            color: white; font-size: 18px; font-weight: bold; cursor: pointer;
+                            backdrop-filter: blur(5px);
+                        `;
+                        unlockOverlay.textContent = '点击屏幕任意位置以开启后台播放功能';
+                        
+                        // 将遮罩层添加到 iframe 的 body 中
+                        document.body.appendChild(unlockOverlay);
+
+                        // 为遮罩层添加一个一次性的点击事件监听器
+                        unlockOverlay.addEventListener('click', () => {
+                            // 调用之前添加的 unlockAudioContext 函数
+                            unlockAudioContext(audio);
+                            
+                            // 解锁成功后，立即尝试播放
+                            if (audio.paused) {
+                                audio.play().then(() => {
+                                    btn.classList.add('glowing');
+                                }).catch(e => console.error("解锁后播放失败:", e));
+                            }
+                            
+                            // 移除遮罩层
+                            unlockOverlay.remove();
+                        }, { once: true });
+
+                    } else {
+                        // 如果音频已解锁，则直接切换播放/暂停状态
+                        if (audio.paused) {
+                            audio.play().then(() => {
+                                btn.classList.add('glowing');
+                            }).catch(e => console.error("切换播放失败:", e));
                         } else {
-                            keepAliveAudio.pause();
-                            keepAliveBtn.classList.remove('glowing');
+                            audio.pause();
+                            btn.classList.remove('glowing');
                         }
                     }
-                    // 注意：不关闭菜单，以便用户可以随时再次点击来停止
-                    return; // 使用 return 阻止后续的 _closeMenu() 调用
+                    
+                    // 保持菜单打开，以便随时切换状态
+                    return;
+
 
                 case 'fullscreen':
                     const iframeModalEl = document.getElementById('iframeModal');
