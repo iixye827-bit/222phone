@@ -5563,15 +5563,23 @@ body.dark-mode .info-tooltip-trigger {
     font-size: 48px;
     font-weight: 700;
     margin-bottom: 8px; /* 调整与副标题的间距 */
-    animation: slideAndFadeIn 1.2s 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    /* animation: slideAndFadeIn 1.2s 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; */ /* [修改] 移除自动播放的动画 */
 }
 
 /* [新增] 为副标题（英文）设置动画 */
 .splash-subtitle {
     font-size: 20px;
-    /* 延迟时间比主标题长，实现先后出现的效果 */
+    /* animation: slideAndFadeIn 1.2s 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; */ /* [修改] 移除自动播放的动画 */
+}
+
+/* [新增] 将动画效果绑定到 .font-loaded 类上 */
+body.font-loaded .splash-main-title {
+    animation: slideAndFadeIn 1.2s 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+body.font-loaded .splash-subtitle {
     animation: slideAndFadeIn 1.2s 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
+
 
 /* [新增] 定义全新的标题动画 */
 @keyframes slideAndFadeIn {
@@ -5731,13 +5739,75 @@ body.dark-mode #custom-tool-inner {
     border-top-left-radius: 14px; /* 左侧保持圆角 */
     border-bottom-left-radius: 14px;
 }
+/* =============================================================== */
+/* =========== [新增] 开屏动画字体隔离样式 V1.0 ========== */
+/* =============================================================== */
+#splash-screen .splash-main-title,
+#splash-screen .splash-subtitle {
+    /* 使用标准的系统字体栈，并添加 !important 来覆盖全局字体设置 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
+}
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
 
     </style>
 
  <style id="custom-jelly-ball-styles"></style>
+    
+ <script>
+    // 定义一个函数，用于在字体加载完成后触发动画
+    const triggerSplashAnimation = () => {
+        document.body.classList.add('font-loaded');
+        console.log('✅ 字体已就绪，启动开屏动画。');
+    };
 
+    try {
+        const cachedConfigStr = localStorage.getItem('currentConfig');
+        if (cachedConfigStr) {
+            const config = JSON.parse(cachedConfigStr);
+            const fontUrl = config?.settings?.globalFont?.url;
+
+            if (fontUrl) {
+                // 步骤1: 动态创建@font-face规则
+                const FONT_FAMILY_NAME = 'GlobalCustomFont';
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @font-face {
+                        font-family: '${FONT_FAMILY_NAME}';
+                        src: url('${fontUrl}');
+                        font-display: swap;
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // 步骤2: 使用Font Loading API等待字体加载
+                // '1em' 是一个技巧，表示我们关心这个字体的任何字符是否可用
+                document.fonts.load(`1em ${FONT_FAMILY_NAME}`).then(() => {
+                    // 字体加载成功！触发动画
+                    triggerSplashAnimation();
+                }).catch(error => {
+                    // 如果字体加载失败（例如URL无效），也立即触发动画，防止白屏
+                    console.error('自定义字体加载失败:', error);
+                    triggerSplashAnimation();
+                });
+            } else {
+                // 如果没有配置自定义字体，直接触发动画
+                triggerSplashAnimation();
+            }
+        } else {
+            // 如果连本地配置缓存都没有，也直接触发动画
+            triggerSplashAnimation();
+        }
+    } catch (e) {
+        console.error('字体加载&动画同步脚本执行失败:', e);
+        // 发生任何未知错误时，确保动画能播放
+        triggerSplashAnimation();
+    }
+</script>
     <!-- [新增] 用于全局字体的样式标签 -->
     <style id="global-font-style"></style>
+
     <!-- ============= [新增] 弥散渐变开屏动画 ============= -->
     <div id="splash-screen">
         <div class="gradient-blob blob1"></div>
@@ -18347,7 +18417,7 @@ if (splashScreen) {
     // 5. 在这里调用隐藏函数。你现有的 `window.addEventListener('load', ...)` 
     //    的末尾是最佳时机，因为它确保了所有初始化脚本都已执行。
     //    我们在这里再加一个短暂的延时，给动态内容一个渲染缓冲，体验更佳。
-    setTimeout(hideSplashScreen, 3000); // 延迟2500毫秒
+    setTimeout(hideSplashScreen, 3500); // 延迟2500毫秒
 
 }
 /* =============================================================== */
