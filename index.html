@@ -5680,7 +5680,7 @@ body.dark-mode .info-tooltip-trigger {
     align-items: center;
     justify-content: center;
     /* 图标大小按比例缩小 */
-    font-size: 14px;
+    font-size: 20px;
     
     pointer-events: auto;
     cursor: grab;
@@ -5706,13 +5706,12 @@ body.dark-mode #custom-tool-inner {
     cursor: grabbing;
 }
 
-/* 右侧吸附：变为半胶囊型，图标居中 (优化版) */
-#custom-tool-wrapper.snap-right {
-    width: calc(28px + 12px); /* 容器变长 */
-    transform: translateX(calc(-100% + (28px / 2))); /* 向左移动 (容器宽度-半个球体)，使右边缘贴合屏幕 (动态计算) */
-    justify-content: flex-start; /* 核心：将内部球体推到容器左侧，使其完全可见 */
+/* 左侧吸附：变为半胶囊型，图标居中 */
+#custom-tool-wrapper.snap-left {
+    width: 40px; /* 容器变长 (28px球 + 12px直边) */
+    transform: translateX(-14px); /* 向左移出半个球体 (28/2 = 14) */
+    justify-content: flex-end; /* 核心：将内部球体推到容器右侧，使其完全可见 */
 }
-
 #custom-tool-wrapper.snap-left #custom-tool-inner {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
@@ -6686,7 +6685,7 @@ body.dark-mode #floating-jellyfish-ball {
                 </div>
                 <!-- [新增] 使用 div 包裹最小化和关闭按钮 -->
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="close-btn" data-action="minimize-memory-modal" style="font-weight: 900; font-size: 26px; line-height: 1;" title="最小化">－</button>
+                    <button class="close-btn" data-action="minimize-memory-modal" style="font-weight: 900; font-size: 26px; line-height: 1;" title="最小化"><svg t="1764149626872" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3302" width="18" height="18"><path d="M896 548H128a36 36 0 0 1 0-72h768a36 36 0 0 1 0 72z" p-id="3303" fill="currentColor"></path></svg></button>
                     <button class="close-btn" data-modal-id="memoryModal">&times;</button>
                 </div>
             </div>
