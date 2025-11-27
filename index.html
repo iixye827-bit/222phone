@@ -759,7 +759,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass.dark-mode #memoryModal #note-editor-view,
         body.theme-glass.dark-mode .management-controls,
         body.theme-glass.dark-mode #returnConfirmationToast {
-           background: rgba(10, 10, 10, 0.2);
+            background: rgba(20, 20, 20, 0.25);
             border-color: rgba(255, 255, 255, 0.1);
         }
 
@@ -769,8 +769,7 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
         body.theme-glass .segmented-control,
         body.theme-glass .toggle-section,
         body.theme-glass #file-list-container,
-        body.theme-glass .color-input-wrapper,
-        body.theme-glass .voice-list-container {
+        body.theme-glass .color-input-wrapper {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -778,19 +777,16 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: none;
         }
-
         body.theme-glass.dark-mode .modal-input,
         body.theme-glass.dark-mode .modal-select,
         body.theme-glass.dark-mode .modal-textarea,
         body.theme-glass.dark-mode .segmented-control,
         body.theme-glass.dark-mode .toggle-section,
         body.theme-glass.dark-mode #file-list-container,
-        body.theme-glass.dark-mode .color-input-wrapper,
-        body.theme-glass.dark-mode .voice-list-container {
+        body.theme-glass.dark-mode .color-input-wrapper {
             background: rgba(10, 10, 10, 0.2);
             border-color: rgba(255, 255, 255, 0.1);
         }
-
 
         body.theme-glass .modal-button {
             background: rgba(255, 255, 255, 0.25);
@@ -817,19 +813,6 @@ body.dark-mode .folder-item.manage-selected, body.dark-mode .album-item.manage-s
              background: rgba(200, 200, 200, 0.25);
              border-color: rgba(255, 255, 255, 0.15);
         }
-        /* [新增] 适配语音列表项的磨砂玻璃风格 */
-        body.theme-glass .voice-list-item {
-            background: transparent;
-        }
-        body.theme-glass .voice-list-item:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        body.theme-glass.dark-mode .voice-list-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* ===== [END] FROSTED GLASS THEME ===== */
-
         /* ===== [END] FROSTED GLASS THEME ===== */
 
         /* [新增] 为“已确认”的十六进制代码添加变淡的样式 */
@@ -5765,219 +5748,158 @@ body.dark-mode #custom-tool-inner {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
 }
 /* =============================================================== */
-/* ========================= [新增结束] ========================== */
+/* ============= [新增] 开场语音列表项样式 V2.0 =============== */
 /* =============================================================== */
-/* =============================================================== */
-/* =================== [新增] 语音挂件功能专属样式 ==================== */
-/* =============================================================== */
-.voice-list-container {
-    flex-grow: 1;
-    min-height: 120px;
-    max-height: 250px; /* 限制最大高度，超出则滚动 */
-    overflow-y: auto;
-    border-radius: 12px;
-    padding: 10px;
-    background: var(--bg-day-element);
-    box-shadow: inset 4px 4px 8px var(--shadow-dark-day), inset -4px -4px 8px var(--shadow-light-day);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-body.dark-mode .voice-list-container {
-    background: var(--bg-night-element);
-    box-shadow: inset 4px 4px 8px var(--shadow-dark-night), inset -4px -4px 8px var(--shadow-light-night);
-}
-
 .voice-list-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding: 10px 12px;
-    border-radius: 8px;
-    background: rgba(0,0,0,0.03);
-    transition: background-color 0.2s;
+    border-radius: 10px; /* 稍微增大圆角 */
+    transition: all 0.2s;
+    /* [新增] 为磨砂玻璃主题做准备 */
+    border: 1px solid transparent; 
+}
+.voice-list-item:not(:last-child) {
+    border-bottom: 1px solid rgba(128, 128, 128, 0.1);
 }
 .voice-list-item:hover {
-    background: rgba(0,0,0,0.06);
-}
-body.dark-mode .voice-list-item {
-    background: rgba(255,255,255,0.04);
+    background-color: rgba(0,0,0,0.04);
 }
 body.dark-mode .voice-list-item:hover {
-    background: rgba(255,255,255,0.08);
+    background-color: rgba(255,255,255,0.06);
 }
-.voice-list-item .voice-info {
+
+/* [新增] 磨砂玻璃主题下的语音列表项 */
+body.theme-glass .voice-list-item {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+body.theme-glass.dark-mode .voice-list-item {
+    background: rgba(10, 10, 10, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+body.theme-glass .voice-list-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+body.theme-glass.dark-mode .voice-list-item:hover {
+    background: rgba(10, 10, 10, 0.3);
+}
+
+.voice-info {
     flex-grow: 1;
     min-width: 0;
 }
-.voice-list-item .voice-speaker {
+.voice-speaker {
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.voice-filename {
     font-size: 12px;
     color: #889;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-.voice-list-item .voice-subtitle-preview {
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* [新增] 为了确保单行文本也能被正确截断，添加以下两行 */
-    display: block;
-    line-height: 1.4;
+    margin-top: 4px;
 }
 
-.voice-list-item .voice-actions button {
-    background: transparent;
+/* [修改] 统一删除和喜欢按钮的样式 */
+.voice-delete-btn, .voice-favorite-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
     border: none;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px;
     border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    line-height: 1;
-    color: #a0aec0;
+    cursor: pointer;
+    background: transparent;
+    color: #aaa;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s;
 }
-.voice-list-item .voice-actions button:hover {
-    background-color: rgba(0,0,0,0.1);
-    color: var(--text-day);
+.voice-delete-btn:hover {
+    color: #e53e3e;
+    background-color: rgba(229, 62, 62, 0.1);
 }
-body.dark-mode .voice-list-item .voice-actions button:hover {
+
+/* [新增] 喜欢按钮的特定样式 */
+.voice-favorite-btn {
+    font-size: 18px; /* 爱心图标小一点 */
+}
+.voice-favorite-btn:hover {
+    color: #e53e3e;
+    transform: scale(1.1);
+}
+.voice-list-item.favorited .voice-favorite-btn {
+    color: #e53e3e; /* 喜欢后变为红色 */
+    font-weight: bold; /* 加粗，让爱心更明显 */
+}
+
+
+/* [修改] 语音播放按钮样式 (增加磨砂玻璃适配) */
+.voice-play-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg-day-element);
+    box-shadow: 2px 2px 4px var(--shadow-dark-day), -2px -2px 4px var(--shadow-light-day);
+    color: var(--text-day);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+}
+.voice-play-btn:active {
+    box-shadow: inset 1px 1px 2px var(--shadow-dark-day), inset -1px -1px 2px var(--shadow-light-day);
+    transform: scale(0.95);
+}
+body.dark-mode .voice-play-btn {
+    background: var(--bg-night-element);
+    box-shadow: 2px 2px 4px var(--shadow-dark-night), -2px -2px 4px var(--shadow-light-night);
     color: var(--text-night);
 }
-.voice-list-item .voice-actions .delete-voice-btn:hover {
-    color: #f56565;
+body.dark-mode .voice-play-btn:active {
+     box-shadow: inset 1px 1px 2px var(--shadow-dark-night), inset -1px -1px 2px var(--shadow-light-night);
+}
+/* [新增] 磨砂玻璃主题下的播放按钮 */
+body.theme-glass .voice-play-btn,
+body.theme-glass.dark-mode .voice-play-btn {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+body.theme-glass.dark-mode .voice-play-btn {
+    background: rgba(30, 30, 30, 0.4);
+}
+body.theme-glass .voice-play-btn:active {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    transform: translateY(1px) scale(1);
 }
 
-/* 正在播放的语音项的特殊高亮样式 */
-.voice-list-item.playing .voice-speaker {
-    color: var(--hold-border);
+.voice-play-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
 }
-.voice-list-item.playing .voice-actions .play-voice-btn {
+.voice-play-btn.playing {
     color: var(--hold-border);
 }
 
-/* 视频转语音的提示信息 */
-.important-note.video-to-audio-note {
-    font-size: 13px;
-    padding: 8px 12px;
-    line-height: 1.6;
-}
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
-/* =============================================================== */
-/* ================== [新增] 语音挂件功能管理器 V1.0 ================ */
-/* =============================================================== */
-const PendantVoiceManager = (() => {
-    let ui = {};
-    let pendantVoiceData = null; // 用于缓存语音数据
-    let pendingAudioDataUrl = null; // 临时存储待保存的音频数据
-    let currentAudio = null; // 用于控制当前播放的音频
-
-    async function init() {
-        // 获取所有UI元素
-        ui = {
-            modal: document.getElementById('pendant-settings-modal'),
-            voiceListContainer: document.getElementById('voice-list-container'),
-            playOnStartupToggle: document.getElementById('voicePlayOnStartupToggle'),
-            randomPlayToggle: document.getElementById('voiceRandomPlayToggle'),
-            speakerInput: document.getElementById('voice-speaker-input'),
-            subtitleInput: document.getElementById('voice-subtitle-input'),
-            audioPicker: document.getElementById('voice-audio-picker'),
-            uploadAudioBtn: document.getElementById('voice-upload-audio-btn'),
-            audioStatus: document.getElementById('voice-audio-status'),
-            videoPicker: document.getElementById('voice-video-picker'),
-            uploadVideoBtn: document.getElementById('voice-upload-video-btn'),
-            videoStatus: document.getElementById('voice-video-status'),
-            progressContainer: document.getElementById('voice-upload-progress-container'),
-            progressBar: document.getElementById('voice-upload-progress-bar'),
-            cancelBtn: document.getElementById('voice-upload-cancel-btn'),
-            saveBtn: document.getElementById('voice-save-btn'),
-        };
-
-        // 绑定事件
-        ui.uploadAudioBtn.addEventListener('click', () => ui.audioPicker.click());
-        ui.uploadVideoBtn.addEventListener('click', () => ui.videoPicker.click());
-        
-        ui.audioPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'audio'));
-        ui.videoPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'video'));
-
-        ui.saveBtn.addEventListener('click', saveVoice);
-        
-        ui.playOnStartupToggle.addEventListener('change', () => toggleSetting('playOnStartup', ui.playOnStartupToggle.checked));
-        ui.randomPlayToggle.addEventListener('change', () => toggleSetting('randomPlay', ui.randomPlayToggle.checked));
-
-        // 使用事件委托处理列表项的点击
-        ui.voiceListContainer.addEventListener('click', handleListClick);
-
-        // [V2 修复] 加载数据并渲染
-        await loadData();
-        renderSettingsUI(); // 在init中调用，确保UI元素已存在
-        renderVoiceList();
-    }
-
-
-    async function toggleSetting(key, value) {
-        if (!pendantVoiceData) await loadData();
-        pendantVoiceData[key] = value;
-        await DataManager.save('pendantVoiceData', `Update voice setting: ${key}`);
-        showTopToast('设置已保存', 1500);
-    }
-    
-    // [V2 修复] loadData 只负责加载数据，不操作UI
-    async function loadData() {
-        if (pendantVoiceData) return; // 如果已加载，则直接返回
-        pendantVoiceData = await DataManager.get('pendantVoiceData');
-    }
-
-    // [V2 新增] renderSettingsUI 负责将数据渲染到UI上
-    function renderSettingsUI() {
-        if (!pendantVoiceData || !ui.playOnStartupToggle) return; // 安全检查
-        ui.playOnStartupToggle.checked = pendantVoiceData.playOnStartup;
-        ui.randomPlayToggle.checked = pendantVoiceData.randomPlay;
-    }
-
-
-    function handleFileSelection(file, type) {
-        if (!file) return;
-
-        const statusEl = type === 'audio' ? ui.audioStatus : ui.videoStatus;
-        statusEl.textContent = `读取中: ${file.name}`;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            pendingAudioDataUrl = e.target.result;
-            statusEl.textContent = `已选择: ${file.name}`;
-            if (type === 'audio') {
-                ui.videoStatus.textContent = '';
-                ui.videoPicker.value = '';
-            } else {
-                ui.audioStatus.textContent = '';
-                ui.audioPicker.value = '';
-            }
-        };
-        reader.onerror = () => {
-             statusEl.textContent = `读取失败!`;
-        };
-        reader.readAsDataURL(file);
-    }
-
-/* =============================================================== */
-/* ================= [新增] 修复语音挂件输入框溢出问题 ================== */
-/* =============================================================== */
-#widget-page-voice .modal-input,
-#widget-page-voice .modal-textarea {
-    box-sizing: border-box; /* 确保 padding 包含在宽度内 */
-    width: 100%;            /* 强制宽度为父容器的100% */
-    min-width: 0;           /* 关键修复：允许输入框在flex/grid布局中收缩，防止溢出 */
-}
-/* =============================================================== */
-/* ========================= [新增结束] ========================== */
-/* =============================================================== */
-
 
     </style>
 
@@ -5987,55 +5909,52 @@ const PendantVoiceManager = (() => {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.7.0/mammoth.browser.min.js"></script>
     
  <script>
-    // 定义一个函数，用于在字体加载完成后触发动画
-    const triggerSplashAnimation = () => {
-        document.body.classList.add('font-loaded');
-        console.log('✅ 字体已就绪，启动开屏动画。');
-    };
+    // ★★★ 核心修改：将所有逻辑包裹在 DOMContentLoaded 事件中 ★★★
+    document.addEventListener('DOMContentLoaded', () => {
+        // 定义一个函数，用于在字体加载完成后触发动画
+        const triggerSplashAnimation = () => {
+            // 此时 document.body 必定存在
+            document.body.classList.add('font-loaded');
+            console.log('✅ 字体已就绪，启动开屏动画。');
+        };
 
-    try {
-        const cachedConfigStr = localStorage.getItem('currentConfig');
-        if (cachedConfigStr) {
-            const config = JSON.parse(cachedConfigStr);
-            const fontUrl = config?.settings?.globalFont?.url;
+        try {
+            const cachedConfigStr = localStorage.getItem('currentConfig');
+            if (cachedConfigStr) {
+                const config = JSON.parse(cachedConfigStr);
+                const fontUrl = config?.settings?.globalFont?.url;
 
-            if (fontUrl) {
-                // 步骤1: 动态创建@font-face规则
-                const FONT_FAMILY_NAME = 'GlobalCustomFont';
-                const style = document.createElement('style');
-                style.innerHTML = `
-                    @font-face {
-                        font-family: '${FONT_FAMILY_NAME}';
-                        src: url('${fontUrl}');
-                        font-display: swap;
-                    }
-                `;
-                document.head.appendChild(style);
+                if (fontUrl) {
+                    const FONT_FAMILY_NAME = 'GlobalCustomFont';
+                    const style = document.createElement('style');
+                    style.innerHTML = `
+                        @font-face {
+                            font-family: '${FONT_FAMILY_NAME}';
+                            src: url('${fontUrl}');
+                            font-display: swap;
+                        }
+                    `;
+                    document.head.appendChild(style);
 
-                // 步骤2: 使用Font Loading API等待字体加载
-                // '1em' 是一个技巧，表示我们关心这个字体的任何字符是否可用
-                document.fonts.load(`1em ${FONT_FAMILY_NAME}`).then(() => {
-                    // 字体加载成功！触发动画
+                    document.fonts.load(`1em ${FONT_FAMILY_NAME}`).then(() => {
+                        triggerSplashAnimation();
+                    }).catch(error => {
+                        console.error('自定义字体加载失败:', error);
+                        triggerSplashAnimation();
+                    });
+                } else {
                     triggerSplashAnimation();
-                }).catch(error => {
-                    // 如果字体加载失败（例如URL无效），也立即触发动画，防止白屏
-                    console.error('自定义字体加载失败:', error);
-                    triggerSplashAnimation();
-                });
+                }
             } else {
-                // 如果没有配置自定义字体，直接触发动画
                 triggerSplashAnimation();
             }
-        } else {
-            // 如果连本地配置缓存都没有，也直接触发动画
+        } catch (e) {
+            console.error('字体加载&动画同步脚本执行失败:', e);
             triggerSplashAnimation();
         }
-    } catch (e) {
-        console.error('字体加载&动画同步脚本执行失败:', e);
-        // 发生任何未知错误时，确保动画能播放
-        triggerSplashAnimation();
-    }
+    });
 </script>
+
     <!-- [新增] 用于全局字体的样式标签 -->
     <style id="global-font-style"></style>
 
@@ -6379,8 +6298,7 @@ const PendantVoiceManager = (() => {
             <ul>
                 <li><span class="tag new">新功能</span> 新增开屏动画。</li>
                 <li><span class="tag new">新功能</span> 新增通行密钥，每月于群内更新。</li>
-                                <li><span class="tag new">新功能</span> 新增开场语音功能。</li>
-                <li><span class="tag new">新功能</span> “相册”新增短视频上传功能。</li>
+                <li><span class="tag new">新功能</span> 相册新增视频上传功能。</li>
                 <li><span class="tag new">新功能</span> “网页内悬浮球”增加后台保活功能，目前仅iOS可用。</li>
                 <li><span class="tag new">新功能</span> “记忆”功能新增数据恢复机制，当数据损坏时可从历史版本一键恢复。</li>
                 <li><span class="tag new">新功能</span> “文件夹”新增文件标签系统，支持添加、管理并按标签筛选文件。</li>
@@ -6571,7 +6489,7 @@ const PendantVoiceManager = (() => {
     </div>
     
     <footer class="update-footer">
-        当前版本: v6.1.0
+        当前版本: v6.0.1
     </footer>
 </div>
                     <div id="help-page-3" class="help-page-content">
@@ -7694,10 +7612,10 @@ const DataManager = (() => {
         usageTime: 'stats/usage_time.json',
         checkInData: 'widgets/checkin_data.json',
         messageBoardData: 'widgets/message_board.json',
-        pendantVoiceData: 'widgets/voice_data.json' // <-- 新增
+        openingVoiceData: 'widgets/opening_voice.json' // [新增] 开场语音的数据文件路径
     };
 
-    // 模块的默认数据结构
+
     const moduleDefaults = {
         usageTime: {},
         checkInData: { 
@@ -7705,18 +7623,16 @@ const DataManager = (() => {
             background: { type: 'color', value: '#ffffff', blur: 5 },
             reminder: { enabled: false } 
         },
-        messageBoardData: {
-            messages: [] 
-        },
-        // [新增] 语音挂件的默认数据结构
-        pendantVoiceData: {
-            voices: [], // 存储所有语音对象
-            playOnStartup: false, // 开屏播放开关
-            randomPlay: true // 随机播放开关
+        messageBoardData: { messages: [] },
+        // [新增] 开场语音的数据模块默认值
+        openingVoiceData: {
+            voices: [],
+            settings: {
+                playOnStartup: true,
+                randomPlay: true
+            }
         }
     };
-
-
 
     /**
      * 异步获取一个数据模块
@@ -7786,306 +7702,6 @@ const DataManager = (() => {
 
     return { get, save };
 })();
-
-/* =============================================================== */
-/* ================== [新增] 语音挂件功能管理器 V1.0 ================ */
-/* =============================================================== */
-const PendantVoiceManager = (() => {
-    let ui = {};
-    let pendantVoiceData = null; // 用于缓存语音数据
-    let pendingAudioDataUrl = null; // 临时存储待保存的音频数据
-    let currentAudio = null; // 用于控制当前播放的音频
-
-    async function init() {
-        // 获取所有UI元素
-        ui = {
-            modal: document.getElementById('pendant-settings-modal'),
-            voiceListContainer: document.getElementById('voice-list-container'),
-            playOnStartupToggle: document.getElementById('voicePlayOnStartupToggle'),
-            randomPlayToggle: document.getElementById('voiceRandomPlayToggle'),
-            speakerInput: document.getElementById('voice-speaker-input'),
-            subtitleInput: document.getElementById('voice-subtitle-input'),
-            audioPicker: document.getElementById('voice-audio-picker'),
-            uploadAudioBtn: document.getElementById('voice-upload-audio-btn'),
-            audioStatus: document.getElementById('voice-audio-status'),
-            videoPicker: document.getElementById('voice-video-picker'),
-            uploadVideoBtn: document.getElementById('voice-upload-video-btn'),
-            videoStatus: document.getElementById('voice-video-status'),
-            progressContainer: document.getElementById('voice-upload-progress-container'),
-            progressBar: document.getElementById('voice-upload-progress-bar'),
-            cancelBtn: document.getElementById('voice-upload-cancel-btn'),
-            saveBtn: document.getElementById('voice-save-btn'),
-        };
-
-        // 绑定事件
-        ui.uploadAudioBtn.addEventListener('click', () => ui.audioPicker.click());
-        ui.uploadVideoBtn.addEventListener('click', () => ui.videoPicker.click());
-        
-        ui.audioPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'audio'));
-        ui.videoPicker.addEventListener('change', (e) => handleFileSelection(e.target.files[0], 'video'));
-
-        ui.saveBtn.addEventListener('click', saveVoice);
-        
-        ui.playOnStartupToggle.addEventListener('change', () => toggleSetting('playOnStartup', ui.playOnStartupToggle.checked));
-        ui.randomPlayToggle.addEventListener('change', () => toggleSetting('randomPlay', ui.randomPlayToggle.checked));
-
-        // 使用事件委托处理列表项的点击
-        ui.voiceListContainer.addEventListener('click', handleListClick);
-
-        // [V2 修复] 加载数据并渲染
-        await loadData();
-        renderSettingsUI(); // 在init中调用，确保UI元素已存在
-        renderVoiceList();
-    }
-
-
-    async function toggleSetting(key, value) {
-        if (!pendantVoiceData) await loadData();
-        pendantVoiceData[key] = value;
-        await DataManager.save('pendantVoiceData', `Update voice setting: ${key}`);
-        showTopToast('设置已保存', 1500);
-    }
-    
-    // [V2 修复] loadData 只负责加载数据，不操作UI
-    async function loadData() {
-        if (pendantVoiceData) return; // 如果已加载，则直接返回
-        pendantVoiceData = await DataManager.get('pendantVoiceData');
-    }
-
-    // [V2 新增] renderSettingsUI 负责将数据渲染到UI上
-    function renderSettingsUI() {
-        if (!pendantVoiceData || !ui.playOnStartupToggle) return; // 安全检查
-        ui.playOnStartupToggle.checked = pendantVoiceData.playOnStartup;
-        ui.randomPlayToggle.checked = pendantVoiceData.randomPlay;
-    }
-
-    function handleFileSelection(file, type) {
-        if (!file) return;
-
-        const statusEl = type === 'audio' ? ui.audioStatus : ui.videoStatus;
-        statusEl.textContent = `读取中: ${file.name}`;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            pendingAudioDataUrl = e.target.result;
-            statusEl.textContent = `已选择: ${file.name}`;
-            if (type === 'audio') {
-                ui.videoStatus.textContent = '';
-                ui.videoPicker.value = '';
-            } else {
-                ui.audioStatus.textContent = '';
-                ui.audioPicker.value = '';
-            }
-        };
-        reader.onerror = () => {
-             statusEl.textContent = `读取失败!`;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async function saveVoice() {
-        const speaker = ui.speakerInput.value.trim();
-        const subtitle = ui.subtitleInput.value.trim();
-
-        if (!speaker) {
-            alert('请填写"语音人"！');
-            return;
-        }
-        if (!pendingAudioDataUrl) {
-            alert('请选择一个语音或视频文件！');
-            return;
-        }
-
-        // [核心修改] 仅改变按钮状态，不再显示进度条
-        ui.saveBtn.disabled = true;
-        ui.saveBtn.textContent = '上传中…';
-        
-        // 将Base64数据转换为Blob对象以便上传
-        const fetchRes = await fetch(pendingAudioDataUrl);
-        const blob = await fetchRes.blob();
-        
-        // 定义上传路径和文件名
-        const extension = blob.type.split('/')[1] || 'mp3';
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${extension}`;
-        const path = `memory/voices/${fileName}`;
-
-        try {
-            // 使用已有的 uploadFileViaGitData 函数上传文件, onProgress回调不再需要
-            const uploadResult = await uploadFileViaGitData({
-                file: new File([blob], fileName, { type: blob.type }),
-                path: path,
-                commitMessage: `Upload voice: ${fileName}`,
-                onProgress: (percent) => {
-                    // 进度条逻辑已删除，此回调为空
-                }
-            });
-
-            // 关键：只保存文件路径，而不是文件内容
-            const newVoice = {
-                id: Date.now(),
-                speaker: speaker,
-                subtitle: subtitle,
-                path: uploadResult.path, // 保存路径
-                sha: uploadResult.sha,    // 保存SHA，方便未来管理
-            };
-
-            pendantVoiceData.voices.push(newVoice);
-            await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
-
-            // 重置表单
-            ui.speakerInput.value = '';
-            ui.subtitleInput.value = '';
-            ui.audioPicker.value = '';
-            ui.videoPicker.value = '';
-            ui.audioStatus.textContent = '';
-            ui.videoStatus.textContent = '';
-            pendingAudioDataUrl = null;
-
-            renderVoiceList();
-            showTopToast('语音已成功保存！', 2000);
-
-        } catch (error) {
-            console.error("上传语音失败:", error);
-            alert(`上传语音失败: ${error.message}`);
-        } finally {
-            // 无论成功或失败，都恢复UI状态
-            ui.saveBtn.disabled = false;
-            ui.saveBtn.textContent = '保存语音';
-            // [核心修改] 删除进度条隐藏逻辑
-        }
-    }
-
-
-    function renderVoiceList() {
-        const voices = pendantVoiceData.voices;
-        if (voices.length === 0) {
-            ui.voiceListContainer.innerHTML = '<p class="placeholder-content" style="font-size: 14px;">暂无语音，请在下方添加</p>';
-            return;
-        }
-
-        ui.voiceListContainer.innerHTML = voices.map(voice => `
-            <div class="voice-list-item" data-voice-id="${voice.id}">
-                <div class="voice-info">
-                    <div class="voice-subtitle-preview">${voice.subtitle || '...'}</div>
-                    <div class="voice-speaker">${voice.speaker}</div>
-                </div>
-                <div class="voice-actions">
-                    <button class="play-voice-btn" title="播放">▶</button>
-                    <button class="delete-voice-btn" title="删除">✖</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-
-    async function handleListClick(e) {
-        const playBtn = e.target.closest('.play-voice-btn');
-        const deleteBtn = e.target.closest('.delete-voice-btn');
-        
-        if (playBtn) {
-            const voiceId = parseInt(playBtn.closest('.voice-list-item').dataset.voiceId, 10);
-            playVoiceById(voiceId);
-        } else if (deleteBtn) {
-            const voiceId = parseInt(deleteBtn.closest('.voice-list-item').dataset.voiceId, 10);
-            if (confirm('确定要删除这条语音吗？')) {
-                pendantVoiceData.voices = pendantVoiceData.voices.filter(v => v.id !== voiceId);
-                await DataManager.save('pendantVoiceData', 'Delete voice');
-                renderVoiceList();
-                showTopToast('语音已删除', 1500);
-            }
-        }
-    }
-    
-    function stopCurrentAudio() {
-        if(currentAudio) {
-            currentAudio.pause();
-            currentAudio.src = '';
-            currentAudio = null;
-        }
-        document.querySelectorAll('.voice-list-item.playing').forEach(el => {
-            el.classList.remove('playing');
-            el.querySelector('.play-voice-btn').innerHTML = '▶';
-        });
-    }
-
-    async function playVoiceById(id) {
-        const voice = pendantVoiceData.voices.find(v => v.id === id);
-        if (!voice || !voice.path) return; // 检查 path 是否存在
-
-        // 如果点击的是正在播放的按钮，则停止播放
-        if (currentAudio && !currentAudio.paused && currentAudio.dataset.voiceId === String(id)) {
-            stopCurrentAudio();
-            return;
-        }
-        
-        stopCurrentAudio(); // 停止任何其他正在播放的语音
-        
-        const listItem = ui.voiceListContainer.querySelector(`[data-voice-id="${id}"]`);
-        const playBtn = listItem?.querySelector('.play-voice-btn');
-        if(playBtn) playBtn.innerHTML = '<div class="music-loader"></div>'; // 显示加载动画
-        
-        try {
-            // 使用 getSecureFileUrl 获取安全的音频URL
-            const audioUrl = await getSecureFileUrl(voice.path);
-            
-            if (!audioUrl) throw new Error('无法获取音频URL');
-            
-            currentAudio = new Audio(audioUrl);
-            currentAudio.dataset.voiceId = id; // 标记当前播放的ID
-            currentAudio.play().catch(e => {
-                console.error("播放语音失败:", e);
-                if(playBtn) playBtn.innerHTML = '▶';
-            });
-            
-            if (listItem) {
-                listItem.classList.add('playing');
-                if(playBtn) playBtn.innerHTML = '❚❚';
-            }
-
-            currentAudio.onended = () => {
-                if (listItem) {
-                    listItem.classList.remove('playing');
-                   if(playBtn) playBtn.innerHTML = '▶';
-                }
-                currentAudio = null;
-            };
-        } catch (error) {
-            console.error("播放语音时出错:", error);
-            alert(`播放语音失败: ${error.message}`);
-            if(playBtn) playBtn.innerHTML = '▶';
-        }
-    }
-
-    async function playRandomVoice() {
-        if (!pendantVoiceData) await loadData();
-        const { voices, randomPlay } = pendantVoiceData;
-
-        if (voices.length === 0) return;
-
-        let indexToPlay = 0;
-        if (randomPlay) {
-            indexToPlay = Math.floor(Math.random() * voices.length);
-        }
-        
-        playVoiceById(voices[indexToPlay].id);
-    }
-
-    async function playOnStartup() {
-        // [V2 修复] 先确保数据已加载
-        await loadData();
-        // 然后再安全地检查设置并播放
-        if (pendantVoiceData && pendantVoiceData.playOnStartup) {
-            playRandomVoice();
-        }
-    }
-
-
-    return { init, playOnStartup };
-})();
-/* =============================================================== */
-/* ========================= [新增结束] ========================== */
-/* =============================================================== */
-
 
 /**
  * [新增] 一次性数据迁移函数 V1.0
@@ -10543,8 +10159,61 @@ async function saveGlobalConfig(commitMessage) {
         }
     });
 
-// <-- 开始替换为 -->
+    // [V3 修改] 播放开场语音的独立函数，增加“喜欢”逻辑
+    async function playOpeningVoice() {
+        // 此函数不应显示任何加载提示，以保证开屏体验
+        if (!checkConfig(false)) return;
+
+        try {
+            const { data } = await fetchFromGithub('widgets/opening_voice.json');
+            if (data && data.content) {
+                const voiceData = JSON.parse(b64_to_utf8(data.content));
+                if (voiceData.settings?.playOnStartup && voiceData.voices?.length > 0) {
+                    
+                    let voiceToPlay = null;
+                    const favoriteVoice = voiceData.voices.find(v => v.isFavorite);
+
+                    // 决策逻辑
+                    if (voiceData.settings.randomPlay) {
+                        // 如果开启了随机播放，则随机播放优先
+                        const randomIndex = Math.floor(Math.random() * voiceData.voices.length);
+                        voiceToPlay = voiceData.voices[randomIndex];
+                    } else if (favoriteVoice) {
+                        // 如果没有开启随机播放，且有喜欢的语音，则播放喜欢的
+                        voiceToPlay = favoriteVoice;
+                    } else {
+                        // 如果既不随机，也没有喜欢的，则播放列表第一条
+                        // 因为列表已排序，所以第一条就是置顶的（如果有）或普通的第一条
+                        voiceToPlay = voiceData.voices[0];
+                    }
+
+                    if (voiceToPlay && voiceToPlay.path) {
+                        const audioUrl = await getSecureFileUrl(voiceToPlay.path);
+                        if (audioUrl) {
+                             const audio = new Audio(audioUrl);
+                             audio.play().catch(e => {
+                                console.warn("开场语音自动播放失败，等待用户交互后重试。", e);
+                                const playOnFirstInteraction = () => {
+                                    audio.play().catch(()=>{});
+                                    document.body.removeEventListener('click', playOnFirstInteraction, true);
+                                };
+                                document.body.addEventListener('click', playOnFirstInteraction, true);
+                             });
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("加载或播放开场语音时出错:", error);
+        }
+    }
+
     async function loadInitialData() {
+        // --- [新增] 开屏语音播放 ---
+        // 在加载任何UI之前，先尝试获取语音数据并播放
+        playOpeningVoice();
+        // -------------------------
+
         // --- 阶段 1: 瞬间从本地缓存加载并渲染UI ---
         const cachedConfigStr = localStorage.getItem('currentConfig');
         let isCacheAvailable = false;
@@ -10649,8 +10318,7 @@ async function saveGlobalConfig(commitMessage) {
             DataManager.get('usageTime');
             DataManager.get('checkInData');
             DataManager.get('messageBoardData');
-            DataManager.get('pendantVoiceData'); // <-- 新增
-
+            DataManager.get('openingVoiceData'); // [新增] 预加载开场语音数据
 
         } catch (error) {
             console.error("后台同步失败:", error);
@@ -11727,7 +11395,423 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ========================= [新增结束] ========================== */
     /* =============================================================== */
 
+    /* =============================================================== */
+/* ================ [新增] 开场语音功能管理器 V1.0 =============== */
+/* =============================================================== */
+const OpeningVoiceManager = (() => {
+    let ui = {};
+    let previewAudio = new Audio(); // [新增] 用于预览的全局音频对象
+    let currentPlayingId = null;    // [新增] 跟踪当前播放的语音ID
+    const VOICE_PATH_PREFIX = 'opening_voices/';
+
+    function init() {
+        // 获取UI元素
+        ui = {
+            listContainer: document.getElementById('opening-voice-list'),
+            titleInput: document.getElementById('opening-voice-title'),
+            speakerInput: document.getElementById('opening-voice-speaker'),
+            uploadBtn: document.getElementById('upload-opening-voice-btn'),
+            filePicker: document.getElementById('opening-voice-picker'),
+            playToggle: document.getElementById('opening-voice-play-toggle'),
+            randomToggle: document.getElementById('opening-voice-random-toggle'),
+            // [新增] 视频转语音相关UI
+            videoToVoiceBtn: document.getElementById('video-to-voice-btn'),
+            videoPicker: document.getElementById('video-to-voice-picker'),
+            videoStatus: document.getElementById('video-to-voice-status'),
+        };
+
+
+        // 绑定事件
+        ui.uploadBtn.addEventListener('click', () => ui.filePicker.click());
+        ui.filePicker.addEventListener('change', handleVoiceUpload);
+        ui.listContainer.addEventListener('click', handleListClick);
+        ui.playToggle.addEventListener('change', handleSettingsChange);
+        ui.randomToggle.addEventListener('change', handleSettingsChange);
+
+        // [新增] 视频转语音事件绑定
+        ui.videoToVoiceBtn.addEventListener('click', () => ui.videoPicker.click());
+        ui.videoPicker.addEventListener('change', handleVideoToVoiceConversion);
+
+
+        // 初始化时加载并渲染列表和设置
+        loadAndRender();
+    }
+
+    async function loadAndRender() {
+        const data = await DataManager.get('openingVoiceData');
+        renderVoiceList(data.voices);
+        renderSettings(data.settings);
+    }
     
+    function renderVoiceList(voices = []) {
+        if (voices.length === 0) {
+            ui.listContainer.innerHTML = '<p style="text-align: center; color: #889;">暂无语音</p>';
+            return;
+        }
+
+        // [新增] 排序逻辑：将 isFavorite 为 true 的条目排在最前面
+        const sortedVoices = [...voices].sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0));
+
+        ui.listContainer.innerHTML = sortedVoices.map(voice => `
+            <div class="voice-list-item ${voice.isFavorite ? 'favorited' : ''}">
+                <button class="voice-play-btn" data-voice-id="${voice.id}" title="播放/暂停">
+                    <svg viewBox="0 0 24 24" class="play-icon"><path d="M8 5v14l11-7z"></path></svg>
+                    <svg viewBox="0 0 24 24" class="pause-icon" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+                </button>
+                <div class="voice-info">
+                    <div class="voice-speaker">${voice.title || '无标题'}</div>
+                    <div class="voice-filename">${voice.speaker || '未知留言人'}</div>
+                </div>
+                <!-- [新增] 喜欢按钮 -->
+                <button class="voice-favorite-btn" data-voice-id="${voice.id}" title="喜欢/取消喜欢">
+                    ${voice.isFavorite ? '♥' : '♡'}
+                </button>
+                <button class="voice-delete-btn" data-voice-id="${voice.id}" title="删除语音">×</button>
+            </div>
+        `).join('');
+    }
+
+    function renderSettings(settings = {}) {
+        ui.playToggle.checked = settings.playOnStartup !== false; // 默认开启
+        ui.randomToggle.checked = settings.randomPlay !== false; // 默认开启
+    }
+
+    // [重构] 将核心上传逻辑提取为独立函数
+    async function uploadVoiceFile(file, title, speaker) {
+        try {
+            const uniqueFileName = `${Date.now()}_${file.name}`;
+            const path = VOICE_PATH_PREFIX + uniqueFileName;
+
+            await uploadFileViaGitData({
+                file: file,
+                path: path,
+                commitMessage: `Upload opening voice: ${file.name}`
+            });
+
+            const data = await DataManager.get('openingVoiceData');
+            data.voices.push({
+                id: Date.now(),
+                title: title,
+                speaker: speaker,
+                filename: file.name,
+                path: path,
+                isFavorite: false
+            });
+            await DataManager.save('openingVoiceData', 'Add opening voice');
+
+            return { success: true };
+        } catch (error) {
+            const userMessage = await handleApiError("上传语音", error);
+            alert(`上传失败: ${userMessage}`);
+            return { success: false };
+        }
+    }
+
+    // [重构] 新的音频文件上传处理器
+    async function handleVoiceUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const title = ui.titleInput.value.trim();
+        const speaker = ui.speakerInput.value.trim();
+        if (!title || !speaker) {
+            alert('请先填写“留言”和“留言人”！');
+            event.target.value = '';
+            return;
+        }
+
+        const originalText = ui.uploadBtn.textContent;
+        ui.uploadBtn.textContent = '上传中...';
+        ui.uploadBtn.disabled = true;
+
+        const result = await uploadVoiceFile(file, title, speaker);
+        if (result.success) {
+            ui.titleInput.value = '';
+            ui.speakerInput.value = '';
+            event.target.value = '';
+            const data = await DataManager.get('openingVoiceData');
+            renderVoiceList(data.voices);
+            showTopToast('语音上传成功！', 2000);
+        }
+
+        ui.uploadBtn.textContent = '选择并上传语音 (.mp3, .m4a)';
+        ui.uploadBtn.disabled = false;
+    }
+
+    // [新增] 视频转语音核心处理函数
+    async function handleVideoToVoiceConversion(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const title = ui.titleInput.value.trim();
+        const speaker = ui.speakerInput.value.trim();
+        if (!title || !speaker) {
+            alert('请先填写“留言”和“留言人”！');
+            event.target.value = '';
+            return;
+        }
+
+        ui.videoToVoiceBtn.textContent = '转换中...';
+        ui.videoToVoiceBtn.disabled = true;
+        ui.videoStatus.textContent = '正在从视频中提取音轨...';
+
+        try {
+            // 1. 读取视频文件
+            const arrayBuffer = await file.arrayBuffer();
+
+            // 2. 使用 OfflineAudioContext 进行解码和渲染
+            const audioContext = new OfflineAudioContext({
+                numberOfChannels: 2,
+                sampleRate: 44100, // 标准采样率
+                length: 44100 * 30 // 预设30秒长度，实际会按视频长度截断
+            });
+
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+            // 3. 将 AudioBuffer 转换为 WAV Blob
+            const wavBlob = audioBufferToWav(audioBuffer);
+
+            // 4. 创建一个新的 File 对象，以便复用上传逻辑
+            const wavFile = new File([wavBlob], `${title.replace(/\s+/g, '_') || 'video_voice'}.wav`, { type: 'audio/wav' });
+
+            ui.videoStatus.textContent = '转换成功，正在上传...';
+
+            // 5. 调用重构后的通用上传函数
+            const result = await uploadVoiceFile(wavFile, title, speaker);
+
+            if (result.success) {
+                ui.titleInput.value = '';
+                ui.speakerInput.value = '';
+                event.target.value = '';
+                const data = await DataManager.get('openingVoiceData');
+                renderVoiceList(data.voices);
+                showTopToast('视频语音提取并上传成功！', 2000);
+            }
+
+        } catch (error) {
+            console.error("视频转语音失败:", error);
+            alert(`处理失败: ${error.message}. 请确保视频文件包含音轨。`);
+        } finally {
+            ui.videoToVoiceBtn.textContent = '视频转语音';
+            ui.videoToVoiceBtn.disabled = false;
+            ui.videoStatus.textContent = '';
+        }
+    }
+
+
+    async function handleDelete(voiceId) {
+        if (!voiceId) return;
+
+        if (!confirm('确定要删除这条语音吗？')) return;
+
+
+        const data = await DataManager.get('openingVoiceData');
+        const voiceToDelete = data.voices.find(v => v.id === voiceId);
+
+        if (!voiceToDelete) return;
+
+        // 从列表中移除
+        data.voices = data.voices.filter(v => v.id !== voiceId);
+
+        // 从GitHub删除文件
+        await deleteFromGithub(voiceToDelete.path, `Delete opening voice: ${voiceToDelete.filename}`, null, true);
+
+        // 保存更新后的数据
+        await DataManager.save('openingVoiceData', 'Delete opening voice');
+
+        renderVoiceList(data.voices);
+        showTopToast('语音已删除', 2000);
+    }
+    
+    async function handleSettingsChange() {
+        const data = await DataManager.get('openingVoiceData');
+        data.settings.playOnStartup = ui.playToggle.checked;
+        data.settings.randomPlay = ui.randomToggle.checked;
+        await DataManager.save('openingVoiceData', 'Update opening voice settings');
+    }
+    async function handleSettingsChange() {
+        const data = await DataManager.get('openingVoiceData');
+        data.settings.playOnStartup = ui.playToggle.checked;
+        data.settings.randomPlay = ui.randomToggle.checked;
+        await DataManager.save('openingVoiceData', 'Update opening voice settings');
+    }
+
+    // [修改] 统一处理列表点击事件，增加喜欢按钮逻辑
+    async function handleListClick(event) {
+        const deleteBtn = event.target.closest('.voice-delete-btn');
+        const playBtn = event.target.closest('.voice-play-btn');
+        const favoriteBtn = event.target.closest('.voice-favorite-btn'); // [新增] 获取喜欢按钮
+
+        if (deleteBtn) {
+            const voiceId = parseInt(deleteBtn.dataset.voiceId, 10);
+            handleDelete(voiceId);
+        } else if (playBtn) {
+            const voiceId = parseInt(playBtn.dataset.voiceId, 10);
+            handlePlayToggle(voiceId);
+        } else if (favoriteBtn) { // [新增] 处理喜欢按钮点击
+            const voiceId = parseInt(favoriteBtn.dataset.voiceId, 10);
+            const data = await DataManager.get('openingVoiceData');
+            
+            const targetVoice = data.voices.find(v => v.id === voiceId);
+            if (!targetVoice) return;
+            
+            // 确定新的状态：如果当前已是喜欢，则取消喜欢；否则设为喜欢
+            const newFavoriteState = !targetVoice.isFavorite;
+
+            // 将所有语音都设为“未喜欢”
+            data.voices.forEach(v => v.isFavorite = false);
+            
+            // 仅当目标是“设为喜欢”时，才应用新状态
+            if (newFavoriteState) {
+                targetVoice.isFavorite = true;
+            }
+            
+            await DataManager.save('openingVoiceData', 'Update favorite voice');
+            renderVoiceList(data.voices); // 重新渲染列表以反映排序和图标变化
+        }
+    }
+
+    // [新增] 播放/暂停切换逻辑
+    async function handlePlayToggle(voiceId) {
+        // 如果点击的是正在播放的语音，则暂停
+        if (currentPlayingId === voiceId && !previewAudio.paused) {
+            previewAudio.pause();
+            return; // 暂停后函数结束
+        }
+
+        // 如果当前有其他语音在播放，先停止它
+        if (!previewAudio.paused) {
+            previewAudio.pause();
+        }
+
+        currentPlayingId = voiceId;
+        const data = await DataManager.get('openingVoiceData');
+        const voiceToPlay = data.voices.find(v => v.id === voiceId);
+
+        if (!voiceToPlay) {
+            showTopToast("找不到该语音文件", 2000);
+            currentPlayingId = null;
+            return;
+        }
+
+        // 更新按钮状态
+        updatePlayButtons();
+        
+        try {
+            const audioUrl = await getSecureFileUrl(voiceToPlay.path);
+            if (!audioUrl) throw new Error("无法获取音频URL");
+            
+            previewAudio.src = audioUrl;
+            previewAudio.play().catch(e => {
+                showTopToast("播放失败，请稍后再试", 2000);
+                console.error("Audio play error:", e);
+                currentPlayingId = null;
+                updatePlayButtons();
+            });
+
+        } catch (error) {
+            showTopToast("加载语音失败", 2000);
+            console.error(error);
+            currentPlayingId = null;
+            updatePlayButtons();
+        }
+    }
+
+    // [新增] 更新所有播放按钮UI的函数
+    function updatePlayButtons() {
+        const allPlayBtns = ui.listContainer.querySelectorAll('.voice-play-btn');
+        allPlayBtns.forEach(btn => {
+            const btnId = parseInt(btn.dataset.voiceId, 10);
+            const playIcon = btn.querySelector('.play-icon');
+            const pauseIcon = btn.querySelector('.pause-icon');
+
+            if (btnId === currentPlayingId && !previewAudio.paused) {
+                btn.classList.add('playing');
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            } else {
+                btn.classList.remove('playing');
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+        });
+    }
+
+    // [新增] 音频事件监听
+    previewAudio.onplay = updatePlayButtons;
+    previewAudio.onpause = () => {
+        // 只有当暂停是由用户或代码触发，而不是自然结束时，才清除currentPlayingId
+        if (previewAudio.currentTime < previewAudio.duration) {
+            currentPlayingId = null;
+        }
+        updatePlayButtons();
+    };
+    previewAudio.onended = () => {
+        currentPlayingId = null;
+        updatePlayButtons();
+    };
+
+    // 将init函数暴露出去
+    return { init };
+    // [新增] AudioBuffer 转 WAV 的工具函数
+    function audioBufferToWav(buffer) {
+        let numOfChan = buffer.numberOfChannels,
+            len = buffer.length * numOfChan * 2 + 44,
+            bufferArr = new ArrayBuffer(len),
+            view = new DataView(bufferArr),
+            channels = [],
+            i,
+            sample,
+            offset = 0,
+            pos = 0;
+
+        // 写入WAV头
+        setUint32(0x46464952); // "RIFF"
+        setUint32(len - 8); // 文件总长 - 8
+        setUint32(0x45564157); // "WAVE"
+        setUint32(0x20746d66); // "fmt " chunk
+        setUint32(16); // PCM
+        setUint16(1); // PCM
+        setUint16(numOfChan);
+        setUint32(buffer.sampleRate);
+        setUint32(buffer.sampleRate * 2 * numOfChan); // (Sample Rate * BitsPerSample * Channels) / 8
+        setUint16(numOfChan * 2);
+        setUint16(16); // 16-bit
+        setUint32(0x61746164); // "data" - chunk
+        setUint32(len - pos - 4); // chunk length
+
+        function setUint16(data) {
+            view.setUint16(pos, data, true);
+            pos += 2;
+        }
+
+        function setUint32(data) {
+            view.setUint32(pos, data, true);
+            pos += 4;
+        }
+
+        // 写入数据
+        for (i = 0; i < buffer.numberOfChannels; i++)
+            channels.push(buffer.getChannelData(i));
+
+        while (pos < len) {
+            for (i = 0; i < numOfChan; i++) {
+                sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+                sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; // scale to 16-bit signed int
+                view.setInt16(pos, sample, true);
+                pos += 2;
+            }
+            offset++;
+        }
+
+        return new Blob([view], { type: "audio/wav" });
+    }
+
+})();
+/* =============================================================== */
+/* ========================= [新增结束] ========================== */
+/* =============================================================== */
+
     // ===== [START] MEMORY APP LOGIC =====
     let memoryCache = null; // [修复] 将 memoryCache 提升到模块共享作用域
     // [新增] 基于 IndexedDB 的图片持久化缓存
@@ -15240,10 +15324,27 @@ document.addEventListener('DOMContentLoaded', () => {
     async function getSecureFileUrl(path) {
         if (!path) return '';
 
+        // [新增] 辅助函数，根据文件路径获取MIME类型
+        const getMimeTypeFromPath = (filePath) => {
+            const extension = (filePath.split('.').pop() || '').toLowerCase();
+            switch (extension) {
+                case 'mp3': return 'audio/mpeg';
+                case 'm4a': return 'audio/mp4';
+                case 'html':
+                case 'htm': return 'text/html';
+                case 'jpg':
+                case 'jpeg': return 'image/jpeg';
+                case 'png': return 'image/png';
+                case 'gif': return 'image/gif';
+                case 'webp': return 'image/webp';
+                // 默认返回通用二进制流类型
+                default: return 'application/octet-stream';
+            }
+        };
+
         // 1. 优先从本次会话的内存缓存中读取 (最快)
         if (secureFileCache.has(path)) {
             const cached = secureFileCache.get(path);
-            // 如果缓存的是一个Promise，等待它完成
             if (typeof cached.then === 'function') {
                 return await cached;
             }
@@ -15255,7 +15356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cachedBlob = await ImageCacheDB.get(path);
             if (cachedBlob) {
                 const blobUrl = URL.createObjectURL(cachedBlob);
-                secureFileCache.set(path, blobUrl); // 存入内存缓存，方便本次会话后续快速访问
+                secureFileCache.set(path, blobUrl);
                 return blobUrl;
             }
         } catch (e) {
@@ -15265,7 +15366,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. 如果 IndexedDB 中也没有，则发起网络请求
         const fetchPromise = new Promise(async (resolve) => {
             try {
-                if (!path.startsWith('projects/') && !path.startsWith('memory/')) {
+                // 如果路径不是 projects/ 或 memory/ 开头，则假定它是外部URL并直接返回
+                if (!path.startsWith('projects/') && !path.startsWith('memory/') && !path.startsWith('opening_voices/')) {
                     resolve(path);
                     return;
                 }
@@ -15280,27 +15382,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`Could not get blob content for ${path}. ${blobError || 'No content returned.'}`);
                 }
                 
-                const contentType = path.toLowerCase().endsWith('.html') || path.toLowerCase().endsWith('.htm') ? 'text/html' : (metaData.type || 'application/octet-stream');
+                // [核心修改] 调用新的辅助函数来获取正确的MIME类型
+                const contentType = getMimeTypeFromPath(path);
                 const blob = b64toBlob(blobData.content, contentType);
 
                 // 4. [核心] 将获取到的数据存入 IndexedDB
                 ImageCacheDB.set(path, blob).catch(e => console.warn('存入IndexedDB失败:', e));
 
                 const blobUrl = URL.createObjectURL(blob);
-                secureFileCache.set(path, blobUrl); // 确保内存缓存也被更新
+                secureFileCache.set(path, blobUrl);
                 resolve(blobUrl);
 
             } catch (error) {
                 console.error(`获取安全文件URL失败: ${path}`, error);
-                secureFileCache.delete(path); // 从内存缓存中移除失败的条目
-                resolve(''); // 返回空字符串，防止界面出错
+                secureFileCache.delete(path);
+                resolve('');
             }
         });
 
-        // 将Promise存入内存缓存，防止对同一资源发起重复网络请求
         secureFileCache.set(path, fetchPromise);
         return await fetchPromise;
     }
+
 
         function checkAppUpdate() {
             const helpPage = document.getElementById('help-page-2');
@@ -15330,7 +15433,13 @@ document.addEventListener('DOMContentLoaded', () => {
         checkAppUpdate();
         await loadInitialData();
         setupModals();
-        BaiduNetdisk.init(); // <-- 将初始化调用移到这里
+        BaiduNetdisk.init();
+        // 新增对开场语音管理器的初始化
+        const voiceCapsuleBtn = document.querySelector('[data-target="widget-page-voice"]');
+        if (voiceCapsuleBtn) {
+            voiceCapsuleBtn.addEventListener('click', () => OpeningVoiceManager.init());
+        }
+        
         MemoryApp.init();
         WanderView.init();
         setupBgImageManager();
@@ -17702,8 +17811,6 @@ document.addEventListener('DOMContentLoaded', () => {
         PendantManager.init();
         // [V3.0 最终修复] 确保签到管理器在挂件系统之后初始化，保证数据流正确
         CheckInManager.init();
-        PendantVoiceManager.init(); // <-- 新增
-
 
         /* =============================================================== */
         /* ========================= [新增结束] ========================== */
@@ -18964,16 +19071,7 @@ if (splashScreen) {
     // 5. 在这里调用隐藏函数。你现有的 `window.addEventListener('load', ...)` 
     //    的末尾是最佳时机，因为它确保了所有初始化脚本都已执行。
     //    我们在这里再加一个短暂的延时，给动态内容一个渲染缓冲，体验更佳。
-
-    // [新增] 在动画开始时尝试播放开屏语音
-    setTimeout(() => {
-        if(typeof PendantVoiceManager !== 'undefined') {
-            PendantVoiceManager.playOnStartup();
-        }
-    }, 500); // 延迟半秒，确保音频有机会加载
-
-    setTimeout(hideSplashScreen, 3500);
-
+    setTimeout(hideSplashScreen, 3500); // 延迟2500毫秒
 
 }
 /* =============================================================== */
@@ -19277,67 +19375,44 @@ if (splashScreen) {
                     </div> -->
                 </div>
             </div>
+            <!-- 页面3: 留言板 -->
+            <div class="widget-hub-page" id="widget-page-board">
+                <!-- ... 省略留言板内部代码 ... -->
+            </div>
 
-            <!-- [新增] 页面: 语音功能 -->
+            <!-- ============= [修改] 开场语音页面 V2 ============= -->
             <div class="widget-hub-page" id="widget-page-voice">
-                <!-- 语音显示框 -->
-                <div class="voice-list-container" id="voice-list-container">
-                    <!-- JS 动态填充语音列表 -->
-                    <p class="placeholder-content" style="font-size: 14px;">暂无语音，请在下方添加</p>
-                </div>
-
-                <!-- 总开关设置 -->
-                <div class="toggle-section" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 12px;">
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                        <span>开屏时播放语音</span>
-                        <label class="toggle-switch"><input type="checkbox" id="voicePlayOnStartupToggle"><span class="slider"></span></label>
-                    </div>
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                        <span>随机播放</span>
-                        <label class="toggle-switch"><input type="checkbox" id="voiceRandomPlayToggle"><span class="slider"></span></label>
+                <!-- 语音列表展示 -->
+                <div class="pendant-settings-group">
+                    <label>语音列表</label>
+<div id="opening-voice-list" class="voice-list-container-styled">
+                        <p style="text-align: center; color: #889;">暂无语音</p>
                     </div>
                 </div>
 
-                <!-- 添加/编辑语音的折叠区域 -->
+                <!-- 添加语音部分 -->
                 <details open>
-                    <summary>添加/编辑语音</summary>
+                    <summary>添加新语音</summary>
                     <div class="details-content" style="display: flex; flex-direction: column; gap: 15px;">
-                        
-
-                        <div class="form-section">
-                            <label for="voice-subtitle-input">留言</label>
-                            <textarea id="voice-subtitle-input" class="modal-textarea" rows="2" placeholder="这段语音的文字内容"></textarea>
-                        </div>
-                        <div class="form-section">
-                            <label for="voice-speaker-input">留言者</label>
-                            <input type="text" id="voice-speaker-input" class="modal-input" placeholder="例如：水母">
-                        </div>
-
-                        
+                        <!-- [新增] 留言/标题 输入框 -->
+                        <input type="text" id="opening-voice-title" class="modal-input" placeholder="填写留言">
+                        <input type="text" id="opening-voice-speaker" class="modal-input" placeholder="填写留言人">
                         <div class="file-select-wrapper">
-                            <input type="file" id="voice-audio-picker" accept=".mp3,.m4a" style="display: none;">
-                            <button id="voice-upload-audio-btn" class="modal-button">添加语音文件</button>
-                            <span id="voice-audio-status" class="status-text"></span>
+                            <input type="file" id="opening-voice-picker" accept=".mp3,.m4a" style="display: none;">
+                            <button id="upload-opening-voice-btn" class="modal-button" style="flex-grow: 1;">上传语音</button>
                         </div>
-                        
+                        <!-- [新增] 视频转语音功能 -->
                         <div class="file-select-wrapper">
-                            <input type="file" id="voice-video-picker" accept="video/*" style="display: none;">
-                            <button id="voice-upload-video-btn" class="modal-button">视频转语音</button>
-                            <span id="voice-video-status" class="status-text"></span>
+                            <input type="file" id="video-to-voice-picker" accept="video/mp4,video/quicktime,video/webm" style="display: none;">
+                            <button id="video-to-voice-btn" class="modal-button" style="flex-grow: 1;">视频转语音</button>
                         </div>
-                       
-
-                        <div id="voice-upload-progress-container" class="progress-container" style="display: none;">
-                            <div class="progress-bar-wrapper">
-                                <div id="voice-upload-progress-bar" class="progress-bar"></div>
-                            </div>
-                            <button id="voice-upload-cancel-btn" title="取消上传">✖</button>
-                        </div>
-                        
-                        <button id="voice-save-btn" class="modal-button primary" style="color: var(--hold-border);">保存语音</button>
+                        <span id="video-to-voice-status" class="status-text" style="text-align: center; min-height: 20px;"></span>
                     </div>
                 </details>
+                <!-- [移除] 开关设置部分已移至 "设置" 页面 -->
             </div>
+            <!-- ============= [修改结束] ============ -->
+
 
             <!-- 页面4: 页面设置 (重构后) -->
             <div class="widget-hub-page" id="widget-page-settings">
@@ -19431,7 +19506,28 @@ if (splashScreen) {
                         </div>
                     </div>
                 </details>
+                <!-- [新增] 开场语音设置折叠栏 -->
+                <details>
+                    <summary>开场语音设置</summary>
+                    <div class="details-content" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="toggle-section">
+                            <span>开屏时播放</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="opening-voice-play-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-section">
+                            <span>随机播放</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="opening-voice-random-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </details>
             </div>
+
 
         <!-- 全新的胶囊导航栏 -->
         <div id="widget-hub-capsule">
@@ -19447,13 +19543,12 @@ if (splashScreen) {
                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 48 48"> <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C8.68629 2 6 4.68629 6 8V40C6 43.3137 8.68629 46 12 46H36C39.3137 46 42 43.3137 42 40V8C42 4.68629 39.3137 2 36 2H12ZM12 8H36V22H12V8ZM36 25H12V28H36V25ZM12 31H36V34H12V31ZM26 37H12V40H26V37Z" fill="#1c1f21"></path> </svg>
                 <span>留言板</span>
             </button>
-            <!-- [新增] 语音功能按钮 -->
-            <button class="capsule-btn" data-target="widget-page-voice" data-title="语音">
-                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 48 48"> <path fill-rule="evenodd" clip-rule="evenodd" d="M44.5 22.8058V36.7697H41.5V26.7336L33.5 28.9154V39.7697H30.5V26.624L44.5 22.8058Z" fill="#1c1f21" data-color="color-2"></path> <path d="M34.6553 6C41.1936 6.00004 46.5 11.3827 46.5 18.0215C46.5 18.8041 46.4157 19.5911 46.2627 20.3799C45.5279 19.8461 44.5896 19.6716 43.7109 19.9111L29.7109 23.7295C28.4058 24.0854 27.5001 25.2712 27.5 26.624V33.0605C24.6087 33.9212 22.5001 36.5987 22.5 39.7695C22.5 41.1623 22.9082 42.4594 23.6094 43.5498C17.8247 40.4299 2.50007 28.7644 2.5 18.0215C2.5 11.3827 7.80196 6.00004 14.3447 6C18.6567 6 21.882 8.74049 24.5 11.8252C27.1224 8.74496 30.3433 6 34.6553 6Z" fill="#1c1f21"></path> <path d="M29.5 43.7697C31.7091 43.7697 33.5 41.9789 33.5 39.7697C33.5 37.5606 31.7091 35.7697 29.5 35.7697C27.2909 35.7697 25.5 37.5606 25.5 39.7697C25.5 41.9789 27.2909 43.7697 29.5 43.7697Z" fill="#1c1f21" data-color="color-2"></path> <path d="M40.5 40.7697C42.7091 40.7697 44.5 38.9789 44.5 36.7697C44.5 34.5606 42.7091 32.7697 40.5 32.7697C38.2909 32.7697 36.5 34.5606 36.5 36.7697C36.5 38.9789 38.2909 40.7697 40.5 40.7697Z" fill="#1c1f21" data-color="color-2"></path> </svg>
+            <button class="capsule-btn" data-target="widget-page-voice" data-title="开场语音">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 48 48"><path fill-rule="evenodd" clip-rule="evenodd" d="M44.5 22.8058V36.7697H41.5V26.7336L33.5 28.9154V39.7697H30.5V26.624L44.5 22.8058Z" fill="#1c1f21" data-color="color-2"></path><path d="M34.6553 6C41.1936 6.00004 46.5 11.3827 46.5 18.0215C46.5 18.8041 46.4157 19.5911 46.2627 20.3799C45.5279 19.8461 44.5896 19.6716 43.7109 19.9111L29.7109 23.7295C28.4058 24.0854 27.5001 25.2712 27.5 26.624V33.0605C24.6087 33.9212 22.5001 36.5987 22.5 39.7695C22.5 41.1623 22.9082 42.4594 23.6094 43.5498C17.8247 40.4299 2.50007 28.7644 2.5 18.0215C2.5 11.3827 7.80196 6.00004 14.3447 6C18.6567 6 21.882 8.74049 24.5 11.8252C27.1224 8.74496 30.3433 6 34.6553 6Z" fill="#1c1f21"></path><path d="M29.5 43.7697C31.7091 43.7697 33.5 41.9789 33.5 39.7697C33.5 37.5606 31.7091 35.7697 29.5 35.7697C27.2909 35.7697 25.5 37.5606 25.5 39.7697C25.5 41.9789 27.2909 43.7697 29.5 43.7697Z" fill="#1c1f21" data-color="color-2"></path><path d="M40.5 40.7697C42.7091 40.7697 44.5 38.9789 44.5 36.7697C44.5 34.5606 42.7091 32.7697 40.5 32.7697C38.2909 32.7697 36.5 34.5606 36.5 36.7697C36.5 38.9789 38.2909 40.7697 40.5 40.7697Z" fill="#1c1f21" data-color="color-2"></path></svg>
                 <span>语音</span>
             </button>
             <button class="capsule-btn" data-target="widget-page-settings" data-title="页面设置">
-                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><path d="m23,13.75v-3.5l-2.384-.841c-.176-.583-.407-1.142-.691-1.668l1.091-2.281-2.475-2.475-2.281,1.091c-.527-.284-1.086-.515-1.668-.691l-.841-2.384h-3.5l-.841,2.384c-.583-.176-1.142-.407-1.668-.691l-2.281-1.091-2.475,2.475,1.091,2.281c-.284-.527-.515,1.086-.691,1.668l-2.384.841v3.5l2.384.841c.176.583.407,1.142.691,1.668l-1.091,2.281,2.475,2.475,2.281-1.091c.527.284,1.086-.515,1.668-.691l.841,2.384h3.5l.841-2.384c.583-.176,1.142-.407,1.668-.691l2.281,1.091,2.475-2.475-1.091-2.281c.284-.527-.515,1.086.691-1.668l2.384-.841Zm-11,2.25c-2.206,0-4-1.794-4-4s1.794-4,4-4,4,1.794,4,4-1.794,4-4,4Z" fill="#1c1f21"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24px" height="24px" viewBox="0 0 24 24"><path d="m23,13.75v-3.5l-2.384-.841c-.176-.583-.407-1.142-.691-1.668l1.091-2.281-2.475-2.475-2.281,1.091c-.527-.284-1.086-.515-1.668-.691l-.841-2.384h-3.5l-.841,2.384c-.583-.176-1.142-.407-1.668-.691l-2.281-1.091-2.475,2.475,1.091,2.281c-.284-.527-.515,1.086-.691,1.668l-2.384.841v3.5l2.384.841c.176.583.407,1.142.691,1.668l-1.091,2.281,2.475,2.475,2.281-1.091c.527.284,1.086.515,1.668-.691l.841,2.384h3.5l.841-2.384c.583-.176,1.142-.407,1.668-.691l2.281,1.091,2.475-2.475-1.091-2.281c.284-.527-.515,1.086.691-1.668l2.384-.841Zm-11,2.25c-2.206,0-4-1.794-4-4s1.794-4,4-4,4,1.794,4,4-1.794,4-4,4Z" fill="#1c1f21"></path></svg>
                 <span>设置</span>
             </button>
         </div>
