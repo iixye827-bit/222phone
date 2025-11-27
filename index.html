@@ -5955,140 +5955,19 @@ const PendantVoiceManager = (() => {
         reader.readAsDataURL(file);
     }
 
-    async function saveVoice() {
-        const speaker = ui.speakerInput.value.trim();
-        const subtitle = ui.subtitleInput.value.trim();
-
-        if (!speaker) {
-            alert('请填写"语音人"！');
-            return;
-        }
-        if (!pendingAudioDataUrl) {
-            alert('请选择一个语音或视频文件！');
-            return;
-        }
-
-        const newVoice = {
-            id: Date.now(),
-            speaker: speaker,
-            subtitle: subtitle,
-            content: pendingAudioDataUrl,
-        };
-
-        pendantVoiceData.voices.push(newVoice);
-        await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
-        
-        // 重置表单
-        ui.speakerInput.value = '';
-        ui.subtitleInput.value = '';
-        ui.audioPicker.value = '';
-        ui.videoPicker.value = '';
-        ui.audioStatus.textContent = '';
-        ui.videoStatus.textContent = '';
-        pendingAudioDataUrl = null;
-
-        renderVoiceList();
-        showTopToast('语音已成功保存！', 2000);
-    }
-
-    function renderVoiceList() {
-        const voices = pendantVoiceData.voices;
-        if (voices.length === 0) {
-            ui.voiceListContainer.innerHTML = '<p class="placeholder-content" style="font-size: 14px;">暂无语音，请在下方添加</p>';
-            return;
-        }
-
-        ui.voiceListContainer.innerHTML = voices.map(voice => `
-            <div class="voice-list-item" data-voice-id="${voice.id}">
-                <div class="voice-info">
-                    <div class="voice-subtitle-preview">${voice.subtitle || '...'}</div>
-                    <div class="voice-speaker">${voice.speaker}</div>
-                </div>
-                <div class="voice-actions">
-                    <button class="play-voice-btn" title="播放">▶</button>
-                    <button class="delete-voice-btn" title="删除">✖</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-
-    async function handleListClick(e) {
-        const playBtn = e.target.closest('.play-voice-btn');
-        const deleteBtn = e.target.closest('.delete-voice-btn');
-        
-        if (playBtn) {
-            const voiceId = parseInt(playBtn.closest('.voice-list-item').dataset.voiceId, 10);
-            playVoiceById(voiceId);
-        } else if (deleteBtn) {
-            const voiceId = parseInt(deleteBtn.closest('.voice-list-item').dataset.voiceId, 10);
-            if (confirm('确定要删除这条语音吗？')) {
-                pendantVoiceData.voices = pendantVoiceData.voices.filter(v => v.id !== voiceId);
-                await DataManager.save('pendantVoiceData', 'Delete voice');
-                renderVoiceList();
-                showTopToast('语音已删除', 1500);
-            }
-        }
-    }
-    
-    function stopCurrentAudio() {
-        if(currentAudio) {
-            currentAudio.pause();
-            currentAudio.src = '';
-            currentAudio = null;
-        }
-        document.querySelectorAll('.voice-list-item.playing').forEach(el => el.classList.remove('playing'));
-    }
-
-    function playVoiceById(id) {
-        stopCurrentAudio();
-        const voice = pendantVoiceData.voices.find(v => v.id === id);
-        if (!voice) return;
-
-        currentAudio = new Audio(voice.content);
-        currentAudio.play().catch(e => console.error("播放语音失败:", e));
-        
-        const listItem = ui.voiceListContainer.querySelector(`[data-voice-id="${id}"]`);
-        if (listItem) {
-            listItem.classList.add('playing');
-            listItem.querySelector('.play-voice-btn').innerHTML = '❚❚';
-        }
-
-        currentAudio.onended = () => {
-            if (listItem) {
-                listItem.classList.remove('playing');
-                listItem.querySelector('.play-voice-btn').innerHTML = '▶';
-            }
-            currentAudio = null;
-        };
-    }
-
-    async function playRandomVoice() {
-        if (!pendantVoiceData) await loadData();
-        const { voices, randomPlay } = pendantVoiceData;
-
-        if (voices.length === 0) return;
-
-        let indexToPlay = 0;
-        if (randomPlay) {
-            indexToPlay = Math.floor(Math.random() * voices.length);
-        }
-        
-        playVoiceById(voices[indexToPlay].id);
-    }
-
-    async function playOnStartup() {
-        if (!pendantVoiceData) await loadData();
-        if (pendantVoiceData.playOnStartup) {
-            playRandomVoice();
-        }
-    }
-
-    return { init, playOnStartup };
-})();
+/* =============================================================== */
+/* ================= [新增] 修复语音挂件输入框溢出问题 ================== */
+/* =============================================================== */
+#widget-page-voice .modal-input,
+#widget-page-voice .modal-textarea {
+    box-sizing: border-box; /* 确保 padding 包含在宽度内 */
+    width: 100%;            /* 强制宽度为父容器的100% */
+    min-width: 0;           /* 关键修复：允许输入框在flex/grid布局中收缩，防止溢出 */
+}
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
+
 
     </style>
 
@@ -6490,7 +6369,8 @@ const PendantVoiceManager = (() => {
             <ul>
                 <li><span class="tag new">新功能</span> 新增开屏动画。</li>
                 <li><span class="tag new">新功能</span> 新增通行密钥，每月于群内更新。</li>
-                <li><span class="tag new">新功能</span> 相册新增视频上传功能。</li>
+                                <li><span class="tag new">新功能</span> 新增开场语音功能。</li>
+                <li><span class="tag new">新功能</span> “相册”新增短视频上传功能。</li>
                 <li><span class="tag new">新功能</span> “网页内悬浮球”增加后台保活功能，目前仅iOS可用。</li>
                 <li><span class="tag new">新功能</span> “记忆”功能新增数据恢复机制，当数据损坏时可从历史版本一键恢复。</li>
                 <li><span class="tag new">新功能</span> “文件夹”新增文件标签系统，支持添加、管理并按标签筛选文件。</li>
@@ -6681,7 +6561,7 @@ const PendantVoiceManager = (() => {
     </div>
     
     <footer class="update-footer">
-        当前版本: v6.0.1
+        当前版本: v6.1.0
     </footer>
 </div>
                     <div id="help-page-3" class="help-page-content">
@@ -7997,28 +7877,70 @@ const PendantVoiceManager = (() => {
             return;
         }
 
-        const newVoice = {
-            id: Date.now(),
-            speaker: speaker,
-            subtitle: subtitle,
-            content: pendingAudioDataUrl,
-        };
+        // --- 开始修改 ---
 
-        pendantVoiceData.voices.push(newVoice);
-        await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
+        // 1. 显示上传进度条和取消按钮
+        ui.saveBtn.disabled = true;
+        ui.saveBtn.textContent = '上传中...';
+        ui.progressContainer.style.display = 'flex';
+        ui.progressBar.style.width = '0%';
         
-        // 重置表单
-        ui.speakerInput.value = '';
-        ui.subtitleInput.value = '';
-        ui.audioPicker.value = '';
-        ui.videoPicker.value = '';
-        ui.audioStatus.textContent = '';
-        ui.videoStatus.textContent = '';
-        pendingAudioDataUrl = null;
+        // 2. 将Base64数据转换为Blob对象以便上传
+        const fetchRes = await fetch(pendingAudioDataUrl);
+        const blob = await fetchRes.blob();
+        
+        // 3. 定义上传路径和文件名
+        const extension = blob.type.split('/')[1] || 'mp3';
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${extension}`;
+        const path = `memory/voices/${fileName}`;
 
-        renderVoiceList();
-        showTopToast('语音已成功保存！', 2000);
+        try {
+            // 4. 使用已有的 uploadFileViaGitData 函数上传文件
+            const uploadResult = await uploadFileViaGitData({
+                file: new File([blob], fileName, { type: blob.type }),
+                path: path,
+                commitMessage: `Upload voice: ${fileName}`,
+                onProgress: (percent) => {
+                    ui.progressBar.style.width = `${percent}%`;
+                }
+            });
+
+            // 5. 关键：只保存文件路径，而不是文件内容
+            const newVoice = {
+                id: Date.now(),
+                speaker: speaker,
+                subtitle: subtitle,
+                path: uploadResult.path, // 保存路径
+                sha: uploadResult.sha,    // 保存SHA，方便未来管理
+            };
+
+            pendantVoiceData.voices.push(newVoice);
+            await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
+
+            // 6. 重置表单
+            ui.speakerInput.value = '';
+            ui.subtitleInput.value = '';
+            ui.audioPicker.value = '';
+            ui.videoPicker.value = '';
+            ui.audioStatus.textContent = '';
+            ui.videoStatus.textContent = '';
+            pendingAudioDataUrl = null;
+
+            renderVoiceList();
+            showTopToast('语音已成功保存！', 2000);
+
+        } catch (error) {
+            console.error("上传语音失败:", error);
+            alert(`上传语音失败: ${error.message}`);
+        } finally {
+            // 7. 无论成功或失败，都恢复UI状态
+            ui.saveBtn.disabled = false;
+            ui.saveBtn.textContent = '保存语音';
+            ui.progressContainer.style.display = 'none';
+        }
+        // --- 结束修改 ---
     }
+
 
     function renderVoiceList() {
         const voices = pendantVoiceData.voices;
@@ -8072,35 +7994,54 @@ const PendantVoiceManager = (() => {
         });
     }
 
-    function playVoiceById(id) {
+    async function playVoiceById(id) {
         const voice = pendantVoiceData.voices.find(v => v.id === id);
-        if (!voice) return;
+        if (!voice || !voice.path) return; // 检查 path 是否存在
 
         // 如果点击的是正在播放的按钮，则停止播放
-        if (currentAudio && !currentAudio.paused && currentAudio.src === voice.content) {
+        if (currentAudio && !currentAudio.paused && currentAudio.dataset.voiceId === String(id)) {
             stopCurrentAudio();
             return;
         }
         
         stopCurrentAudio(); // 停止任何其他正在播放的语音
-
-        currentAudio = new Audio(voice.content);
-        currentAudio.play().catch(e => console.error("播放语音失败:", e));
         
         const listItem = ui.voiceListContainer.querySelector(`[data-voice-id="${id}"]`);
-        if (listItem) {
-            listItem.classList.add('playing');
-            listItem.querySelector('.play-voice-btn').innerHTML = '❚❚';
-        }
-
-        currentAudio.onended = () => {
+        const playBtn = listItem?.querySelector('.play-voice-btn');
+        if(playBtn) playBtn.innerHTML = '<div class="music-loader"></div>'; // 显示加载动画
+        
+        try {
+            // 使用 getSecureFileUrl 获取安全的音频URL
+            const audioUrl = await getSecureFileUrl(voice.path);
+            
+            if (!audioUrl) throw new Error('无法获取音频URL');
+            
+            currentAudio = new Audio(audioUrl);
+            currentAudio.dataset.voiceId = id; // 标记当前播放的ID
+            currentAudio.play().catch(e => {
+                console.error("播放语音失败:", e);
+                if(playBtn) playBtn.innerHTML = '▶';
+            });
+            
             if (listItem) {
-                listItem.classList.remove('playing');
-                listItem.querySelector('.play-voice-btn').innerHTML = '▶';
+                listItem.classList.add('playing');
+                if(playBtn) playBtn.innerHTML = '❚❚';
             }
-            currentAudio = null;
-        };
+
+            currentAudio.onended = () => {
+                if (listItem) {
+                    listItem.classList.remove('playing');
+                   if(playBtn) playBtn.innerHTML = '▶';
+                }
+                currentAudio = null;
+            };
+        } catch (error) {
+            console.error("播放语音时出错:", error);
+            alert(`播放语音失败: ${error.message}`);
+            if(playBtn) playBtn.innerHTML = '▶';
+        }
     }
+
 
     async function playRandomVoice() {
         if (!pendantVoiceData) await loadData();
