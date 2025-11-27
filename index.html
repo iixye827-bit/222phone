@@ -5913,10 +5913,12 @@ const PendantVoiceManager = (() => {
         // 使用事件委托处理列表项的点击
         ui.voiceListContainer.addEventListener('click', handleListClick);
 
-        // 加载数据并渲染
+        // [V2 修复] 加载数据并渲染
         await loadData();
+        renderSettingsUI(); // 在init中调用，确保UI元素已存在
         renderVoiceList();
     }
+
 
     async function toggleSetting(key, value) {
         if (!pendantVoiceData) await loadData();
@@ -5925,11 +5927,19 @@ const PendantVoiceManager = (() => {
         showTopToast('设置已保存', 1500);
     }
     
+    // [V2 修复] loadData 只负责加载数据，不操作UI
     async function loadData() {
+        if (pendantVoiceData) return; // 如果已加载，则直接返回
         pendantVoiceData = await DataManager.get('pendantVoiceData');
+    }
+
+    // [V2 新增] renderSettingsUI 负责将数据渲染到UI上
+    function renderSettingsUI() {
+        if (!pendantVoiceData || !ui.playOnStartupToggle) return; // 安全检查
         ui.playOnStartupToggle.checked = pendantVoiceData.playOnStartup;
         ui.randomPlayToggle.checked = pendantVoiceData.randomPlay;
     }
+
 
     function handleFileSelection(file, type) {
         if (!file) return;
@@ -7822,10 +7832,12 @@ const PendantVoiceManager = (() => {
         // 使用事件委托处理列表项的点击
         ui.voiceListContainer.addEventListener('click', handleListClick);
 
-        // 加载数据并渲染
+        // [V2 修复] 加载数据并渲染
         await loadData();
+        renderSettingsUI(); // 在init中调用，确保UI元素已存在
         renderVoiceList();
     }
+
 
     async function toggleSetting(key, value) {
         if (!pendantVoiceData) await loadData();
@@ -7834,8 +7846,15 @@ const PendantVoiceManager = (() => {
         showTopToast('设置已保存', 1500);
     }
     
+    // [V2 修复] loadData 只负责加载数据，不操作UI
     async function loadData() {
+        if (pendantVoiceData) return; // 如果已加载，则直接返回
         pendantVoiceData = await DataManager.get('pendantVoiceData');
+    }
+
+    // [V2 新增] renderSettingsUI 负责将数据渲染到UI上
+    function renderSettingsUI() {
+        if (!pendantVoiceData || !ui.playOnStartupToggle) return; // 安全检查
         ui.playOnStartupToggle.checked = pendantVoiceData.playOnStartup;
         ui.randomPlayToggle.checked = pendantVoiceData.randomPlay;
     }
@@ -8058,11 +8077,14 @@ const PendantVoiceManager = (() => {
     }
 
     async function playOnStartup() {
-        if (!pendantVoiceData) await loadData();
-        if (pendantVoiceData.playOnStartup) {
+        // [V2 修复] 先确保数据已加载
+        await loadData();
+        // 然后再安全地检查设置并播放
+        if (pendantVoiceData && pendantVoiceData.playOnStartup) {
             playRandomVoice();
         }
     }
+
 
     return { init, playOnStartup };
 })();
