@@ -6296,7 +6296,7 @@ body.theme-glass .voice-play-btn:active {
         <div class="update-log-entry">
             <h4>v6.1.0 <span class="update-date">- 2025.11.30</span></h4>
             <ul>
-                <li><span class="tag new">新功能</span> 新增开屏动画。</li>
+                <li><span class="tag new">新功能</span> 新增开屏动画及开屏自定义语音。</li>
                 <li><span class="tag new">新功能</span> 新增通行密钥，每月于群内更新。</li>
                 <li><span class="tag new">新功能</span> 相册新增视频上传功能。</li>
                 <li><span class="tag new">新功能</span> “网页内悬浮球”增加后台保活功能，目前仅iOS可用。</li>
@@ -7482,21 +7482,22 @@ body.dark-mode #floating-jellyfish-ball {
     </div>
     <!-- ============= [ 新增结束 ] ============= -->
        <script>
-    // ============= [新增] 通行密钥验证逻辑 V1.0 =============
+    // ============= [新增] 通行密钥验证逻辑 V2.0 (支持永久通行证) =============
     (function handlePasskeyAuthentication() {
-        // --- 请在这里替换每月密钥 ---
+        // --- 每月密钥 ---
         const currentPasskeys = [
             'Fp9xVz2r', 'jK4gA8sL', 'nB6hT1wE', 'gD5pQ7zY', 'zC8vE3uF',
             'rW7mI2oP', 'tY1sK9bN', 'uE3jH5fA', 'aV4cQ6xZ', 'iO9lP1wE',
             'kR2sB8nM', 'qL7gT3dV', 'xU6hF4cY', 'oP1iEa5b', 'wM5zK9pV',
             'vC3jD7fX', 'eG9xV1zR', 'bN4hT6wQ', 'sA2kL8mJ', 'yU8iO6pZ'
         ];
+        
+        // --- [核心修改] 新增永久通行证密钥 ---
+        const PERMANENT_PASSKEY = 'JELLYFISHFOREVER';
         // ------------------------------------
 
         const overlay = document.getElementById('passkey-overlay');
-        // 确保在执行脚本时弹窗元素已存在
         if (!overlay) {
-            // 如果DOM还没加载完，就延迟执行
             document.addEventListener('DOMContentLoaded', handlePasskeyAuthentication);
             return;
         }
@@ -7506,26 +7507,41 @@ body.dark-mode #floating-jellyfish-ball {
         const submitBtn = document.getElementById('passkey-submit');
         const errorMsg = document.getElementById('passkey-error');
 
-        // 使用 "年-月" 作为唯一标识，例如 "2024-10"
         const currentMonthIdentifier = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
         const validatedMonth = localStorage.getItem('passkeyValidatedMonth');
+        
+        // --- [核心修改] 增加对永久通行证标记的检查 ---
+        const isPermanentlyValidated = localStorage.getItem('isPermanentlyValidated') === 'true';
 
-        // 检查当月是否已经验证过
-        if (currentMonthIdentifier === validatedMonth) {
-            overlay.style.display = 'none'; // 如果已验证，直接隐藏弹窗
+        // 如果拥有永久通行证，或当月已验证，则直接跳过
+        if (isPermanentlyValidated || currentMonthIdentifier === validatedMonth) {
+            overlay.style.display = 'none';
             return;
         }
 
-        // 如果未验证，模糊背景内容
         document.body.classList.add('passkey-pending');
 
         const validate = () => {
             const enteredKey = input.value.trim();
-            if (currentPasskeys.includes(enteredKey)) {
-                // 密钥正确
+            let isValid = false;
+
+            if (enteredKey === PERMANENT_PASSKEY) {
+                // --- [核心修改] 处理永久通行证逻辑 ---
+                localStorage.setItem('isPermanentlyValidated', 'true');
+                // 为保持清洁，可以移除可能存在的旧月度标记
+                localStorage.removeItem('passkeyValidatedMonth');
+                isValid = true;
+
+            } else if (currentPasskeys.includes(enteredKey)) {
+                // 处理月度密钥逻辑 (保持不变)
                 localStorage.setItem('passkeyValidatedMonth', currentMonthIdentifier);
-                
-                // 移除模糊并播放弹窗消失动画
+                // 确保清除了永久标记，以防用户想切回月度模式
+                localStorage.removeItem('isPermanentlyValidated');
+                isValid = true;
+            }
+
+            if (isValid) {
+                // 密钥正确后的通用逻辑
                 document.body.classList.remove('passkey-pending');
                 overlay.style.opacity = '0';
                 overlay.addEventListener('transitionend', () => {
@@ -7533,7 +7549,7 @@ body.dark-mode #floating-jellyfish-ball {
                 }, { once: true });
 
             } else {
-                // 密钥错误
+                // 密钥错误逻辑 (保持不变)
                 errorMsg.style.display = 'block';
                 modal.classList.add('shake');
                 input.focus();
@@ -7549,15 +7565,15 @@ body.dark-mode #floating-jellyfish-ball {
         submitBtn.addEventListener('click', validate);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // 防止回车键触发表单提交等默认行为
+                e.preventDefault();
                 validate();
             }
         });
         
-        // 页面加载完成后立即让输入框获得焦点，方便用户直接输入
         input.focus();
     })();
-    // ===================== [新增结束] =====================
+    // ===================== [修改结束] =====================
+
 
     // [新增] 字符串哈希函数，用于检测内容变更
     function simpleHash(str) {
@@ -10159,46 +10175,56 @@ async function saveGlobalConfig(commitMessage) {
         }
     });
 
-    // [V3 修改] 播放开场语音的独立函数，增加“喜欢”逻辑
+    // [V4 优化] 播放开场语音的独立函数，实现预加载和即时播放
     async function playOpeningVoice() {
         // 此函数不应显示任何加载提示，以保证开屏体验
         if (!checkConfig(false)) return;
 
         try {
-            const { data } = await fetchFromGithub('widgets/opening_voice.json');
-            if (data && data.content) {
-                const voiceData = JSON.parse(b64_to_utf8(data.content));
-                if (voiceData.settings?.playOnStartup && voiceData.voices?.length > 0) {
-                    
-                    let voiceToPlay = null;
-                    const favoriteVoice = voiceData.voices.find(v => v.isFavorite);
+            // [核心修改] 使用 DataManager 获取数据，利用其缓存机制
+            const voiceData = await DataManager.get('openingVoiceData');
 
-                    // 决策逻辑
-                    if (voiceData.settings.randomPlay) {
-                        // 如果开启了随机播放，则随机播放优先
-                        const randomIndex = Math.floor(Math.random() * voiceData.voices.length);
-                        voiceToPlay = voiceData.voices[randomIndex];
-                    } else if (favoriteVoice) {
-                        // 如果没有开启随机播放，且有喜欢的语音，则播放喜欢的
-                        voiceToPlay = favoriteVoice;
-                    } else {
-                        // 如果既不随机，也没有喜欢的，则播放列表第一条
-                        // 因为列表已排序，所以第一条就是置顶的（如果有）或普通的第一条
-                        voiceToPlay = voiceData.voices[0];
-                    }
+            if (voiceData.settings?.playOnStartup && voiceData.voices?.length > 0) {
+                
+                let voiceToPlay = null;
+                const favoriteVoice = voiceData.voices.find(v => v.isFavorite);
 
-                    if (voiceToPlay && voiceToPlay.path) {
-                        const audioUrl = await getSecureFileUrl(voiceToPlay.path);
-                        if (audioUrl) {
-                             const audio = new Audio(audioUrl);
-                             audio.play().catch(e => {
-                                console.warn("开场语音自动播放失败，等待用户交互后重试。", e);
+                if (voiceData.settings.randomPlay) {
+                    const randomIndex = Math.floor(Math.random() * voiceData.voices.length);
+                    voiceToPlay = voiceData.voices[randomIndex];
+                } else if (favoriteVoice) {
+                    voiceToPlay = favoriteVoice;
+                } else {
+                    voiceToPlay = voiceData.voices[0];
+                }
+
+                if (voiceToPlay && voiceToPlay.path) {
+                    // [核心修改] 立即获取安全URL，这个过程会利用缓存
+                    const audioUrl = await getSecureFileUrl(voiceToPlay.path);
+                    if (audioUrl) {
+                        // [核心修改] 创建一个Audio对象并立即开始加载
+                        const audio = new Audio(audioUrl);
+                        audio.preload = 'auto'; // 提示浏览器尽快加载
+
+                        // 尝试播放。如果浏览器因未交互而阻止，则设置一个一次性的交互监听器
+                        const playPromise = audio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                // 如果播放失败 (很可能是因为用户还未交互)，则设置一个监听器
+                                console.warn("开场语音自动播放失败，等待用户交互后重试。", error);
+                                
                                 const playOnFirstInteraction = () => {
-                                    audio.play().catch(()=>{});
+                                    // 再次尝试播放，此时应该会成功
+                                    audio.play().catch(err => console.error("交互后播放语音仍然失败:", err));
+                                    // 播放后立即移除监听器，避免重复触发
                                     document.body.removeEventListener('click', playOnFirstInteraction, true);
+                                    document.body.removeEventListener('touchstart', playOnFirstInteraction, true);
                                 };
-                                document.body.addEventListener('click', playOnFirstInteraction, true);
-                             });
+
+                                // 监听 click 和 touchstart 事件
+                                document.body.addEventListener('click', playOnFirstInteraction, { once: true, capture: true });
+                                document.body.addEventListener('touchstart', playOnFirstInteraction, { once: true, capture: true });
+                            });
                         }
                     }
                 }
@@ -10209,10 +10235,7 @@ async function saveGlobalConfig(commitMessage) {
     }
 
     async function loadInitialData() {
-        // --- [新增] 开屏语音播放 ---
-        // 在加载任何UI之前，先尝试获取语音数据并播放
-        playOpeningVoice();
-        // -------------------------
+        // [核心修改] playOpeningVoice() 已被移出此函数，将在 DOMContentLoaded 后立即执行
 
         // --- 阶段 1: 瞬间从本地缓存加载并渲染UI ---
         const cachedConfigStr = localStorage.getItem('currentConfig');
@@ -10318,7 +10341,7 @@ async function saveGlobalConfig(commitMessage) {
             DataManager.get('usageTime');
             DataManager.get('checkInData');
             DataManager.get('messageBoardData');
-            DataManager.get('openingVoiceData'); // [新增] 预加载开场语音数据
+            // [核心修改] 不再在此处调用 DataManager.get('openingVoiceData')，因为 playOpeningVoice 已经优先处理了
 
         } catch (error) {
             console.error("后台同步失败:", error);
@@ -10327,6 +10350,7 @@ async function saveGlobalConfig(commitMessage) {
             }
         }
     }
+
 // <-- 结束替换为 -->
 
     function renderCategories() {
@@ -11391,21 +11415,19 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     })();
 
-    /* =============================================================== */
-    /* ========================= [新增结束] ========================== */
-    /* =============================================================== */
-
-    /* =============================================================== */
-/* ================ [新增] 开场语音功能管理器 V1.0 =============== */
+/* =============================================================== */
+/* ================ [重构] 开场语音功能管理器 V2.0 (iOS兼容版) =============== */
 /* =============================================================== */
 const OpeningVoiceManager = (() => {
     let ui = {};
-    let previewAudio = new Audio(); // [新增] 用于预览的全局音频对象
-    let currentPlayingId = null;    // [新增] 跟踪当前播放的语音ID
+    let previewAudio = new Audio();
+    let currentPlayingId = null;
     const VOICE_PATH_PREFIX = 'opening_voices/';
+    
+    // [iOS 兼容性修复] 新增一个URL缓存对象
+    let audioUrlCache = {};
 
     function init() {
-        // 获取UI元素
         ui = {
             listContainer: document.getElementById('opening-voice-list'),
             titleInput: document.getElementById('opening-voice-title'),
@@ -11414,26 +11436,19 @@ const OpeningVoiceManager = (() => {
             filePicker: document.getElementById('opening-voice-picker'),
             playToggle: document.getElementById('opening-voice-play-toggle'),
             randomToggle: document.getElementById('opening-voice-random-toggle'),
-            // [新增] 视频转语音相关UI
             videoToVoiceBtn: document.getElementById('video-to-voice-btn'),
             videoPicker: document.getElementById('video-to-voice-picker'),
             videoStatus: document.getElementById('video-to-voice-status'),
         };
 
-
-        // 绑定事件
         ui.uploadBtn.addEventListener('click', () => ui.filePicker.click());
         ui.filePicker.addEventListener('change', handleVoiceUpload);
         ui.listContainer.addEventListener('click', handleListClick);
         ui.playToggle.addEventListener('change', handleSettingsChange);
         ui.randomToggle.addEventListener('change', handleSettingsChange);
-
-        // [新增] 视频转语音事件绑定
         ui.videoToVoiceBtn.addEventListener('click', () => ui.videoPicker.click());
         ui.videoPicker.addEventListener('change', handleVideoToVoiceConversion);
 
-
-        // 初始化时加载并渲染列表和设置
         loadAndRender();
     }
 
@@ -11441,17 +11456,32 @@ const OpeningVoiceManager = (() => {
         const data = await DataManager.get('openingVoiceData');
         renderVoiceList(data.voices);
         renderSettings(data.settings);
+        // [iOS 兼容性修复] 预加载所有语音的URL
+        preloadVoiceUrls(data.voices);
     }
     
+    // [iOS 兼容性修复] 新增函数：预加载所有语音的URL并存入缓存
+    function preloadVoiceUrls(voices = []) {
+        if (voices.length === 0) return;
+        console.log("正在后台预加载语音文件URL...");
+        voices.forEach(voice => {
+            if (voice.path && !audioUrlCache[voice.id]) {
+                getSecureFileUrl(voice.path).then(url => {
+                    if (url) {
+                        audioUrlCache[voice.id] = url;
+                        console.log(`语音 "${voice.title}" URL预加载成功。`);
+                    }
+                });
+            }
+        });
+    }
+
     function renderVoiceList(voices = []) {
         if (voices.length === 0) {
             ui.listContainer.innerHTML = '<p style="text-align: center; color: #889;">暂无语音</p>';
             return;
         }
-
-        // [新增] 排序逻辑：将 isFavorite 为 true 的条目排在最前面
         const sortedVoices = [...voices].sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0));
-
         ui.listContainer.innerHTML = sortedVoices.map(voice => `
             <div class="voice-list-item ${voice.isFavorite ? 'favorited' : ''}">
                 <button class="voice-play-btn" data-voice-id="${voice.id}" title="播放/暂停">
@@ -11462,7 +11492,6 @@ const OpeningVoiceManager = (() => {
                     <div class="voice-speaker">${voice.title || '无标题'}</div>
                     <div class="voice-filename">${voice.speaker || '未知留言人'}</div>
                 </div>
-                <!-- [新增] 喜欢按钮 -->
                 <button class="voice-favorite-btn" data-voice-id="${voice.id}" title="喜欢/取消喜欢">
                     ${voice.isFavorite ? '♥' : '♡'}
                 </button>
@@ -11472,11 +11501,10 @@ const OpeningVoiceManager = (() => {
     }
 
     function renderSettings(settings = {}) {
-        ui.playToggle.checked = settings.playOnStartup !== false; // 默认开启
-        ui.randomToggle.checked = settings.randomPlay !== false; // 默认开启
+        ui.playToggle.checked = settings.playOnStartup !== false;
+        ui.randomToggle.checked = settings.randomPlay !== false;
     }
 
-    // [重构] 将核心上传逻辑提取为独立函数
     async function uploadVoiceFile(file, title, speaker) {
         try {
             const uniqueFileName = `${Date.now()}_${file.name}`;
@@ -11489,15 +11517,19 @@ const OpeningVoiceManager = (() => {
             });
 
             const data = await DataManager.get('openingVoiceData');
-            data.voices.push({
+            const newVoice = {
                 id: Date.now(),
                 title: title,
                 speaker: speaker,
                 filename: file.name,
                 path: path,
                 isFavorite: false
-            });
+            };
+            data.voices.push(newVoice);
             await DataManager.save('openingVoiceData', 'Add opening voice');
+            
+            // [iOS 兼容性修复] 新语音上传成功后，立即预加载其URL
+            getSecureFileUrl(newVoice.path).then(url => { if(url) audioUrlCache[newVoice.id] = url; });
 
             return { success: true };
         } catch (error) {
@@ -11507,7 +11539,6 @@ const OpeningVoiceManager = (() => {
         }
     }
 
-    // [重构] 新的音频文件上传处理器
     async function handleVoiceUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -11538,7 +11569,6 @@ const OpeningVoiceManager = (() => {
         ui.uploadBtn.disabled = false;
     }
 
-    // [新增] 视频转语音核心处理函数
     async function handleVideoToVoiceConversion(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -11556,27 +11586,14 @@ const OpeningVoiceManager = (() => {
         ui.videoStatus.textContent = '正在从视频中提取音轨...';
 
         try {
-            // 1. 读取视频文件
             const arrayBuffer = await file.arrayBuffer();
-
-            // 2. 使用 OfflineAudioContext 进行解码和渲染
-            const audioContext = new OfflineAudioContext({
-                numberOfChannels: 2,
-                sampleRate: 44100, // 标准采样率
-                length: 44100 * 30 // 预设30秒长度，实际会按视频长度截断
-            });
-
+            const audioContext = new OfflineAudioContext({ numberOfChannels: 2, sampleRate: 44100, length: 44100 * 30 });
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-            // 3. 将 AudioBuffer 转换为 WAV Blob
             const wavBlob = audioBufferToWav(audioBuffer);
-
-            // 4. 创建一个新的 File 对象，以便复用上传逻辑
             const wavFile = new File([wavBlob], `${title.replace(/\s+/g, '_') || 'video_voice'}.wav`, { type: 'audio/wav' });
 
             ui.videoStatus.textContent = '转换成功，正在上传...';
 
-            // 5. 调用重构后的通用上传函数
             const result = await uploadVoiceFile(wavFile, title, speaker);
 
             if (result.success) {
@@ -11598,27 +11615,20 @@ const OpeningVoiceManager = (() => {
         }
     }
 
-
     async function handleDelete(voiceId) {
-        if (!voiceId) return;
+        if (!voiceId || !confirm('确定要删除这条语音吗？')) return;
 
-        if (!confirm('确定要删除这条语音吗？')) return;
-
+        // [iOS 兼容性修复] 从缓存中删除
+        delete audioUrlCache[voiceId];
 
         const data = await DataManager.get('openingVoiceData');
         const voiceToDelete = data.voices.find(v => v.id === voiceId);
 
         if (!voiceToDelete) return;
 
-        // 从列表中移除
         data.voices = data.voices.filter(v => v.id !== voiceId);
-
-        // 从GitHub删除文件
         await deleteFromGithub(voiceToDelete.path, `Delete opening voice: ${voiceToDelete.filename}`, null, true);
-
-        // 保存更新后的数据
         await DataManager.save('openingVoiceData', 'Delete opening voice');
-
         renderVoiceList(data.voices);
         showTopToast('语音已删除', 2000);
     }
@@ -11629,101 +11639,91 @@ const OpeningVoiceManager = (() => {
         data.settings.randomPlay = ui.randomToggle.checked;
         await DataManager.save('openingVoiceData', 'Update opening voice settings');
     }
-    async function handleSettingsChange() {
-        const data = await DataManager.get('openingVoiceData');
-        data.settings.playOnStartup = ui.playToggle.checked;
-        data.settings.randomPlay = ui.randomToggle.checked;
-        await DataManager.save('openingVoiceData', 'Update opening voice settings');
-    }
 
-    // [修改] 统一处理列表点击事件，增加喜欢按钮逻辑
     async function handleListClick(event) {
         const deleteBtn = event.target.closest('.voice-delete-btn');
         const playBtn = event.target.closest('.voice-play-btn');
-        const favoriteBtn = event.target.closest('.voice-favorite-btn'); // [新增] 获取喜欢按钮
+        const favoriteBtn = event.target.closest('.voice-favorite-btn');
 
         if (deleteBtn) {
-            const voiceId = parseInt(deleteBtn.dataset.voiceId, 10);
-            handleDelete(voiceId);
+            handleDelete(parseInt(deleteBtn.dataset.voiceId, 10));
         } else if (playBtn) {
-            const voiceId = parseInt(playBtn.dataset.voiceId, 10);
-            handlePlayToggle(voiceId);
-        } else if (favoriteBtn) { // [新增] 处理喜欢按钮点击
+            handlePlayToggle(parseInt(playBtn.dataset.voiceId, 10));
+        } else if (favoriteBtn) {
             const voiceId = parseInt(favoriteBtn.dataset.voiceId, 10);
             const data = await DataManager.get('openingVoiceData');
-            
             const targetVoice = data.voices.find(v => v.id === voiceId);
             if (!targetVoice) return;
-            
-            // 确定新的状态：如果当前已是喜欢，则取消喜欢；否则设为喜欢
             const newFavoriteState = !targetVoice.isFavorite;
-
-            // 将所有语音都设为“未喜欢”
             data.voices.forEach(v => v.isFavorite = false);
-            
-            // 仅当目标是“设为喜欢”时，才应用新状态
             if (newFavoriteState) {
                 targetVoice.isFavorite = true;
             }
-            
             await DataManager.save('openingVoiceData', 'Update favorite voice');
-            renderVoiceList(data.voices); // 重新渲染列表以反映排序和图标变化
+            renderVoiceList(data.voices);
         }
     }
 
-    // [新增] 播放/暂停切换逻辑
+    // [iOS 兼容性修复] 重构播放切换逻辑
     async function handlePlayToggle(voiceId) {
-        // 如果点击的是正在播放的语音，则暂停
         if (currentPlayingId === voiceId && !previewAudio.paused) {
             previewAudio.pause();
-            return; // 暂停后函数结束
+            return;
         }
 
-        // 如果当前有其他语音在播放，先停止它
         if (!previewAudio.paused) {
             previewAudio.pause();
         }
 
         currentPlayingId = voiceId;
-        const data = await DataManager.get('openingVoiceData');
-        const voiceToPlay = data.voices.find(v => v.id === voiceId);
+        updatePlayButtons(); // 立即更新UI，显示加载状态（虽然没专门做，但会变成播放图标）
 
-        if (!voiceToPlay) {
-            showTopToast("找不到该语音文件", 2000);
-            currentPlayingId = null;
+        // [核心修改] 从缓存同步获取URL
+        let audioUrl = audioUrlCache[voiceId];
+
+        // 如果缓存中没有，说明预加载失败或还没完成，则异步获取一次
+        if (!audioUrl) {
+            showTopToast("正在获取音频，请稍候...", 1500);
+            const data = await DataManager.get('openingVoiceData');
+            const voiceToPlay = data.voices.find(v => v.id === voiceId);
+            if (!voiceToPlay) {
+                showTopToast("找不到该语音文件", 2000);
+                currentPlayingId = null; updatePlayButtons();
+                return;
+            }
+            audioUrl = await getSecureFileUrl(voiceToPlay.path);
+            if (audioUrl) {
+                audioUrlCache[voiceId] = audioUrl; // 获取后存入缓存
+            }
+        }
+        
+        // 如果最终还是没有URL，则播放失败
+        if (!audioUrl) {
+            showTopToast("加载语音失败", 2000);
+            currentPlayingId = null; updatePlayButtons();
             return;
         }
 
-        // 更新按钮状态
-        updatePlayButtons();
-        
+        // [核心修改] 拿到URL后，同步执行播放
         try {
-            const audioUrl = await getSecureFileUrl(voiceToPlay.path);
-            if (!audioUrl) throw new Error("无法获取音频URL");
-            
             previewAudio.src = audioUrl;
-            previewAudio.play().catch(e => {
-                showTopToast("播放失败，请稍后再试", 2000);
-                console.error("Audio play error:", e);
-                currentPlayingId = null;
-                updatePlayButtons();
-            });
-
+            await previewAudio.play();
         } catch (error) {
-            showTopToast("加载语音失败", 2000);
-            console.error(error);
+            showTopToast("播放失败，请稍后再试", 2000);
+            console.error("Audio play error:", error);
             currentPlayingId = null;
             updatePlayButtons();
         }
     }
 
-    // [新增] 更新所有播放按钮UI的函数
     function updatePlayButtons() {
+        if (!ui.listContainer) return;
         const allPlayBtns = ui.listContainer.querySelectorAll('.voice-play-btn');
         allPlayBtns.forEach(btn => {
             const btnId = parseInt(btn.dataset.voiceId, 10);
             const playIcon = btn.querySelector('.play-icon');
             const pauseIcon = btn.querySelector('.pause-icon');
+            if (!playIcon || !pauseIcon) return;
 
             if (btnId === currentPlayingId && !previewAudio.paused) {
                 btn.classList.add('playing');
@@ -11737,10 +11737,8 @@ const OpeningVoiceManager = (() => {
         });
     }
 
-    // [新增] 音频事件监听
     previewAudio.onplay = updatePlayButtons;
     previewAudio.onpause = () => {
-        // 只有当暂停是由用户或代码触发，而不是自然结束时，才清除currentPlayingId
         if (previewAudio.currentTime < previewAudio.duration) {
             currentPlayingId = null;
         }
@@ -11751,63 +11749,24 @@ const OpeningVoiceManager = (() => {
         updatePlayButtons();
     };
 
-    // 将init函数暴露出去
-    return { init };
-    // [新增] AudioBuffer 转 WAV 的工具函数
     function audioBufferToWav(buffer) {
-        let numOfChan = buffer.numberOfChannels,
-            len = buffer.length * numOfChan * 2 + 44,
-            bufferArr = new ArrayBuffer(len),
-            view = new DataView(bufferArr),
-            channels = [],
-            i,
-            sample,
-            offset = 0,
-            pos = 0;
-
-        // 写入WAV头
-        setUint32(0x46464952); // "RIFF"
-        setUint32(len - 8); // 文件总长 - 8
-        setUint32(0x45564157); // "WAVE"
-        setUint32(0x20746d66); // "fmt " chunk
-        setUint32(16); // PCM
-        setUint16(1); // PCM
-        setUint16(numOfChan);
-        setUint32(buffer.sampleRate);
-        setUint32(buffer.sampleRate * 2 * numOfChan); // (Sample Rate * BitsPerSample * Channels) / 8
-        setUint16(numOfChan * 2);
-        setUint16(16); // 16-bit
-        setUint32(0x61746164); // "data" - chunk
-        setUint32(len - pos - 4); // chunk length
-
-        function setUint16(data) {
-            view.setUint16(pos, data, true);
-            pos += 2;
-        }
-
-        function setUint32(data) {
-            view.setUint32(pos, data, true);
-            pos += 4;
-        }
-
-        // 写入数据
-        for (i = 0; i < buffer.numberOfChannels; i++)
-            channels.push(buffer.getChannelData(i));
-
+        let numOfChan = buffer.numberOfChannels, len = buffer.length * numOfChan * 2 + 44, bufferArr = new ArrayBuffer(len), view = new DataView(bufferArr), channels = [], i, sample, offset = 0, pos = 0;
+        setUint32(0x46464952); setUint32(len - 8); setUint32(0x45564157); setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan); setUint32(buffer.sampleRate); setUint32(buffer.sampleRate * 2 * numOfChan); setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164); setUint32(len - pos - 4);
+        function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+        function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+        for (i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
         while (pos < len) {
             for (i = 0; i < numOfChan; i++) {
-                sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
-                sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; // scale to 16-bit signed int
-                view.setInt16(pos, sample, true);
-                pos += 2;
+                sample = Math.max(-1, Math.min(1, channels[i][offset])); sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; view.setInt16(pos, sample, true); pos += 2;
             }
             offset++;
         }
-
         return new Blob([view], { type: "audio/wav" });
     }
 
+    return { init };
 })();
+
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
 /* =============================================================== */
@@ -15422,19 +15381,25 @@ const OpeningVoiceManager = (() => {
         }
 
 
- window.addEventListener('load', async () => {
+ document.addEventListener('DOMContentLoaded', async () => {
+        // [核心修改] 1. 将事件从 'load' 改为 'DOMContentLoaded'
+        
+        // [核心修改] 2. 立即加载 GitHub 配置并触发开场语音
+        loadGithubConfig();
+        playOpeningVoice();
+
+        // 后续的初始化逻辑保持不变，但现在它们会更快地执行
         try {
             await ImageCacheDB.init();
         } catch (e) {
             console.error(e);
             alert("本地图片缓存功能启动失败，图片加载速度可能会变慢。");
         }
-        loadGithubConfig();
         checkAppUpdate();
         await loadInitialData();
         setupModals();
         BaiduNetdisk.init();
-        // 新增对开场语音管理器的初始化
+
         const voiceCapsuleBtn = document.querySelector('[data-target="widget-page-voice"]');
         if (voiceCapsuleBtn) {
             voiceCapsuleBtn.addEventListener('click', () => OpeningVoiceManager.init());
@@ -15448,22 +15413,18 @@ const OpeningVoiceManager = (() => {
         setupColorSync(colorModal.pickerD2, colorModal.hexD2, 'dayColor2');
         setupColorSync(colorModal.pickerN1, colorModal.hexN1, 'nightColor1'); 
         setupColorSync(colorModal.pickerN2, colorModal.hexN2, 'nightColor2');
-        // [新增] 为十六进制输入框绑定同步事件
         setupHexInputSync(colorModal.hexD1, colorModal.pickerD1, 'dayColor1');
         setupHexInputSync(colorModal.hexD2, colorModal.pickerD2, 'dayColor2');
         setupHexInputSync(colorModal.hexN1, colorModal.pickerN1, 'nightColor1');
         setupHexInputSync(colorModal.hexN2, colorModal.pickerN2, 'nightColor2');
 
-        // [核心新增] 将悬浮球初始化移至最后，并增加常驻逻辑
         FloatingBallManager.init();
 
-        // ★ 新增：应用随机CSS预设的逻辑 ★
         const randomCssEnabled = localStorage.getItem('jellyRandomCssEnabled') === 'true';
         if (currentConfig.settings.jellyBall && currentConfig.settings.jellyBall.cssPresets && currentConfig.settings.jellyBall.cssPresets.length > 0 && randomCssEnabled) {
             const presets = currentConfig.settings.jellyBall.cssPresets;
             const randomPreset = presets[Math.floor(Math.random() * presets.length)];
-            currentConfig.settings.jellyBall.customCSS = randomPreset.css; // 同步到当前配置
-            // 注意：这里不需要saveGlobalConfig，因为这只是本次启动的临时效果
+            currentConfig.settings.jellyBall.customCSS = randomPreset.css;
         }
 
         if (currentConfig.settings.jellyBall && currentConfig.settings.jellyBall.enabled) {
@@ -15480,11 +15441,9 @@ const OpeningVoiceManager = (() => {
                 confirmBtn.addEventListener('click', () => {
                     modal.classList.remove('show');
                     localStorage.setItem('iosWarningShown', 'true');
-                    // [核心修改] 用户确认iOS提示后，再检查是否需要显示首次引导
                     checkAndShowFirstTimeGuide();
                 }, { once: true });
             } else {
-                // [核心修改] 如果不是iOS或已经提示过，直接检查首次引导
                 checkAndShowFirstTimeGuide();
             }
         }
@@ -15501,17 +15460,14 @@ const OpeningVoiceManager = (() => {
                 startBtn.addEventListener('click', () => {
                     guideModal.classList.remove('show');
                     document.getElementById('helpModal').classList.add('show');
-                    document.getElementById('help-tab-0').click(); // 直接跳转到首次配置标签页
+                    document.getElementById('help-tab-0').click();
                     localStorage.setItem('firstTimeGuideShown', 'true');
                 }, { once: true });
             }
         }
 
-        // [修改] 调用 showIosWarning，它现在内部会处理后续的 checkAndShowFirstTimeGuide 调用
         showIosWarning();
 
-
-        // [新增] 监听更新公告标签页的点击
         const updateLogTab = document.querySelector('label[for="help-tab-2"]');
         if (updateLogTab) {
             updateLogTab.addEventListener('click', () => {
@@ -15519,16 +15475,14 @@ const OpeningVoiceManager = (() => {
                 const updateLogIndicator = document.getElementById('update-log-indicator');
 
                 if (helpPage && updateLogIndicator.classList.contains('show')) {
-                    // 隐藏标签上的红点
                     if (updateLogIndicator) updateLogIndicator.classList.remove('show');
-                    // 隐藏主按钮上的红点
                     document.getElementById('helpBtn').classList.remove('has-update');
-                    // 更新“已读”状态到localStorage
                     const currentUpdateHash = simpleHash(helpPage.innerHTML.trim());
                     localStorage.setItem('lastSeenUpdateHash', String(currentUpdateHash));
                 }
             });
         }
+
 
         /* =============================================================== */
         /* ============== [新增] 拖拽排序功能核心逻辑 V1.0 ============= */
