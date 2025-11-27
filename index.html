@@ -7896,35 +7896,31 @@ const PendantVoiceManager = (() => {
             return;
         }
 
-        // --- 开始修改 ---
-
-        // 1. 显示上传进度条和取消按钮
+        // [核心修改] 仅改变按钮状态，不再显示进度条
         ui.saveBtn.disabled = true;
-        ui.saveBtn.textContent = '上传中...';
-        ui.progressContainer.style.display = 'flex';
-        ui.progressBar.style.width = '0%';
+        ui.saveBtn.textContent = '上传中…';
         
-        // 2. 将Base64数据转换为Blob对象以便上传
+        // 将Base64数据转换为Blob对象以便上传
         const fetchRes = await fetch(pendingAudioDataUrl);
         const blob = await fetchRes.blob();
         
-        // 3. 定义上传路径和文件名
+        // 定义上传路径和文件名
         const extension = blob.type.split('/')[1] || 'mp3';
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${extension}`;
         const path = `memory/voices/${fileName}`;
 
         try {
-            // 4. 使用已有的 uploadFileViaGitData 函数上传文件
+            // 使用已有的 uploadFileViaGitData 函数上传文件, onProgress回调不再需要
             const uploadResult = await uploadFileViaGitData({
                 file: new File([blob], fileName, { type: blob.type }),
                 path: path,
                 commitMessage: `Upload voice: ${fileName}`,
                 onProgress: (percent) => {
-                    ui.progressBar.style.width = `${percent}%`;
+                    // 进度条逻辑已删除，此回调为空
                 }
             });
 
-            // 5. 关键：只保存文件路径，而不是文件内容
+            // 关键：只保存文件路径，而不是文件内容
             const newVoice = {
                 id: Date.now(),
                 speaker: speaker,
@@ -7936,7 +7932,7 @@ const PendantVoiceManager = (() => {
             pendantVoiceData.voices.push(newVoice);
             await DataManager.save('pendantVoiceData', `Add voice: ${speaker}`);
 
-            // 6. 重置表单
+            // 重置表单
             ui.speakerInput.value = '';
             ui.subtitleInput.value = '';
             ui.audioPicker.value = '';
@@ -7952,14 +7948,12 @@ const PendantVoiceManager = (() => {
             console.error("上传语音失败:", error);
             alert(`上传语音失败: ${error.message}`);
         } finally {
-            // 7. 无论成功或失败，都恢复UI状态
+            // 无论成功或失败，都恢复UI状态
             ui.saveBtn.disabled = false;
             ui.saveBtn.textContent = '保存语音';
-            ui.progressContainer.style.display = 'none';
+            // [核心修改] 删除进度条隐藏逻辑
         }
-        // --- 结束修改 ---
     }
-
 
     function renderVoiceList() {
         const voices = pendantVoiceData.voices;
