@@ -172,7 +172,12 @@
                     overflow: visible; /* 允许子元素溢出，以显示提示框 */
                 }
                 .modal-body { overflow-y: auto; overflow-x: hidden; flex-grow: 1; display:flex; flex-direction:column; gap: 15px; margin-right: -5px; padding-right: 5px; scrollbar-width: none; -ms-overflow-style: none; -webkit-mask-image: linear-gradient(to bottom, black 95%, transparent 100%); mask-image: linear-gradient(to bottom, black 95%, transparent 100%); }
-   
+        /* 确保 .toggle-section 有相对定位，为 tooltip 提供定位上下文 */
+        #addNavModal .toggle-section {
+            position: relative; /* 为内部 tooltip 绝对定位提供基准 */
+            overflow: visible;  /* 允许 tooltip 内部溢出 */
+        }
+
         .modal-body > * { margin-left: 3px; margin-right: 3px; width: calc(100% - 6px); }
         .modal-body::-webkit-scrollbar { width: 0; background: transparent; }
         .modal-input,.modal-select,.modal-textarea{padding:12px 15px;border:none;border-radius:10px;font-size:16px;background:var(--bg-day-element);color:var(--text-day);box-shadow:inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day);transition:all .3s ease;caret-color:var(--hold-border)}body.dark-mode .modal-input,body.dark-mode .modal-select,body.dark-mode .modal-textarea{background:var(--bg-night-element);color:var(--text-night);box-shadow:inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night)}.modal-input:focus,.modal-select:focus,.modal-textarea:focus{outline:none;box-shadow:inset 4px 4px 8px var(--shadow-dark-day),inset -4px -4px 8px var(--shadow-light-day),0 0 0 2px var(--hold-border)}body.dark-mode .modal-input:focus,body.dark-mode .modal-select:focus,body.dark-mode .modal-textarea:focus{box-shadow:inset 4px 4px 8px var(--shadow-dark-night),inset -4px -4px 8px var(--shadow-light-night),0 0 0 2px var(--hold-border)} .modal-textarea{resize:vertical;min-height:80px;}
@@ -4659,6 +4664,7 @@ body.dark-mode .message-card.completed {
     /* 既然背景不透明，就不再需要背景模糊效果了 */
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    padding: 12px; /* 增加整体内边距，给内容留出空间 */
 }
 
 body.dark-mode #messageBoardModal .modal-content {
@@ -4671,6 +4677,24 @@ body.dark-mode #messageBoardModal .modal-content {
     z-index: 1010; /* 设置一个比挂件中心(1005)更高的值 */
 }
 
+/* [新增] 调整modal-body以更好地适应空间 */
+#messageBoardModal .modal-body {
+    padding: 0 3px; /* 减少左右内边距 */
+    margin-right: -3px; /* 抵消scrollbar-width */
+}
+
+/* [新增] 为定期提醒的输入组添加 Flexbox 行为 */
+#periodicReminderSettings > div {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#periodicReminderSettings input[type="number"],
+#periodicReminderSettings select {
+    flex-grow: 1; /* 确保输入框和选择框能填充可用空间 */
+    min-width: 0; /* 允许在必要时收缩 */
+}
 
 /* =============================================================== */
 /* ========================= [新增结束] ========================== */
@@ -6638,6 +6662,7 @@ body.theme-glass .voice-play-btn:active {
                 <li><span class="tag new">新功能</span> 新增渲染器导入和复制功能。</li>
                 <li><span class="tag new">新功能</span> 新增挂件补卡功能。</li>
                 <li><span class="tag fix">修复</span> 修复预览图片模式背景模糊的问题。</li>
+                <li><span class="tag fix">修复</span> 修复切换链接悬浮窗无法打开的问题。</li>
                 <li><span class="tag opt">优化</span> 优化上传照片时的显示方式。</li>
             </ul>
         </div>
@@ -9077,12 +9102,32 @@ document.addEventListener('DOMContentLoaded', () => {
             overlay.onclick = (e) => { if (e.target === overlay) closeMenu(); };
             menuContainer.querySelector('.close-btn').onclick = closeMenu;
             
-            menuContainer.querySelector('#qs-open-float').onclick = () => {
-                if(selectedProject) FloatingProjectWindowManager.create(Date.now(), selectedProject.title, selectedProject.url);
+            menuContainer.querySelector('#qs-open-float').onclick = async () => { // <--- 注意：这里增加了 async 关键字
+                if(selectedProject) {
+                    // --- 核心修改：对本地文件先获取安全URL ---
+                    const finalUrl = selectedProject.url.startsWith('projects/') 
+                        ? await getSecureFileUrl(selectedProject.url) 
+                        : selectedProject.url;
+                    if (finalUrl) { // 仅当获取到有效URL时才创建
+                        FloatingProjectWindowManager.create(Date.now(), selectedProject.title, finalUrl);
+                    } else {
+                        showTopToast('无法打开本地项目，请检查网络或文件。', 3000);
+                    }
+                }
                 closeMenu();
             };
-            menuContainer.querySelector('#qs-open-full').onclick = () => {
-                if(selectedProject) openIframeModal(selectedProject.url);
+            menuContainer.querySelector('#qs-open-full').onclick = async () => { // <--- 注意：这里增加了 async 关键字
+                if(selectedProject) {
+                    // --- 核心修改：对本地文件先获取安全URL ---
+                    const finalUrl = selectedProject.url.startsWith('projects/') 
+                        ? await getSecureFileUrl(selectedProject.url) 
+                        : selectedProject.url;
+                    if (finalUrl) { // 仅当获取到有效URL时才打开
+                        openIframeModal(finalUrl);
+                    } else {
+                        showTopToast('无法打开本地项目，请检查网络或文件。', 3000);
+                    }
+                }
                 closeMenu();
             };
         }
